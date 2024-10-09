@@ -1,0 +1,4 @@
+# Ignore artifacts:
+.angular
+.vscode
+dist
