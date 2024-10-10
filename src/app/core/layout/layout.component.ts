@@ -1,16 +1,47 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardAvatar } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink } from '@angular/router';
+import { Subject, switchMap } from 'rxjs';
+import { UserState } from '../states/user.state';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'combi-layout',
   standalone: true,
-  imports: [MatButtonModule, MatToolbarModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    MatCardAvatar,
+    MatIconModule,
+    MatMenuModule,
+    MatToolbarModule,
+    RouterLink,
+  ],
   template: `
     <header>
       <mat-toolbar>
-        <a mat-button class="root-link" routerLink="/">CE</a>
+        @if (currentUser(); as currentUser) {
+          <a mat-button class="root-link" routerLink="/">CE</a>
+          <span class="toolbar-spacer"></span>
+          <button mat-button [matMenuTriggerFor]="userMenu">
+            <img
+              mat-card-avatar
+              class="avatar"
+              [src]="currentUser.photoURL"
+              [alt]="currentUser.displayName"
+            />
+          </button>
+          <mat-menu #userMenu="matMenu">
+            <button mat-menu-item (click)="logout$.next()">
+              <mat-icon>logout</mat-icon>
+              Cerrar Sesión
+            </button>
+          </mat-menu>
+        }
       </mat-toolbar>
     </header>
     <main>
@@ -44,6 +75,15 @@ import { RouterLink } from '@angular/router';
           font-weight: bold;
           padding: 1rem;
         }
+
+        .toolbar-spacer {
+          flex: 1 1 auto;
+        }
+
+        .avatar {
+          margin: 0;
+          vertical-align: bottom;
+        }
       }
     }
 
@@ -52,6 +92,7 @@ import { RouterLink } from '@angular/router';
       margin-top: 64px;
 
       .container {
+        height: 100%;
         margin: 1rem auto;
         max-width: 1080px;
         width: 75%;
@@ -67,5 +108,14 @@ import { RouterLink } from '@angular/router';
       width: 95%;
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LayoutComponent {}
+export class LayoutComponent {
+  #auth = inject(AuthService);
+
+  #userState = inject(UserState);
+  currentUser = this.#userState.currentUser;
+
+  logout$ = new Subject<void>();
+  logout = toSignal(this.logout$.pipe(switchMap(() => this.#auth.logout())));
+}

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -22,7 +22,7 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
   ],
   template: `
     @if (event(); as event) {
-      <mat-card appearance="raised">
+      <mat-card>
         <mat-card-header>
           <mat-card-title>
             <h5>
@@ -64,7 +64,7 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
         Inscribirse
       </a>
 
-      <mat-card appearance="raised">
+      <mat-card>
         <mat-card-header>
           <mat-card-title>
             <h6>Ubicación</h6>
@@ -116,6 +116,7 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDataComponent {
   #route = inject(ActivatedRoute);

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { EventCardComponent } from './event-card/event-card.component';
 import { EventsService } from '../core/services/events.service';
@@ -56,6 +56,7 @@ import { EventsService } from '../core/services/events.service';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventsComponent {
   #eventsService = inject(EventsService);

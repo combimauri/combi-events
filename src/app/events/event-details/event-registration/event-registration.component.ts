@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, Observable, of, Subject, switchMap } from 'rxjs';
@@ -48,6 +48,7 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventRegistrationComponent {
   #billingRecord?: BillingRecord;

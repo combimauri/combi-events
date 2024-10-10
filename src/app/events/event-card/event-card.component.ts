@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +10,7 @@ import { Event } from '../../core/models/event.model';
   standalone: true,
   imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink],
   template: `
-    <mat-card appearance="raised">
+    <mat-card>
       <mat-card-header>
         <mat-card-title>
           <h6>
@@ -90,6 +90,7 @@ import { Event } from '../../core/models/event.model';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventCardComponent {
   event = input.required<Event>();

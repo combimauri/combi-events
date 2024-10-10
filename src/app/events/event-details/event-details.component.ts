@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
@@ -33,6 +33,7 @@ import { Event } from '../../core/models/event.model';
       width: 100%;
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDetailsComponent {
   #route = inject(ActivatedRoute);

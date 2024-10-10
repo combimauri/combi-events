@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LayoutComponent } from './core/layout/layout.component';
 
@@ -12,5 +12,6 @@ import { LayoutComponent } from './core/layout/layout.component';
     </combi-layout>
   `,
   styles: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {}

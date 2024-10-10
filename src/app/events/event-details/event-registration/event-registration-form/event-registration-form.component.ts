@@ -1,4 +1,4 @@
-import { Component, output, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, output, viewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -27,7 +27,7 @@ import { BillingRecord } from '../../../../core/models/billing-record.model';
           <a mat-icon-button routerLink="..">
             <mat-icon>chevron_left</mat-icon>
           </a>
-          <h6>Registro al evento</h6>
+          <h6>Inscripción al Evento</h6>
         </mat-card-content>
       </mat-card>
 
@@ -141,6 +141,7 @@ import { BillingRecord } from '../../../../core/models/billing-record.model';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationFormComponent {
   firstName = '';
