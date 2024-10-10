@@ -24,7 +24,7 @@ export class PaymentsService {
       .pipe(map((response) => response?.body?.token));
   }
 
-  getPaymentIFrame(token: string, billing: BillingRecord): Observable<BillingData> {
+  getBillingData(token: string, billing: BillingRecord): Observable<BillingData> {
     const id = crypto.randomUUID();
 
     return this.#http

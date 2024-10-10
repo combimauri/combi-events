@@ -29,7 +29,10 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"],
+            "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "src/styles.css"
+            ],
             "scripts": [],
             "server": "src/main.server.ts",
             "prerender": true,
@@ -93,7 +96,10 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"],
+            "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "src/styles.css"
+            ],
             "scripts": []
           }
         }

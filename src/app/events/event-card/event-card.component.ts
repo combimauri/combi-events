@@ -1,37 +1,65 @@
 import { Component, input } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { Event } from '../../core/models/event.model';
 
 @Component({
   selector: 'gdg-event-card',
   standalone: true,
-  imports: [RouterLink],
+  imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink],
   template: `
-    <a class="event-card" [routerLink]="event().id">
-      <div class="event-card__data">
-        <h3>{{ event().name }}</h3>
-        <p class="event-card__item">
-          <span class="material-symbols-outlined"> location_on </span>
-          {{ event().location.name }}
-        </p>
-        <p class="event-card__item">
-          <span class="material-symbols-outlined"> groups </span>
-          {{ event().capacity }}
-        </p>
-      </div>
-      <div>
-        <img [alt]="event().name" [src]="event().image" />
-      </div>
-    </a>
+    <mat-card appearance="raised">
+      <mat-card-header>
+        <mat-card-title>
+          <h6>
+            {{ event().name }}
+          </h6>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="event-card__data">
+          <p class="event-card__item event-card__item--description">
+            <span>
+              {{ event().shortDescription }}
+            </span>
+          </p>
+          <p class="event-card__item">
+            <mat-icon
+              aria-hidden="false"
+              aria-label="ícono de ubicación"
+              fontIcon="location_on"
+            ></mat-icon>
+            <span>
+              {{ event().location.name }}
+            </span>
+          </p>
+          <p class="event-card__item">
+            <mat-icon
+              aria-hidden="false"
+              aria-label="ícono de personas"
+              fontIcon="groups"
+            ></mat-icon>
+            <span>
+              {{ event().capacity }}
+            </span>
+          </p>
+        </div>
+        <div>
+          <img mat-card-lg-image [alt]="event().name" [src]="event().image" />
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-button [routerLink]="event().id">Ver Más</a>
+      </mat-card-actions>
+    </mat-card>
   `,
   styles: `
-    .event-card {
+    mat-card-content {
       display: flex;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 0.75rem;
-      color: #000;
-      padding: 0.75rem;
-      text-decoration: none;
+      flex-wrap: wrap;
+      gap: 1rem;
 
       .event-card__data {
         display: flex;
@@ -41,7 +69,23 @@ import { Event } from '../../core/models/event.model';
         .event-card__item {
           align-items: center;
           display: flex;
-          gap: 10px;
+          gap: 0.5rem;
+
+          mat-icon {
+            flex-shrink: 0;
+          }
+
+          span {
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            display: -webkit-box;
+            overflow: hidden;
+            word-wrap: break-word;
+          }
+
+          &.event-card__item--description span {
+            -webkit-line-clamp: 4;
+          }
         }
       }
     }
