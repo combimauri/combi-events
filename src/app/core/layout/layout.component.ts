@@ -4,13 +4,13 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'gdg-layout',
+  selector: 'combi-layout',
   standalone: true,
   imports: [MatButtonModule, MatToolbarModule, RouterLink],
   template: `
     <header>
       <mat-toolbar>
-        <a mat-button class="root-link" routerLink="/">GDG</a>
+        <a mat-button class="root-link" routerLink="/">CE</a>
       </mat-toolbar>
     </header>
     <main>
@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
       </div>
     </main>
     <footer>
-      <span>GDG Cochabamba</span>
+      <span>&#64;combimauri</span>
     </footer>
   `,
   styles: `

@@ -5,7 +5,7 @@ import { map } from 'rxjs';
 import { Event } from '../../core/models/event.model';
 
 @Component({
-  selector: 'gdg-event-details',
+  selector: 'combi-event-details',
   standalone: true,
   imports: [RouterOutlet],
   template: `

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "gdg-events": {
+    "combi-events": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -13,12 +13,12 @@
       },
       "root": "",
       "sourceRoot": "src",
-      "prefix": "gdg",
+      "prefix": "combi",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/gdg-events",
+            "outputPath": "dist/combi-events",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -74,10 +74,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "gdg-events:build:production"
+              "buildTarget": "combi-events:build:production"
             },
             "development": {
-              "buildTarget": "gdg-events:build:development"
+              "buildTarget": "combi-events:build:development"
             }
           },
           "defaultConfiguration": "development"

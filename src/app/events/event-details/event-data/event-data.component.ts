@@ -10,7 +10,7 @@ import { Event } from '../../../core/models/event.model';
 import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 
 @Component({
-  selector: 'gdg-event-data',
+  selector: 'combi-event-data',
   standalone: true,
   imports: [
     DatePipe,

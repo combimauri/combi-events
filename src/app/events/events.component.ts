@@ -5,7 +5,7 @@ import { EventCardComponent } from './event-card/event-card.component';
 import { EventsService } from '../core/services/events.service';
 
 @Component({
-  selector: 'gdg-events',
+  selector: 'combi-events',
   standalone: true,
   imports: [DatePipe, EventCardComponent],
   template: `
@@ -17,7 +17,7 @@ import { EventsService } from '../core/services/events.service';
           <span>{{ event.date.start.toDate() | date: 'HH:mm' }}</span>
         </div>
         <span class="events__line"></span>
-        <gdg-event-card [event]="event"></gdg-event-card>
+        <combi-event-card [event]="event"></combi-event-card>
       </div>
     }
   `,
@@ -51,7 +51,7 @@ import { EventsService } from '../core/services/events.service';
         }
       }
 
-      gdg-event-card {
+      combi-event-card {
         flex-grow: 1;
       }
     }

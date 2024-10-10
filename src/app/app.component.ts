@@ -3,13 +3,13 @@ import { RouterOutlet } from '@angular/router';
 import { LayoutComponent } from './core/layout/layout.component';
 
 @Component({
-  selector: 'gdg-root',
+  selector: 'combi-root',
   standalone: true,
   imports: [LayoutComponent, RouterOutlet],
   template: `
-    <gdg-layout>
+    <combi-layout>
       <router-outlet />
-    </gdg-layout>
+    </combi-layout>
   `,
   styles: [],
 })

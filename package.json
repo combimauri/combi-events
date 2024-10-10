@@ -1,5 +1,5 @@
 {
-  "name": "gdg-events",
+  "name": "combi-events",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:gdg-events": "node dist/gdg-events/server/server.mjs",
+    "serve:ssr:combi-events": "node dist/combi-events/server/server.mjs",
     "keys:create": "cat ./src/environments/keys.template.ts > ./src/environments/keys.ts",
     "keys:override": "echo $KEYS_CONFIG > ./src/environments/keys.ts"
   },

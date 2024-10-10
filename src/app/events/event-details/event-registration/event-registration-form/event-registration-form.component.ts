@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
 import { BillingRecord } from '../../../../core/models/billing-record.model';
 
 @Component({
-  selector: 'gdg-event-registration-form',
+  selector: 'combi-event-registration-form',
   standalone: true,
   imports: [
     FormsModule,

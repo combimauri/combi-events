@@ -16,7 +16,7 @@ import { PaymentsService } from '../../../core/services/payments.service';
 import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 
 @Component({
-  selector: 'gdg-event-registration',
+  selector: 'combi-event-registration',
   standalone: true,
   imports: [EventRegistrationFormComponent, SanitizeUrlPipe],
   template: `
@@ -27,7 +27,7 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
       ></iframe>
     } @else {
       <div class="event-registration__form">
-        <gdg-event-registration-form (submitForm)="register($event)" />
+        <combi-event-registration-form (submitForm)="register($event)" />
       </div>
     }
   `,

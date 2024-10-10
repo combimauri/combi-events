@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { Event } from '../../core/models/event.model';
 
 @Component({
-  selector: 'gdg-event-card',
+  selector: 'combi-event-card',
   standalone: true,
   imports: [MatButtonModule, MatCardModule, MatIconModule, RouterLink],
   template: `
