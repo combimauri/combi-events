@@ -5,7 +5,7 @@ export interface PartialEventRecord {
   lastName: string;
   orderId: string;
   phoneNumber: string;
-  transactionId: string;
+  paymentId: string;
 }
 
 export interface EventRecord extends PartialEventRecord {

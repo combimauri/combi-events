@@ -29,6 +29,7 @@ import { LoadingState } from '../core/states/loading.state';
             mat-fab
             extended
             class="login__button"
+            [disabled]="loading()"
             (click)="signInWithGoogle$.next()"
           >
             <mat-icon>login</mat-icon>
@@ -67,15 +68,15 @@ import { LoadingState } from '../core/states/loading.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class LoginComponent {
-  #auth = inject(AuthService);
-  #route = inject(ActivatedRoute);
-  #router = inject(Router);
-  #returnUrl = this.#route.snapshot.queryParams['returnUrl'] || '/';
+  readonly #auth = inject(AuthService);
+  readonly #route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
+  readonly #returnUrl = this.#route.snapshot.queryParams['returnUrl'] || '/';
 
-  loading = inject(LoadingState).loading;
+  readonly loading = inject(LoadingState).loading;
 
-  signInWithGoogle$ = new Subject<void>();
-  googleAuth = toSignal(
+  readonly signInWithGoogle$ = new Subject<void>();
+  readonly googleAuth = toSignal(
     this.signInWithGoogle$.pipe(
       switchMap(() => this.#auth.signInWithGoogle()),
       tap({ next: (response) => this.handleSignInResponse(response) }),

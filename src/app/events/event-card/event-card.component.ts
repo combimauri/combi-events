@@ -93,5 +93,5 @@ import { Event } from '../../core/models/event.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventCardComponent {
-  event = input.required<Event>();
+  readonly event = input.required<Event>();
 }

@@ -28,7 +28,6 @@ export class AuthService {
   #router = inject(Router);
 
   loggedIn$ = user(this.#auth).pipe(
-    tap(this.#loadEffectObserver),
     switchMap((user: User) => {
       return this.getCurrentUser(user);
     }),
@@ -62,8 +61,10 @@ export class AuthService {
       return of(this.#userState.currentUser());
     }
 
-    return this.#userService
-      .getUser(user.email || '')
-      .pipe(tap((user) => this.#userState.setUser(user)));
+    return this.#userService.getUser(user.email || '').pipe(
+      tap(this.#loadEffectObserver),
+      tap((user) => this.#userState.setUser(user)),
+      catchError((error) => handleError(error, this.#logger)),
+    );
   }
 }

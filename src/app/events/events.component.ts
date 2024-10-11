@@ -59,7 +59,7 @@ import { EventsService } from '../core/services/events.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventsComponent {
-  #eventsService = inject(EventsService);
+  readonly #eventsService = inject(EventsService);
 
-  events = toSignal(this.#eventsService.getEvents(), { initialValue: [] });
+  readonly events = toSignal(this.#eventsService.getEvents(), { initialValue: [] });
 }

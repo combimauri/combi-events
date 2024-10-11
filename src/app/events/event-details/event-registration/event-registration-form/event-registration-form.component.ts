@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, output, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  output,
+  viewChild,
+} from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { BillingRecord } from '../../../../core/models/billing-record.model';
+import { LoadingState } from '../../../../core/states/loading.state';
 
 @Component({
   selector: 'combi-event-registration-form',
@@ -47,6 +54,7 @@ import { BillingRecord } from '../../../../core/models/billing-record.model';
               type="text"
               id="firstName"
               name="firstName"
+              [disabled]="loading()"
               [(ngModel)]="firstName"
             />
           </mat-form-field>
@@ -68,6 +76,7 @@ import { BillingRecord } from '../../../../core/models/billing-record.model';
               type="text"
               id="lastName"
               name="lastName"
+              [disabled]="loading()"
               [(ngModel)]="lastName"
             />
           </mat-form-field>
@@ -89,6 +98,7 @@ import { BillingRecord } from '../../../../core/models/billing-record.model';
               type="email"
               id="email"
               name="email"
+              [disabled]="loading()"
               [(ngModel)]="email"
             />
           </mat-form-field>
@@ -110,13 +120,19 @@ import { BillingRecord } from '../../../../core/models/billing-record.model';
               type="text"
               id="phoneNumber"
               name="phoneNumber"
+              [disabled]="loading()"
               [(ngModel)]="phoneNumber"
             />
           </mat-form-field>
         </mat-card-content>
       </mat-card>
 
-      <button mat-fab extended type="submit" [disabled]="eventForm.invalid">
+      <button
+        mat-fab
+        extended
+        type="submit"
+        [disabled]="eventForm.invalid || loading()"
+      >
         Registrarse y Pagar
       </button>
     </form>
@@ -149,9 +165,9 @@ export class EventRegistrationFormComponent {
   email = '';
   phoneNumber = '';
 
-  eventForm = viewChild.required(NgForm);
-
-  submitForm = output<BillingRecord>();
+  readonly eventForm = viewChild.required(NgForm);
+  readonly submitForm = output<BillingRecord>();
+  readonly loading = inject(LoadingState).loading;
 
   register(): void {
     if (this.eventForm().invalid) {

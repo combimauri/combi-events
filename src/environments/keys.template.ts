@@ -11,5 +11,6 @@ export const keys = {
     email: '',
     password: '',
     basePath: '',
+    notifyUrl: '',
   },
 };

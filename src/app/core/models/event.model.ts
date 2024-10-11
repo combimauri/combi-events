@@ -9,6 +9,11 @@ export interface Event {
   image: string;
   location: { name: string; geolocation: GeoPoint };
   name: string;
-  price: { amount: number; discount: number; currency: string };
+  price: {
+    amount: number;
+    discount: number;
+    currency: string;
+    description: string;
+  };
   shortDescription: string;
 }

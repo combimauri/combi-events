@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { map, Observable, of, Subject, switchMap } from 'rxjs';
@@ -7,6 +13,7 @@ import {
   BillingRecord,
   BillingData,
 } from '../../../core/models/billing-record.model';
+import { Event } from '../../../core/models/event.model';
 import {
   EventRecord,
   PartialEventRecord,
@@ -52,74 +59,83 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 })
 export default class EventRegistrationComponent {
   #billingRecord?: BillingRecord;
-  #paymentsService = inject(PaymentsService);
-  #eventRecordsService = inject(EventRecordsService);
-  #route = inject(ActivatedRoute);
+  readonly #paymentsService = inject(PaymentsService);
+  readonly #eventRecordsService = inject(EventRecordsService);
+  readonly #route = inject(ActivatedRoute);
 
-  eventId = toSignal(
-    this.#route.parent!.params.pipe(map((params) => params['id'])),
+  readonly #event = toSignal(
+    this.#route.parent!.data.pipe(
+      map((data) => data['event'] as Event | undefined),
+    ),
   );
 
-  generateToken$ = new Subject<void>();
-  token = toSignal(
-    this.generateToken$.pipe(
+  readonly #generateToken$ = new Subject<void>();
+  readonly #token = toSignal(
+    this.#generateToken$.pipe(
       switchMap(() => this.#paymentsService.generateAuthToken()),
     ),
   );
 
-  getBillingData$ = new Subject<{
+  readonly #getBillingData$ = new Subject<{
     token: string;
     billing: BillingRecord;
+    event: Event;
   }>();
-  billingData = toSignal(
-    this.getBillingData$.pipe(
-      switchMap(({ token, billing }) =>
-        this.#paymentsService.getBillingData(token, billing),
+  readonly #billingData = toSignal(
+    this.#getBillingData$.pipe(
+      switchMap(({ token, billing, event }) =>
+        this.#paymentsService.getBillingData(token, billing, event),
       ),
       switchMap((data) => this.registerEventRecord(data).pipe(map(() => data))),
     ),
   );
-  iFrameUrl = computed(() => this.billingData()?.url);
+  readonly iFrameUrl = computed(() => this.#billingData()?.url);
 
   constructor() {
-    effect(() => this.getBillingResponse(this.token()));
-    effect(() => this.registerEventRecord(this.billingData()));
+    effect(() => this.getBillingResponse(this.#token(), this.#event()));
   }
 
   register(billingRecord: BillingRecord): void {
     this.#billingRecord = billingRecord;
 
-    this.generateToken$.next();
+    this.#generateToken$.next();
   }
 
-  private getBillingResponse(token: string | undefined): void {
-    if (!token || !this.#billingRecord) {
+  private getBillingResponse(
+    token: string | undefined,
+    event: Event | undefined,
+  ): void {
+    if (!token || !event) {
       return;
     }
 
-    this.getBillingData$.next({
-      token,
-      billing: this.#billingRecord,
-    });
+    // queueMicrotask is used to ensure the next event loop is used
+    queueMicrotask(() =>
+      this.#getBillingData$.next({
+        token,
+        billing: this.#billingRecord!,
+        event,
+      }),
+    );
   }
 
   private registerEventRecord(
     billingData: BillingData | undefined,
-  ): Observable<EventRecord | null> {
+  ): Observable<EventRecord | undefined> {
     if (!billingData) {
-      return of(null);
+      return of(undefined);
     }
 
-    const { orderId, transactionId } = billingData;
+    const { orderId, paymentId } = billingData;
 
     const record: PartialEventRecord = {
       email: this.#billingRecord?.email!,
-      eventId: this.eventId()!,
+      eventId: this.#event()!.id,
       firstName: this.#billingRecord?.firstName!,
       lastName: this.#billingRecord?.lastName!,
       orderId,
       phoneNumber: this.#billingRecord?.phoneNumber!,
-      transactionId,
+      paymentId,
     };
 
     return this.#eventRecordsService.registerRecord(record);

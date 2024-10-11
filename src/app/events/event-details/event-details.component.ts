@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
@@ -36,10 +41,10 @@ import { Event } from '../../core/models/event.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDetailsComponent {
-  #route = inject(ActivatedRoute);
-  #router = inject(Router);
+  readonly #route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
 
-  event = toSignal(
+  readonly event = toSignal(
     this.#route.data.pipe(map((data) => data['event'] as Event | undefined)),
   );
 

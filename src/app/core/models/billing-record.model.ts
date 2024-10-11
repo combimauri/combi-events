@@ -8,5 +8,5 @@ export interface BillingRecord {
 export interface BillingData {
   url: string;
   orderId: string;
-  transactionId: string;
+  paymentId: string;
 }

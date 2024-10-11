@@ -119,9 +119,9 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDataComponent {
-  #route = inject(ActivatedRoute);
+  readonly #route = inject(ActivatedRoute);
 
-  event = toSignal(
+  readonly event = toSignal(
     this.#route.data.pipe(map((data) => data['event'] as Event | undefined)),
   );
 }
