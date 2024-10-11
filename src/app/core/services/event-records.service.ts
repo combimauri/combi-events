@@ -3,6 +3,7 @@ import {
   collection,
   collectionData,
   doc,
+  docData,
   Firestore,
   query,
   setDoc,
@@ -23,13 +24,10 @@ export class EventRecordsService {
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
 
-  getRecordById(id: string): Observable<EventRecord | undefined> {
+  getRealtimeRecordById(id: string): Observable<EventRecord | undefined> {
     const recordRef = doc(this.#firestore, this.#collectionName, id);
 
-    return (
-      collectionData<EventRecord>(recordRef) as Observable<EventRecord>
-    ).pipe(
-      tap(this.#loadEffectObserver),
+    return (docData<EventRecord>(recordRef) as Observable<EventRecord>).pipe(
       catchError((error) => handleError(error, this.#logger)),
     );
   }
@@ -56,18 +54,6 @@ export class EventRecordsService {
       createdAt: new Date(),
       updatedAt: new Date(),
       validated: false,
-    };
-
-    return this.upsertRecord(record);
-  }
-
-  validateRecord(
-    eventRecord: EventRecord,
-  ): Observable<EventRecord | undefined> {
-    const record: EventRecord = {
-      ...eventRecord,
-      updatedAt: new Date(),
-      validated: true,
     };
 
     return this.upsertRecord(record);

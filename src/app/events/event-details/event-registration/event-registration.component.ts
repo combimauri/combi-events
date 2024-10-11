@@ -7,8 +7,9 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { map, Observable, of, Subject, switchMap } from 'rxjs';
+import { map, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { EventRegistrationFormComponent } from './event-registration-form/event-registration-form.component';
+import { EventRegistrationPaymentComponent } from './event-registration-payment/event-registration-payment.component';
 import {
   BillingRecord,
   BillingData,
@@ -25,13 +26,19 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 @Component({
   selector: 'combi-event-registration',
   standalone: true,
-  imports: [EventRegistrationFormComponent, SanitizeUrlPipe],
+  imports: [
+    EventRegistrationFormComponent,
+    EventRegistrationPaymentComponent,
+    SanitizeUrlPipe,
+  ],
   template: `
-    @if (iFrameUrl()) {
-      <iframe
-        class="event-registration__wolipay"
-        [src]="iFrameUrl() | sanitizeUrl"
-      ></iframe>
+    @if (iFrameUrl(); as iFrameUrl) {
+      <div class="event-registration__payment">
+        <combi-event-registration-payment
+          [iFrameUrl]="iFrameUrl"
+          [realtimeEventRecord]="realtimeEventRecord()"
+        />
+      </div>
     } @else {
       <div class="event-registration__form">
         <combi-event-registration-form (submitForm)="register($event)" />
@@ -39,13 +46,13 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
     }
   `,
   styles: `
-    .event-registration__wolipay {
+    .event-registration__payment {
       border-radius: 0.75rem;
-      border: 0;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       height: 600px;
       width: 100%;
     }
+
     .event-registration__form {
       margin: 0 auto;
 
@@ -86,10 +93,25 @@ export default class EventRegistrationComponent {
       switchMap(({ token, billing, event }) =>
         this.#paymentsService.getBillingData(token, billing, event),
       ),
-      switchMap((data) => this.registerEventRecord(data).pipe(map(() => data))),
+      switchMap((data) =>
+        this.registerEventRecord(data).pipe(
+          tap(
+            (eventRecord) =>
+              eventRecord && this.#getEventRecord$.next(eventRecord.id),
+          ),
+          map(() => data),
+        ),
+      ),
     ),
   );
   readonly iFrameUrl = computed(() => this.#billingData()?.url);
+
+  readonly #getEventRecord$ = new Subject<string>();
+  readonly realtimeEventRecord = toSignal(
+    this.#getEventRecord$.pipe(
+      switchMap((id) => this.#eventRecordsService.getRealtimeRecordById(id)),
+    ),
+  );
 
   constructor() {
     effect(() => this.getBillingResponse(this.#token(), this.#event()));
