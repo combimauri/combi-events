@@ -1,13 +1,10 @@
 {
   "name": "combi-events",
   "version": "0.0.0",
-  "engines": {
-    "node": "20.18.0"
-  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "npm run keys:override && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:combi-events": "node dist/combi-events/server/server.mjs",
