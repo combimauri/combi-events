@@ -9,7 +9,7 @@ import {
   setDoc,
   where,
 } from '@angular/fire/firestore';
-import { catchError, from, map, Observable, tap } from 'rxjs';
+import { catchError, from, map, Observable, take, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
 import { EventRecord, PartialEventRecord } from '../models/event-record.model';
 import { handleError } from '../utils/handle-error.utils';
@@ -32,7 +32,7 @@ export class EventRecordsService {
     );
   }
 
-  getRecords(eventId: string): Observable<EventRecord[] | undefined> {
+  getRecordsByEventId(eventId: string): Observable<EventRecord[] | undefined> {
     const recordsCollection = collection(this.#firestore, this.#collectionName);
     const recordsQuery = query(
       recordsCollection,
@@ -41,6 +41,25 @@ export class EventRecordsService {
 
     return (collectionData(recordsQuery) as Observable<EventRecord[]>).pipe(
       tap(this.#loadEffectObserver),
+      take(1),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  getRecordsByEventIdAndEmail(
+    eventId: string,
+    email: string,
+  ): Observable<EventRecord[] | undefined> {
+    const recordsCollection = collection(this.#firestore, this.#collectionName);
+    const recordsQuery = query(
+      recordsCollection,
+      where('eventId', '==', eventId),
+      where('email', '==', email),
+    );
+
+    return (collectionData(recordsQuery) as Observable<EventRecord[]>).pipe(
+      tap(this.#loadEffectObserver),
+      take(1),
       catchError((error) => handleError(error, this.#logger)),
     );
   }

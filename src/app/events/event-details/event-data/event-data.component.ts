@@ -5,85 +5,46 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { map } from 'rxjs';
+import { map, shareReplay, switchMap } from 'rxjs';
+import { EventLocationComponent } from './event-location/event-location.component';
+import { EventMainInfoComponent } from './event-main-info/event-main-info.component';
+import { UserEventRecordComponent } from './user-event-record/user-event-record.component';
 import { Event } from '../../../core/models/event.model';
 import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
+import { EventRecordsService } from '../../../core/services/event-records.service';
+import { UserState } from '../../../core/states/user.state';
+import { LoadingState } from '../../../core/states/loading.state';
 
 @Component({
   selector: 'combi-event-data',
   standalone: true,
   imports: [
     DatePipe,
+    EventLocationComponent,
+    EventMainInfoComponent,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
     RouterLink,
     SanitizeUrlPipe,
+    UserEventRecordComponent,
   ],
   template: `
     @if (event(); as event) {
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <h5>
-              {{ event.name }}
-            </h5>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div>
-            <p>{{ event.description }}</p>
-            <p>
-              <b>Fecha:</b>
-              {{ event.date.start.toDate() | date: 'd MMM, HH:mm' }}
-            </p>
-            <p><b>Lugar:</b> {{ event.location.name }}</p>
-            <p><b>Cupos:</b> {{ event.capacity }}</p>
-            <p>
-              <b>Costo:</b>
-              @if (event.price.amount) {
-                <span [class.event-data__line-through]="event.price.discount">
-                  {{ event.price.amount }}
-                </span>
-                @if (event.price.discount) {
-                  <span>
-                    {{ event.price.amount - event.price.discount }}
-                  </span>
-                }
-                {{ event.price.currency }}
-              } @else {
-                Gratis
-              }
-            </p>
-          </div>
-        </mat-card-content>
-      </mat-card>
+      <combi-event-main-info [event]="event" />
 
-      <a mat-fab extended routerLink="register">
-        <mat-icon>how_to_reg</mat-icon>
-        Inscribirse
-      </a>
+      @if (!loading()) {
+        @if (eventRecords()?.length) {
+          <combi-user-event-record [eventRecords]="eventRecords()!" />
+        } @else {
+          <a mat-fab extended routerLink="register">
+            <mat-icon>how_to_reg</mat-icon>
+            Inscribirse
+          </a>
+        }
+      }
 
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <h6>Ubicación</h6>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <iframe
-            class="event-data__map"
-            [src]="
-              'https://maps.google.com/maps?q=' +
-                event.location.geolocation.latitude +
-                ',' +
-                event.location.geolocation.longitude +
-                '&hl=es&z=14&amp;output=embed' | sanitizeUrl
-            "
-          >
-          </iframe>
-        </mat-card-content>
-      </mat-card>
+      <combi-event-location [event]="event" />
     }
   `,
   styles: `
@@ -92,36 +53,35 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
       flex-direction: column;
       gap: 1rem;
     }
-
-    mat-card-content {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-
-      @media (min-width: 960px) {
-        flex-direction: row;
-      }
-
-      .event-data__line-through {
-        margin-right: 0.5rem;
-        text-decoration: line-through;
-      }
-
-      .event-data__map {
-        border-radius: 0.75rem;
-        border: 0;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        height: 300px;
-        width: 100%;
-      }
-    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDataComponent {
   readonly #route = inject(ActivatedRoute);
+  readonly #eventRecordService = inject(EventRecordsService);
+  readonly #userState = inject(UserState);
 
-  readonly event = toSignal(
-    this.#route.data.pipe(map((data) => data['event'] as Event | undefined)),
+  readonly loading = inject(LoadingState).loading;
+
+  readonly #event$ = this.#route.data.pipe(
+    map((data) => data['event'] as Event | undefined),
+    shareReplay(),
   );
+  readonly event = toSignal(this.#event$);
+
+  readonly #eventRecords$ = this.#event$.pipe(
+    switchMap((event) => {
+      const user = this.#userState.currentUser();
+
+      if (!user || !event) {
+        return [];
+      }
+
+      return this.#eventRecordService.getRecordsByEventIdAndEmail(
+        event.id,
+        user.email!,
+      );
+    }),
+  );
+  readonly eventRecords = toSignal(this.#eventRecords$);
 }

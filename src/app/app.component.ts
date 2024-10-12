@@ -11,7 +11,6 @@ import { LayoutComponent } from './core/layout/layout.component';
       <router-outlet />
     </combi-layout>
   `,
-  styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {}
