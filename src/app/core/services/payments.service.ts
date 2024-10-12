@@ -4,8 +4,8 @@ import { catchError, map, Observable, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
 import { BillingRecord, BillingData } from '../models/billing-record.model';
 import { Event } from '../models/event.model';
-import { WIframe } from '../models/w-iframe.model';
-import { WToken } from '../models/w-token.model';
+import { WolipayIFrame } from '../models/wolipay-iframe.model';
+import { WolipayToken } from '../models/wolipay-token.model';
 import { loadEffect } from '../utils/load-effect.utils';
 import { handleError } from '../utils/handle-error.utils';
 import { environment } from '../../../environments/environment';
@@ -15,6 +15,7 @@ import { environment } from '../../../environments/environment';
 })
 export class PaymentsService {
   readonly #basePath = environment.wolipay.basePath;
+  readonly #validatePath = '/api/validatePayment';
   readonly #http = inject(HttpClient);
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
@@ -23,7 +24,7 @@ export class PaymentsService {
     const { email, password } = environment.wolipay;
 
     return this.#http
-      .post<WToken>(`${this.#basePath}/generateToken`, {
+      .post<WolipayToken>(`${this.#basePath}/generateToken`, {
         email,
         password,
       })
@@ -42,7 +43,7 @@ export class PaymentsService {
     const id = crypto.randomUUID();
 
     return this.#http
-      .post<WIframe>(
+      .post<WolipayIFrame>(
         `${this.#basePath}/getWolipayiFrame`,
         {
           id,
@@ -82,5 +83,12 @@ export class PaymentsService {
         }),
         catchError((error) => handleError(error, this.#logger)),
       );
+  }
+
+  validatePayment(orderId: string): Observable<unknown> {
+    return this.#http.get(this.#validatePath, { params: { orderId } }).pipe(
+      tap(this.#loadEffectObserver),
+      catchError((error) => handleError(error, this.#logger)),
+    );
   }
 }

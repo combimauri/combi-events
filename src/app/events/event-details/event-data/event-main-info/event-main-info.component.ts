@@ -24,7 +24,6 @@ import { Event } from '../../../../core/models/event.model';
             {{ event().date.start.toDate() | date: 'd MMM, HH:mm' }}
           </p>
           <p><b>Lugar:</b> {{ event().location.name }}</p>
-          <p><b>Cupos:</b> {{ event().capacity }}</p>
           <p>
             <b>Costo:</b>
             @if (event().price.amount) {

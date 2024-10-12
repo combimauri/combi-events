@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   output,
   viewChild,
@@ -13,7 +14,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { BillingRecord } from '../../../../core/models/billing-record.model';
+import { EventRecord } from '../../../../core/models/event-record.model';
 import { LoadingState } from '../../../../core/states/loading.state';
+import { UserState } from '../../../../core/states/user.state';
+import { EventRecordState } from '../../../../core/states/event-record.state';
 
 @Component({
   selector: 'combi-event-registration-form',
@@ -86,28 +90,6 @@ import { LoadingState } from '../../../../core/states/loading.state';
       <mat-card appearance="outlined">
         <mat-card-header>
           <mat-card-title>
-            <p>Correo Electrónico</p>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-form-field>
-            <mat-label>Tu respuesta</mat-label>
-            <input
-              matInput
-              required
-              type="email"
-              id="email"
-              name="email"
-              [disabled]="loading()"
-              [(ngModel)]="email"
-            />
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>
             <p>Número de Teléfono</p>
           </mat-card-title>
         </mat-card-header>
@@ -162,20 +144,44 @@ import { LoadingState } from '../../../../core/states/loading.state';
 export class EventRegistrationFormComponent {
   firstName = '';
   lastName = '';
-  email = '';
   phoneNumber = '';
 
   readonly eventForm = viewChild.required(NgForm);
   readonly submitForm = output<BillingRecord>();
   readonly loading = inject(LoadingState).loading;
 
+  readonly #userState = inject(UserState);
+  readonly #eventRecordState = inject(EventRecordState);
+
+  constructor() {
+    effect(() => this.patchForm(this.#eventRecordState.eventRecord()));
+  }
+
   register(): void {
     if (this.eventForm().invalid) {
       return;
     }
 
-    const billingRecord = this.eventForm().value as BillingRecord;
+    const email = this.#userState.currentUser()?.email!;
+    const { firstName, lastName, phoneNumber } = this.eventForm().value;
+
+    const billingRecord = {
+      email,
+      firstName,
+      lastName,
+      phoneNumber,
+    };
 
     this.submitForm.emit(billingRecord);
+  }
+
+  private patchForm(eventRecord: EventRecord | null): void {
+    if (!eventRecord) {
+      return;
+    }
+
+    this.firstName = eventRecord.firstName;
+    this.lastName = eventRecord.lastName;
+    this.phoneNumber = eventRecord.phoneNumber;
   }
 }

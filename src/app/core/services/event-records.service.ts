@@ -12,6 +12,7 @@ import {
 import { catchError, from, map, Observable, take, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
 import { EventRecord, PartialEventRecord } from '../models/event-record.model';
+import { EventRecordState } from '../states/event-record.state';
 import { handleError } from '../utils/handle-error.utils';
 import { loadEffect } from '../utils/load-effect.utils';
 
@@ -23,12 +24,20 @@ export class EventRecordsService {
   readonly #collectionName = 'event-records';
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
+  readonly #eventRecordState = inject(EventRecordState);
 
   getRealtimeRecordById(id: string): Observable<EventRecord | undefined> {
     const recordRef = doc(this.#firestore, this.#collectionName, id);
 
     return (docData<EventRecord>(recordRef) as Observable<EventRecord>).pipe(
       catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  getRecordById(id: string): Observable<EventRecord | undefined> {
+    return this.getRealtimeRecordById(id).pipe(
+      tap(this.#loadEffectObserver),
+      take(1),
     );
   }
 
@@ -67,15 +76,23 @@ export class EventRecordsService {
   registerRecord(
     eventRecord: PartialEventRecord,
   ): Observable<EventRecord | undefined> {
-    const record: EventRecord = {
+    const currentEventRecord = this.#eventRecordState.eventRecord();
+
+    if (currentEventRecord) {
+      return this.upsertRecord({
+        ...currentEventRecord,
+        ...eventRecord,
+        updatedAt: new Date(),
+      });
+    }
+
+    return this.upsertRecord({
       ...eventRecord,
       id: crypto.randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
       validated: false,
-    };
-
-    return this.upsertRecord(record);
+    });
   }
 
   private upsertRecord(

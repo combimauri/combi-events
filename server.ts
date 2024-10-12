@@ -3,6 +3,7 @@ import { CommonEngine } from '@angular/ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
+import { environment } from './src/environments/environment';
 import bootstrap from './src/main.server';
 
 // The Express app is exported so that it can be used by serverless Functions.
@@ -27,6 +28,27 @@ export function app(): express.Express {
       index: 'index.html',
     }),
   );
+
+  server.get('/api/validatePayment', (req, res) => {
+    const orderId = req.query['orderId'];
+
+    if (!orderId) {
+      res.status(400).json({ message: 'Order id query param is missing' });
+      return;
+    }
+
+    fetch(environment.wolipay.notifyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        orderId,
+      }),
+    })
+      .then(() => res.json({ message: 'Validation request completed' }))
+      .catch((error) => res.status(500).json({ message: error.message }));
+  });
 
   // All regular routes use the Angular engine
   server.get('**', (req, res, next) => {

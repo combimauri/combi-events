@@ -14,29 +14,29 @@ import { LoadingState } from '../core/states/loading.state';
   standalone: true,
   imports: [MatButtonModule, MatCardModule, MatIconModule],
   template: `
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>
-            <h6>Bienvenido a Combieventos</h6>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>Inicia sesión para ver nuestros eventos</p>
-          <hr />
-        </mat-card-content>
-        <mat-card-actions>
-          <button
-            mat-fab
-            extended
-            class="login__button"
-            [disabled]="loading()"
-            (click)="signInWithGoogle$.next()"
-          >
-            <mat-icon>login</mat-icon>
-            Iniciar Sesión con Google
-          </button>
-        </mat-card-actions>
-      </mat-card>
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h6>Bienvenido a Combieventos</h6>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Inicia sesión para ver nuestros eventos</p>
+        <hr />
+      </mat-card-content>
+      <mat-card-actions>
+        <button
+          mat-fab
+          extended
+          class="login__button"
+          [disabled]="loading()"
+          (click)="signInWithGoogle$.next()"
+        >
+          <mat-icon>login</mat-icon>
+          Iniciar Sesión con Google
+        </button>
+      </mat-card-actions>
+    </mat-card>
   `,
   styles: `
     :host {

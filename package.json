@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "npm run keys:override && ng build",
+    "build:local": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:combi-events": "node dist/combi-events/server/server.mjs",
