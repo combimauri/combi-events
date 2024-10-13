@@ -10,7 +10,8 @@
     "test": "ng test",
     "serve:ssr:combi-events": "node dist/combi-events/server/server.mjs",
     "keys:create": "cat ./src/environments/keys.template.ts > ./src/environments/keys.ts",
-    "keys:override": "echo $KEYS_CONFIG > ./src/environments/keys.ts"
+    "keys:prod-create": "cat ./src/environments/keys.template.ts > ./src/environments/keys.prod.ts",
+    "keys:override": "echo $KEYS_CONFIG > ./src/environments/keys.prod.ts"
   },
   "private": true,
   "dependencies": {
