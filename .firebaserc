@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "gdg-bo-events"
-  }
+    "default": "gdg-bo-events",
+    "prod": "combi-events"
+  },
+  "targets": {},
+  "etags": {}
 }

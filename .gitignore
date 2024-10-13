@@ -49,4 +49,5 @@ Thumbs.db
 
 # Keys
 keys.ts
+keys.*.ts
 serviceAccount.json
