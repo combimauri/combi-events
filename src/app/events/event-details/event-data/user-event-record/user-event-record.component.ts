@@ -9,23 +9,27 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
-import { map, Subject, switchMap } from 'rxjs';
+import { map, Subject, switchMap, tap } from 'rxjs';
 import { EventRecord } from '../../../../core/models/event-record.model';
 import { EventRecordsService } from '../../../../core/services/event-records.service';
 import { PaymentsService } from '../../../../core/services/payments.service';
 import { UserState } from '../../../../core/states/user.state';
 import { LoadingState } from '../../../../core/states/loading.state';
+import { TitleSpinnerComponent } from '../../../../shared/components/title-spinner/title-spinner.component';
 
 @Component({
   selector: 'combi-user-event-record',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, RouterLink],
+  imports: [MatButtonModule, MatCardModule, RouterLink, TitleSpinnerComponent],
   template: `
     <mat-card>
       <mat-card-header>
         <mat-card-title>
           <h6>Registro</h6>
         </mat-card-title>
+        @if (validationLoadingState.loading()) {
+          <combi-title-spinner />
+        }
       </mat-card-header>
       <mat-card-content>
         @if (eventRecord().validated || validatedRecordResult()) {
@@ -50,7 +54,7 @@ import { LoadingState } from '../../../../core/states/loading.state';
           </mat-card>
         } @else {
           <p>
-            @if (loading()) {
+            @if (validationLoadingState.loading()) {
               Encontramos tu registro, pero el pago aún no fue validado. Espera
               unos segundos mientras lo verificamos.
             } @else if (!validatedRecordResult()) {
@@ -94,24 +98,28 @@ import { LoadingState } from '../../../../core/states/loading.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserEventRecordComponent {
-  readonly loading = inject(LoadingState).loading;
-
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #paymentsService = inject(PaymentsService);
 
+  readonly validationLoadingState = new LoadingState();
   readonly eventRecord = input.required<EventRecord>();
   readonly currentUser = inject(UserState).currentUser;
 
   readonly validatePayment$ = new Subject<EventRecord>();
   readonly validatedRecordResult = toSignal(
     this.validatePayment$.pipe(
+      tap(() => this.validationLoadingState.startLoading()),
       switchMap(({ id, orderId }) =>
         this.#paymentsService.validatePayment(orderId).pipe(map(() => id)),
       ),
       switchMap((recordId) =>
         this.#eventRecordsService.getRecordById(recordId),
       ),
-      map((record) => record?.validated),
+      map((record) => {
+        this.validationLoadingState.stopLoading();
+
+        return record?.validated;
+      }),
     ),
   );
 

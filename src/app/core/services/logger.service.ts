@@ -11,8 +11,18 @@ export class LoggerService {
     this.#snackBar.open(message, 'cerrar', { panelClass: 'info-snackbar' });
   }
 
-  handleError(message: string): void {
-    this.#snackBar.open(message, 'cerrar');
+  handleError(message: string | { message: string }): void {
+    const messageText = this.hasMessage(message) ? message.message : message;
+
+    this.#snackBar.open(messageText, 'cerrar', {
+      panelClass: 'error-snackbar',
+    });
     console.error(message);
+  }
+
+  private hasMessage(
+    message: string | { message: string },
+  ): message is { message: string } {
+    return (message as { message: string }).message !== undefined;
   }
 }

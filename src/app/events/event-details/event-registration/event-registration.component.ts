@@ -33,12 +33,10 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
   ],
   template: `
     @if (iFrameUrl(); as iFrameUrl) {
-      <div class="event-registration__payment">
-        <combi-event-registration-payment
-          [iFrameUrl]="iFrameUrl"
-          [realtimeEventRecord]="realtimeEventRecord()"
-        />
-      </div>
+      <combi-event-registration-payment
+        [iFrameUrl]="iFrameUrl"
+        [realtimeEventRecord]="realtimeEventRecord()"
+      />
     } @else {
       <div class="event-registration__form">
         <combi-event-registration-form (submitForm)="register($event)" />
@@ -46,13 +44,6 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
     }
   `,
   styles: `
-    .event-registration__payment {
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      height: 600px;
-      width: 100%;
-    }
-
     .event-registration__form {
       margin: 0 auto;
 
