@@ -18,4 +18,6 @@ export interface Event {
   };
   shortDescription: string;
   registrationAdditionalQuestions: AdditionalQuestion[];
+  openRegistration: boolean;
+  betaAccess?: string[];
 }

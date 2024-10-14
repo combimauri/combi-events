@@ -11,7 +11,6 @@ import { EventMainInfoComponent } from './event-main-info/event-main-info.compon
 import { UserEventRecordComponent } from './user-event-record/user-event-record.component';
 import { Event } from '../../../core/models/event.model';
 import { EventRecord } from '../../../core/models/event-record.model';
-import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 import { EventRecordsService } from '../../../core/services/event-records.service';
 import { UserState } from '../../../core/states/user.state';
 import { LoadingState } from '../../../core/states/loading.state';
@@ -27,20 +26,27 @@ import { LoadingState } from '../../../core/states/loading.state';
     MatCardModule,
     MatIconModule,
     RouterLink,
-    SanitizeUrlPipe,
     UserEventRecordComponent,
   ],
   template: `
     @if (event(); as event) {
       <combi-event-main-info [event]="event" />
 
-      @if (eventRecord(); as record) {
-        <combi-user-event-record [eventRecord]="record" />
-      } @else if (!loading()) {
-        <a mat-fab extended routerLink="register">
-          <mat-icon>how_to_reg</mat-icon>
-          Inscribirse
-        </a>
+      @if (event.openRegistration) {
+        @if (eventRecord(); as record) {
+          <combi-user-event-record [eventRecord]="record" />
+        } @else if (!loading()) {
+          <a mat-fab extended routerLink="register">
+            <mat-icon>how_to_reg</mat-icon>
+            Inscribirse
+          </a>
+        }
+      } @else {
+        <mat-card>
+          <mat-card-content>
+            <p>La inscripción para este evento está cerrada.</p>
+          </mat-card-content>
+        </mat-card>
       }
 
       <combi-event-location [event]="event" />
