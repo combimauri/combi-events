@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   effect,
+  HostListener,
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -109,6 +110,11 @@ export default class EventRegistrationComponent {
 
   constructor() {
     effect(() => this.getBillingResponse(this.#token(), this.event()));
+  }
+
+  @HostListener('window:beforeunload')
+  canDeactivate(): boolean {
+    return !!this.realtimeEventRecord()?.validated;
   }
 
   register(billingRecord: BillingRecord): void {
