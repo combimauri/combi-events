@@ -4,6 +4,7 @@ import {
   effect,
   inject,
   input,
+  OnInit,
   output,
   viewChild,
 } from '@angular/core';
@@ -15,13 +16,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
+import { AdditionalQuestion } from '../../../../core/models/additional-question.model';
 import { BillingRecord } from '../../../../core/models/billing-record.model';
 import { EventRecord } from '../../../../core/models/event-record.model';
+import { RegistrationStep } from '../../../../core/models/registration-step.enum';
 import { LoadingState } from '../../../../core/states/loading.state';
 import { UserState } from '../../../../core/states/user.state';
 import { EventRecordState } from '../../../../core/states/event-record.state';
+import { RegistrationStepState } from '../../../../core/states/registration-step.state';
 import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
-import { AdditionalQuestion } from '../../../../core/models/additional-question.model';
 
 @Component({
   selector: 'combi-event-registration-form',
@@ -164,7 +167,7 @@ import { AdditionalQuestion } from '../../../../core/models/additional-question.
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRegistrationFormComponent {
+export class EventRegistrationFormComponent implements OnInit {
   fullName = '';
   phoneNumber = '';
 
@@ -173,12 +176,17 @@ export class EventRegistrationFormComponent {
   readonly submitForm = output<BillingRecord>();
   readonly loading = inject(LoadingState).loading;
 
+  readonly #registrationStepState = inject(RegistrationStepState);
   readonly #userState = inject(UserState);
   readonly #eventRecordState = inject(EventRecordState);
 
   constructor() {
     effect(() => (this.fullName = this.#userState.currentUser()?.displayName!));
     effect(() => this.patchForm(this.#eventRecordState.eventRecord()));
+  }
+
+  ngOnInit(): void {
+    this.#registrationStepState.setRegistrationStep(RegistrationStep.form);
   }
 
   register(): void {

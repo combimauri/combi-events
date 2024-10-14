@@ -2,10 +2,11 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { combineLatest, map } from 'rxjs';
+import { EventRecord } from '../models/event-record.model';
 import { EventRecordsService } from '../services/event-records.service';
 import { EventsService } from '../services/events.service';
-import { UserState } from '../states/user.state';
 import { EventRecordState } from '../states/event-record.state';
+import { UserState } from '../states/user.state';
 
 export const registrationGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);
@@ -39,27 +40,45 @@ export const registrationGuard: CanActivateFn = (route, _state) => {
 
       if (!event.openRegistration) {
         if (event.betaAccess?.includes(user.email!)) {
-          return true;
+          return validateEventRecord(
+            eventRecordState,
+            eventId,
+            eventRecords,
+            router,
+          );
         }
 
         return router.createUrlTree([eventId]);
       }
 
-      if (!eventRecords || eventRecords?.length === 0) {
-        eventRecordState.clearEventRecord();
-
-        return true;
-      }
-
-      const eventRecord = eventRecords[0];
-
-      if (eventRecord.validated) {
-        return router.createUrlTree([eventId]);
-      }
-
-      eventRecordState.setEventRecord(eventRecord);
-
-      return true;
+      return validateEventRecord(
+        eventRecordState,
+        eventId,
+        eventRecords,
+        router,
+      );
     }),
   );
+};
+
+const validateEventRecord = (
+  eventRecordState: EventRecordState,
+  eventId: string,
+  eventRecords: EventRecord[] | undefined,
+  router: Router,
+) => {
+  if (!eventRecords || eventRecords?.length === 0) {
+    eventRecordState.clearEventRecord();
+
+    return true;
+  }
+
+  // There should be only one record per user, but this is a safety check
+  if (eventRecords.some((record) => record.validated)) {
+    return router.createUrlTree([eventId]);
+  }
+
+  eventRecordState.setEventRecord(eventRecords[0]);
+
+  return true;
 };

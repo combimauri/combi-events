@@ -61,6 +61,7 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 })
 export default class EventRegistrationComponent {
   #billingRecord?: BillingRecord;
+
   readonly #paymentsService = inject(PaymentsService);
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #route = inject(ActivatedRoute);
