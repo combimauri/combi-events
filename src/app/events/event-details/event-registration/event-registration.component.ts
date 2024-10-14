@@ -153,8 +153,7 @@ export default class EventRegistrationComponent {
     const record: PartialEventRecord = {
       email: this.#billingRecord?.email!,
       eventId: this.#event()!.id,
-      firstName: this.#billingRecord?.firstName!,
-      lastName: this.#billingRecord?.lastName!,
+      fullName: this.#billingRecord?.fullName!,
       orderId,
       phoneNumber: this.#billingRecord?.phoneNumber!,
       paymentId,

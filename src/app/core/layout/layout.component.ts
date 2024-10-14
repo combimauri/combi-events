@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardAvatar } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -17,7 +16,6 @@ import { UserState } from '../states/user.state';
   standalone: true,
   imports: [
     MatButtonModule,
-    MatCardAvatar,
     MatIconModule,
     MatMenuModule,
     MatProgressBarModule,
@@ -31,12 +29,11 @@ import { UserState } from '../states/user.state';
           <a mat-button class="root-link" routerLink="/">CE</a>
           <span class="toolbar-spacer"></span>
           <button mat-button [matMenuTriggerFor]="userMenu">
-            <img
-              mat-card-avatar
+            <div
               class="avatar"
-              [src]="currentUser.photoURL"
-              [alt]="currentUser.displayName"
-            />
+              [style.background-image]="'url(' + currentUser.photoURL + ')'"
+              [style.background-size]="'cover'"
+            ></div>
           </button>
           <mat-menu #userMenu="matMenu">
             <button mat-menu-item (click)="logout$.next()">
@@ -93,8 +90,9 @@ import { UserState } from '../states/user.state';
         }
 
         .avatar {
-          margin: 0;
-          vertical-align: bottom;
+          border-radius: 50%;
+          height: 40px;
+          width: 40px;
         }
       }
     }

@@ -29,13 +29,14 @@ import { LoadingState } from '../../../../core/states/loading.state';
       </mat-card-header>
       <mat-card-content>
         @if (eventRecord().validated || validatedRecordResult()) {
-          <mat-card appearance="outlined">
+          <mat-card class="user-event-record" appearance="outlined">
             <mat-card-header>
               @let user = currentUser();
 
               @if (user) {
                 <div
                   mat-card-avatar
+                  class="user-event-record__avatar"
                   [style.background-image]="'url(' + user.photoURL + ')'"
                   [style.background-size]="'cover'"
                 ></div>
@@ -71,7 +72,25 @@ import { LoadingState } from '../../../../core/states/loading.state';
       </mat-card-content>
     </mat-card>
   `,
-  styles: ``,
+  styles: `
+    .user-event-record {
+      background-color: #388e3c;
+      padding-bottom: 1rem;
+
+      mat-card-header {
+        align-items: center;
+      }
+
+      mat-card-title,
+      mat-card-subtitle {
+        color: #fff;
+      }
+
+      .user-event-record__avatar {
+        margin: 0;
+      }
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserEventRecordComponent {

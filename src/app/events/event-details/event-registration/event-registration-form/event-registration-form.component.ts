@@ -18,11 +18,13 @@ import { EventRecord } from '../../../../core/models/event-record.model';
 import { LoadingState } from '../../../../core/states/loading.state';
 import { UserState } from '../../../../core/states/user.state';
 import { EventRecordState } from '../../../../core/states/event-record.state';
+import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'combi-event-registration-form',
   standalone: true,
   imports: [
+    BackButtonComponent,
     FormsModule,
     MatButtonModule,
     MatCardModule,
@@ -34,10 +36,8 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
   template: `
     <form #eventForm="ngForm" (ngSubmit)="register()">
       <mat-card appearance="outlined">
-        <mat-card-content class="event-registration-form__title">
-          <a mat-icon-button routerLink="..">
-            <mat-icon>chevron_left</mat-icon>
-          </a>
+        <mat-card-content class="page-title">
+          <combi-back-button />
           <h6>Inscripción al Evento</h6>
         </mat-card-content>
       </mat-card>
@@ -45,7 +45,7 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
       <mat-card appearance="outlined">
         <mat-card-header>
           <mat-card-title>
-            <p>Nombre(s)</p>
+            <p>Nombre Completo</p>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content>
@@ -56,32 +56,10 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
               required
               cdkFocusInitial
               type="text"
-              id="firstName"
-              name="firstName"
+              id="fullName"
+              name="fullName"
               [disabled]="loading()"
-              [(ngModel)]="firstName"
-            />
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>
-            <p>Apellido(s)</p>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-form-field>
-            <mat-label>Tu respuesta</mat-label>
-            <input
-              matInput
-              required
-              type="text"
-              id="lastName"
-              name="lastName"
-              [disabled]="loading()"
-              [(ngModel)]="lastName"
+              [(ngModel)]="fullName"
             />
           </mat-form-field>
         </mat-card-content>
@@ -132,18 +110,12 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
       mat-form-field {
         width: 100%;
       }
-
-      .event-registration-form__title {
-        align-items: center;
-        display: flex;
-      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationFormComponent {
-  firstName = '';
-  lastName = '';
+  fullName = '';
   phoneNumber = '';
 
   readonly eventForm = viewChild.required(NgForm);
@@ -154,6 +126,7 @@ export class EventRegistrationFormComponent {
   readonly #eventRecordState = inject(EventRecordState);
 
   constructor() {
+    effect(() => (this.fullName = this.#userState.currentUser()?.displayName!));
     effect(() => this.patchForm(this.#eventRecordState.eventRecord()));
   }
 
@@ -163,12 +136,11 @@ export class EventRegistrationFormComponent {
     }
 
     const email = this.#userState.currentUser()?.email!;
-    const { firstName, lastName, phoneNumber } = this.eventForm().value;
+    const { fullName, phoneNumber } = this.eventForm().value;
 
     const billingRecord = {
       email,
-      firstName,
-      lastName,
+      fullName,
       phoneNumber,
     };
 
@@ -180,8 +152,7 @@ export class EventRegistrationFormComponent {
       return;
     }
 
-    this.firstName = eventRecord.firstName;
-    this.lastName = eventRecord.lastName;
+    this.fullName = eventRecord.fullName;
     this.phoneNumber = eventRecord.phoneNumber;
   }
 }

@@ -2,20 +2,21 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { Event } from '../../../../core/models/event.model';
+import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'combi-event-main-info',
   standalone: true,
-  imports: [DatePipe, MatCardModule],
+  imports: [BackButtonComponent, DatePipe, MatCardModule],
   template: `
     <mat-card>
-      <mat-card-header>
-        <mat-card-title>
-          <h5>
-            {{ event().name }}
-          </h5>
-        </mat-card-title>
-      </mat-card-header>
+      <mat-card-content class="page-title">
+        <combi-back-button />
+        <h6>{{ event().name }}</h6>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
       <mat-card-content>
         <div>
           <p>{{ event().description }}</p>
@@ -47,6 +48,12 @@ import { Event } from '../../../../core/models/event.model';
     </mat-card>
   `,
   styles: `
+    :host {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
     .event-main-info__line-through {
       margin: 0 0.5rem;
       text-decoration: line-through;
