@@ -39,7 +39,10 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
       />
     } @else {
       <div class="event-registration__form">
-        <combi-event-registration-form (submitForm)="register($event)" />
+        <combi-event-registration-form
+          [additionalQuestions]="event()?.registrationAdditionalQuestions || []"
+          (submitForm)="register($event)"
+        />
       </div>
     }
   `,
@@ -61,7 +64,7 @@ export default class EventRegistrationComponent {
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #route = inject(ActivatedRoute);
 
-  readonly #event = toSignal(
+  readonly event = toSignal(
     this.#route.parent!.data.pipe(
       map((data) => data['event'] as Event | undefined),
     ),
@@ -105,7 +108,7 @@ export default class EventRegistrationComponent {
   );
 
   constructor() {
-    effect(() => this.getBillingResponse(this.#token(), this.#event()));
+    effect(() => this.getBillingResponse(this.#token(), this.event()));
   }
 
   register(billingRecord: BillingRecord): void {
@@ -143,11 +146,12 @@ export default class EventRegistrationComponent {
 
     const record: PartialEventRecord = {
       email: this.#billingRecord?.email!,
-      eventId: this.#event()!.id,
+      eventId: this.event()!.id,
       fullName: this.#billingRecord?.fullName!,
       orderId,
       phoneNumber: this.#billingRecord?.phoneNumber!,
       paymentId,
+      additionalAnswers: this.#billingRecord?.additionalAnswers!,
     };
 
     return this.#eventRecordsService.registerRecord(record);

@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   inject,
+  input,
   output,
   viewChild,
 } from '@angular/core';
@@ -12,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { BillingRecord } from '../../../../core/models/billing-record.model';
 import { EventRecord } from '../../../../core/models/event-record.model';
@@ -19,6 +21,7 @@ import { LoadingState } from '../../../../core/states/loading.state';
 import { UserState } from '../../../../core/states/user.state';
 import { EventRecordState } from '../../../../core/states/event-record.state';
 import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
+import { AdditionalQuestion } from '../../../../core/models/additional-question.model';
 
 @Component({
   selector: 'combi-event-registration-form',
@@ -31,6 +34,7 @@ import { BackButtonComponent } from '../../../../shared/components/back-button/b
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatSelectModule,
     RouterLink,
   ],
   template: `
@@ -87,6 +91,52 @@ import { BackButtonComponent } from '../../../../shared/components/back-button/b
         </mat-card-content>
       </mat-card>
 
+      @for (question of additionalQuestions(); track question.key) {
+        <mat-card appearance="outlined">
+          <mat-card-header>
+            <mat-card-title>
+              <p>
+                {{ question.label }}
+              </p>
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field>
+              <mat-label>Tu respuesta</mat-label>
+              @switch (question.type) {
+                @case ('text') {
+                  <input
+                    matInput
+                    type="text"
+                    [id]="question.key"
+                    [name]="question.key"
+                    [disabled]="loading()"
+                    [required]="question.required"
+                    [(ngModel)]="question.answer"
+                  />
+                }
+                @case ('select') {
+                  <mat-select
+                    [id]="question.key"
+                    [name]="question.key"
+                    [disabled]="loading()"
+                    [required]="question.required"
+                    [(ngModel)]="question.answer"
+                  >
+                    <mat-option value=""></mat-option>
+                    @for (option of question.options; track option) {
+                      <mat-option [value]="option">
+                        {{ option }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                }
+              }
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+      }
+
       <button
         mat-fab
         extended
@@ -118,6 +168,7 @@ export class EventRegistrationFormComponent {
   fullName = '';
   phoneNumber = '';
 
+  readonly additionalQuestions = input<AdditionalQuestion[]>([]);
   readonly eventForm = viewChild.required(NgForm);
   readonly submitForm = output<BillingRecord>();
   readonly loading = inject(LoadingState).loading;
@@ -131,17 +182,24 @@ export class EventRegistrationFormComponent {
   }
 
   register(): void {
+    this.trimValues();
+
     if (this.eventForm().invalid) {
       return;
     }
 
+    const formValue = this.eventForm().value;
     const email = this.#userState.currentUser()?.email!;
-    const { fullName, phoneNumber } = this.eventForm().value;
+    const { fullName, phoneNumber } = formValue;
 
-    const billingRecord = {
+    delete formValue.fullName;
+    delete formValue.phoneNumber;
+
+    const billingRecord: BillingRecord = {
       email,
       fullName,
       phoneNumber,
+      additionalAnswers: { ...formValue },
     };
 
     this.submitForm.emit(billingRecord);
@@ -154,5 +212,22 @@ export class EventRegistrationFormComponent {
 
     this.fullName = eventRecord.fullName;
     this.phoneNumber = eventRecord.phoneNumber;
+    const additionalQuestions = this.additionalQuestions();
+
+    for (const question of additionalQuestions) {
+      question.answer = eventRecord.additionalAnswers[question.key] ?? '';
+    }
+  }
+
+  private trimValues(): void {
+    const formValue = this.eventForm().value;
+
+    for (const key in formValue) {
+      if (typeof formValue[key] === 'string') {
+        formValue[key] = formValue[key].trim();
+      }
+    }
+
+    this.eventForm().setValue(formValue);
   }
 }
