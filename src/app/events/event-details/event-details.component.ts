@@ -54,7 +54,7 @@ export default class EventDetailsComponent {
 
   private handleLoadEvent(event: Event | undefined): void {
     if (!event) {
-      this.#router.navigate(['/events']);
+      this.#router.navigateByUrl('/');
     }
   }
 }
