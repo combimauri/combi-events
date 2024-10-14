@@ -6,27 +6,51 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EventRecord } from '../../../../core/models/event-record.model';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
 import { SanitizeUrlPipe } from '../../../../shared/pipes/sanitize-url.pipe';
 
 @Component({
   selector: 'combi-event-registration-payment',
   standalone: true,
-  imports: [SanitizeUrlPipe],
+  imports: [BackButtonComponent, MatCardModule, SanitizeUrlPipe],
   template: `
-    <iframe
-      class="event-registration-payment"
-      [src]="iFrameUrl() | sanitizeUrl"
-    ></iframe>
+    <mat-card>
+      <mat-card-content class="page-title">
+        <combi-back-button />
+        <h6>Pasarela de Pago</h6>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="event-registration-payment">
+      <iframe
+        class="event-registration-payment__iframe"
+        [src]="iFrameUrl() | sanitizeUrl"
+      ></iframe>
+    </div>
   `,
   styles: `
+    :host {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
     .event-registration-payment {
-      border: 0;
       border-radius: 0.75rem;
-      height: 100%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      height: 600px;
       width: 100%;
+
+      .event-registration-payment__iframe {
+        border: 0;
+        border-radius: 0.75rem;
+        height: 100%;
+        width: 100%;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

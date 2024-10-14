@@ -37,8 +37,8 @@ export class PaymentsService {
 
   getBillingData(
     token: string,
-    billing: BillingRecord,
-    event: Event,
+    { email, fullName, phoneNumber }: BillingRecord,
+    { name, price }: Event,
   ): Observable<BillingData | undefined> {
     const id = crypto.randomUUID();
 
@@ -47,19 +47,24 @@ export class PaymentsService {
         `${this.#basePath}/getWolipayiFrame`,
         {
           id,
-          title: event.name,
-          description: event.price.description,
+          title: name,
+          description: price.description,
           notifyUrl: environment.wolipay.notifyUrl,
           payment: {
-            amount: event.price.amount,
-            currency: event.price.currency,
-            totalAmount: event.price.amount - event.price.discount,
+            amount: price.amount,
+            currency: price.currency,
+            totalAmount: price.amount - price.discount,
             discount: {
-              amount: event.price.discount,
+              amount: price.discount,
               type: 'amount',
             },
           },
-          billing,
+          billing: {
+            firstName: fullName,
+            lastName: name,
+            email: email,
+            phoneNumber: phoneNumber,
+          },
         },
         {
           headers: {

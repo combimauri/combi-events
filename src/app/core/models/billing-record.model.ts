@@ -1,8 +1,8 @@
 export interface BillingRecord {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phoneNumber: string;
+  additionalAnswers: Record<string, string>;
 }
 
 export interface BillingData {

@@ -1,4 +1,5 @@
 import { GeoPoint, Timestamp } from '@angular/fire/firestore';
+import { AdditionalQuestion } from './additional-question.model';
 
 export interface Event {
   bannerImage: string;
@@ -16,4 +17,5 @@ export interface Event {
     description: string;
   };
   shortDescription: string;
+  registrationAdditionalQuestions: AdditionalQuestion[];
 }

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { exitRegistrationGuard } from '../core/guards/exit-registration.guard';
 import { registrationGuard } from '../core/guards/registration.guard';
 import { eventsResolver } from '../core/resolvers/events.resolver';
 
@@ -22,6 +23,7 @@ export const routes: Routes = [
       {
         path: 'register',
         canActivate: [registrationGuard],
+        canDeactivate: [exitRegistrationGuard],
         loadComponent: () =>
           import(
             './event-details/event-registration/event-registration.component'

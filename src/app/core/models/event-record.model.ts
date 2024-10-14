@@ -1,10 +1,8 @@
-export interface PartialEventRecord {
-  email: string;
+import { BillingRecord } from './billing-record.model';
+
+export interface PartialEventRecord extends BillingRecord {
   eventId: string;
-  firstName: string;
-  lastName: string;
   orderId: string;
-  phoneNumber: string;
   paymentId: string;
 }
 

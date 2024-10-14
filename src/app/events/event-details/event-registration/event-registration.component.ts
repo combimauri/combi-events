@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   effect,
+  HostListener,
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -33,26 +34,20 @@ import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
   ],
   template: `
     @if (iFrameUrl(); as iFrameUrl) {
-      <div class="event-registration__payment">
-        <combi-event-registration-payment
-          [iFrameUrl]="iFrameUrl"
-          [realtimeEventRecord]="realtimeEventRecord()"
-        />
-      </div>
+      <combi-event-registration-payment
+        [iFrameUrl]="iFrameUrl"
+        [realtimeEventRecord]="realtimeEventRecord()"
+      />
     } @else {
       <div class="event-registration__form">
-        <combi-event-registration-form (submitForm)="register($event)" />
+        <combi-event-registration-form
+          [additionalQuestions]="event()?.registrationAdditionalQuestions || []"
+          (submitForm)="register($event)"
+        />
       </div>
     }
   `,
   styles: `
-    .event-registration__payment {
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      height: 600px;
-      width: 100%;
-    }
-
     .event-registration__form {
       margin: 0 auto;
 
@@ -70,7 +65,7 @@ export default class EventRegistrationComponent {
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #route = inject(ActivatedRoute);
 
-  readonly #event = toSignal(
+  readonly event = toSignal(
     this.#route.parent!.data.pipe(
       map((data) => data['event'] as Event | undefined),
     ),
@@ -114,7 +109,12 @@ export default class EventRegistrationComponent {
   );
 
   constructor() {
-    effect(() => this.getBillingResponse(this.#token(), this.#event()));
+    effect(() => this.getBillingResponse(this.#token(), this.event()));
+  }
+
+  @HostListener('window:beforeunload')
+  canDeactivate(): boolean {
+    return !!this.realtimeEventRecord()?.validated;
   }
 
   register(billingRecord: BillingRecord): void {
@@ -152,12 +152,12 @@ export default class EventRegistrationComponent {
 
     const record: PartialEventRecord = {
       email: this.#billingRecord?.email!,
-      eventId: this.#event()!.id,
-      firstName: this.#billingRecord?.firstName!,
-      lastName: this.#billingRecord?.lastName!,
+      eventId: this.event()!.id,
+      fullName: this.#billingRecord?.fullName!,
       orderId,
       phoneNumber: this.#billingRecord?.phoneNumber!,
       paymentId,
+      additionalAnswers: this.#billingRecord?.additionalAnswers!,
     };
 
     return this.#eventRecordsService.registerRecord(record);

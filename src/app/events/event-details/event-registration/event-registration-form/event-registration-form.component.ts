@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   inject,
+  input,
   output,
   viewChild,
 } from '@angular/core';
@@ -12,32 +13,35 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 import { BillingRecord } from '../../../../core/models/billing-record.model';
 import { EventRecord } from '../../../../core/models/event-record.model';
 import { LoadingState } from '../../../../core/states/loading.state';
 import { UserState } from '../../../../core/states/user.state';
 import { EventRecordState } from '../../../../core/states/event-record.state';
+import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
+import { AdditionalQuestion } from '../../../../core/models/additional-question.model';
 
 @Component({
   selector: 'combi-event-registration-form',
   standalone: true,
   imports: [
+    BackButtonComponent,
     FormsModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatSelectModule,
     RouterLink,
   ],
   template: `
     <form #eventForm="ngForm" (ngSubmit)="register()">
       <mat-card appearance="outlined">
-        <mat-card-content class="event-registration-form__title">
-          <a mat-icon-button routerLink="..">
-            <mat-icon>chevron_left</mat-icon>
-          </a>
+        <mat-card-content class="page-title">
+          <combi-back-button />
           <h6>Inscripción al Evento</h6>
         </mat-card-content>
       </mat-card>
@@ -45,7 +49,7 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
       <mat-card appearance="outlined">
         <mat-card-header>
           <mat-card-title>
-            <p>Nombre(s)</p>
+            <p>Nombre Completo</p>
           </mat-card-title>
         </mat-card-header>
         <mat-card-content>
@@ -56,32 +60,10 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
               required
               cdkFocusInitial
               type="text"
-              id="firstName"
-              name="firstName"
+              id="fullName"
+              name="fullName"
               [disabled]="loading()"
-              [(ngModel)]="firstName"
-            />
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>
-            <p>Apellido(s)</p>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-form-field>
-            <mat-label>Tu respuesta</mat-label>
-            <input
-              matInput
-              required
-              type="text"
-              id="lastName"
-              name="lastName"
-              [disabled]="loading()"
-              [(ngModel)]="lastName"
+              [(ngModel)]="fullName"
             />
           </mat-form-field>
         </mat-card-content>
@@ -109,6 +91,52 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
         </mat-card-content>
       </mat-card>
 
+      @for (question of additionalQuestions(); track question.key) {
+        <mat-card appearance="outlined">
+          <mat-card-header>
+            <mat-card-title>
+              <p>
+                {{ question.label }}
+              </p>
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field>
+              <mat-label>Tu respuesta</mat-label>
+              @switch (question.type) {
+                @case ('text') {
+                  <input
+                    matInput
+                    type="text"
+                    [id]="question.key"
+                    [name]="question.key"
+                    [disabled]="loading()"
+                    [required]="question.required"
+                    [(ngModel)]="question.answer"
+                  />
+                }
+                @case ('select') {
+                  <mat-select
+                    [id]="question.key"
+                    [name]="question.key"
+                    [disabled]="loading()"
+                    [required]="question.required"
+                    [(ngModel)]="question.answer"
+                  >
+                    <mat-option value=""></mat-option>
+                    @for (option of question.options; track option) {
+                      <mat-option [value]="option">
+                        {{ option }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                }
+              }
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+      }
+
       <button
         mat-fab
         extended
@@ -132,20 +160,15 @@ import { EventRecordState } from '../../../../core/states/event-record.state';
       mat-form-field {
         width: 100%;
       }
-
-      .event-registration-form__title {
-        align-items: center;
-        display: flex;
-      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationFormComponent {
-  firstName = '';
-  lastName = '';
+  fullName = '';
   phoneNumber = '';
 
+  readonly additionalQuestions = input<AdditionalQuestion[]>([]);
   readonly eventForm = viewChild.required(NgForm);
   readonly submitForm = output<BillingRecord>();
   readonly loading = inject(LoadingState).loading;
@@ -154,22 +177,29 @@ export class EventRegistrationFormComponent {
   readonly #eventRecordState = inject(EventRecordState);
 
   constructor() {
+    effect(() => (this.fullName = this.#userState.currentUser()?.displayName!));
     effect(() => this.patchForm(this.#eventRecordState.eventRecord()));
   }
 
   register(): void {
+    this.trimValues();
+
     if (this.eventForm().invalid) {
       return;
     }
 
+    const formValue = this.eventForm().value;
     const email = this.#userState.currentUser()?.email!;
-    const { firstName, lastName, phoneNumber } = this.eventForm().value;
+    const { fullName, phoneNumber } = formValue;
 
-    const billingRecord = {
+    delete formValue.fullName;
+    delete formValue.phoneNumber;
+
+    const billingRecord: BillingRecord = {
       email,
-      firstName,
-      lastName,
+      fullName,
       phoneNumber,
+      additionalAnswers: { ...formValue },
     };
 
     this.submitForm.emit(billingRecord);
@@ -180,8 +210,24 @@ export class EventRegistrationFormComponent {
       return;
     }
 
-    this.firstName = eventRecord.firstName;
-    this.lastName = eventRecord.lastName;
+    this.fullName = eventRecord.fullName;
     this.phoneNumber = eventRecord.phoneNumber;
+    const additionalQuestions = this.additionalQuestions();
+
+    for (const question of additionalQuestions) {
+      question.answer = eventRecord.additionalAnswers[question.key] ?? '';
+    }
+  }
+
+  private trimValues(): void {
+    const formValue = this.eventForm().value;
+
+    for (const key in formValue) {
+      if (typeof formValue[key] === 'string') {
+        formValue[key] = formValue[key].trim();
+      }
+    }
+
+    this.eventForm().setValue(formValue);
   }
 }
