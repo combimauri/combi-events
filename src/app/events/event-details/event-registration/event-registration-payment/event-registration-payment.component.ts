@@ -5,11 +5,14 @@ import {
   effect,
   inject,
   input,
+  OnInit,
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EventRecord } from '../../../../core/models/event-record.model';
+import { RegistrationStep } from '../../../../core/models/registration-step.enum';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { RegistrationStepState } from '../../../../core/states/registration-step.state';
 import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
 import { SanitizeUrlPipe } from '../../../../shared/pipes/sanitize-url.pipe';
 
@@ -55,10 +58,11 @@ import { SanitizeUrlPipe } from '../../../../shared/pipes/sanitize-url.pipe';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRegistrationPaymentComponent {
+export class EventRegistrationPaymentComponent implements OnInit {
   readonly iFrameUrl = input.required<string>();
   readonly realtimeEventRecord = input<EventRecord>();
 
+  readonly #registrationStepState = inject(RegistrationStepState);
   readonly #logger = inject(LoggerService);
   readonly #activatedRoute = inject(ActivatedRoute);
   readonly #router = inject(Router);
@@ -73,5 +77,9 @@ export class EventRegistrationPaymentComponent {
         this.#router.navigate(['..'], { relativeTo: this.#activatedRoute });
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.#registrationStepState.setRegistrationStep(RegistrationStep.payment);
   }
 }
