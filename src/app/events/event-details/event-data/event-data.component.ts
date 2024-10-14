@@ -32,7 +32,10 @@ import { LoadingState } from '../../../core/states/loading.state';
     @if (event(); as event) {
       <combi-event-main-info [event]="event" />
 
-      @if (event.openRegistration) {
+      @if (
+        event.openRegistration ||
+        event.betaAccess?.includes(userState.currentUser()?.email!)
+      ) {
         @if (eventRecord(); as record) {
           <combi-user-event-record [eventRecord]="record" />
         } @else if (!loading()) {
@@ -64,8 +67,8 @@ import { LoadingState } from '../../../core/states/loading.state';
 export default class EventDataComponent {
   readonly #route = inject(ActivatedRoute);
   readonly #eventRecordService = inject(EventRecordsService);
-  readonly #userState = inject(UserState);
 
+  readonly userState = inject(UserState);
   readonly loading = inject(LoadingState).loading;
 
   readonly #event$ = this.#route.data.pipe(
@@ -86,7 +89,7 @@ export default class EventDataComponent {
   private getRecords(
     event: Event | undefined,
   ): Observable<EventRecord[] | undefined> {
-    const user = this.#userState.currentUser();
+    const user = this.userState.currentUser();
 
     if (!user || !event) {
       return of([]);
