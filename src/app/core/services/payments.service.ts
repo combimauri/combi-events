@@ -41,6 +41,9 @@ export class PaymentsService {
     { name, price }: Event,
   ): Observable<BillingData | undefined> {
     const id = crypto.randomUUID();
+    const splitName = fullName.split(' ');
+    const lastName = splitName.pop();
+    const firstName = splitName.join(' ') || lastName;
 
     return this.#http
       .post<WolipayIFrame>(
@@ -60,10 +63,10 @@ export class PaymentsService {
             },
           },
           billing: {
-            firstName: fullName,
-            lastName: name,
-            email: email,
-            phoneNumber: phoneNumber,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
           },
         },
         {
