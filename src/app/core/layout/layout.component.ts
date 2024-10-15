@@ -105,7 +105,13 @@ import { UserState } from '../states/user.state';
         height: 100%;
         margin: 1rem auto;
         max-width: 1080px;
-        width: 75%;
+        padding: 0 1rem;
+        width: 100%;
+
+        @media (min-width: 960px) {
+          padding: 0;
+          width: 75%;
+        }
       }
     }
 
