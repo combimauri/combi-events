@@ -20,4 +20,7 @@ export interface Event {
   registrationAdditionalQuestions: AdditionalQuestion[];
   openRegistration: boolean;
   betaAccess?: string[];
+  owner: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
