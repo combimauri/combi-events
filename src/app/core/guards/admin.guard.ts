@@ -1,9 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { EventsService } from '@core/services';
+import { UserState } from '@core/states';
 import { map } from 'rxjs';
-import { EventsService } from '../services/events.service';
-import { UserState } from '../states/user.state';
 
 export const adminGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);

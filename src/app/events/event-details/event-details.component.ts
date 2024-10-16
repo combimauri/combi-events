@@ -6,8 +6,8 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { AppEvent } from '@core/models';
 import { map } from 'rxjs';
-import { Event } from '../../core/models/event.model';
 
 @Component({
   selector: 'combi-event-details',
@@ -45,14 +45,14 @@ export default class EventDetailsComponent {
   readonly #router = inject(Router);
 
   readonly event = toSignal(
-    this.#route.data.pipe(map((data) => data['event'] as Event | undefined)),
+    this.#route.data.pipe(map((data) => data['event'] as AppEvent | undefined)),
   );
 
   constructor() {
     effect(() => this.handleLoadEvent(this.event()));
   }
 
-  private handleLoadEvent(event: Event | undefined): void {
+  private handleLoadEvent(event: AppEvent | undefined): void {
     if (!event) {
       this.#router.navigateByUrl('/');
     }

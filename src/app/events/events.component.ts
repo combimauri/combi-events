@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { EventsService } from '@core/services';
 import { EventCardComponent } from './event-card/event-card.component';
-import { EventsService } from '../core/services/events.service';
 
 @Component({
   selector: 'combi-events',

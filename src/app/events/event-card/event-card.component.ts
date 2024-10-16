@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { Event } from '../../core/models/event.model';
+import { AppEvent } from '@core/models';
 
 @Component({
   selector: 'combi-event-card',
@@ -93,5 +93,5 @@ import { Event } from '../../core/models/event.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventCardComponent {
-  readonly event = input.required<Event>();
+  readonly event = input.required<AppEvent>();
 }

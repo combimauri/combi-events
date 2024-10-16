@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanDeactivateFn } from '@angular/router';
-import { RegistrationStep } from '../models/registration-step.enum';
-import { RegistrationStepState } from '../states/registration-step.state';
+import { RegistrationStep } from '@core/models';
+import { RegistrationStepState } from '@core/states';
 
 export const exitRegistrationGuard: CanDeactivateFn<{
   canDeactivate: () => boolean;

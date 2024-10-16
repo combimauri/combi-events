@@ -6,10 +6,9 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '@core/services';
+import { UserState, LoadingState } from '@core/states';
 import { Subject, switchMap } from 'rxjs';
-import { AuthService } from '../services/auth.service';
-import { LoadingState } from '../states/loading.state';
-import { UserState } from '../states/user.state';
 
 @Component({
   selector: 'combi-layout',

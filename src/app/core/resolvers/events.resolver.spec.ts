@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { ResolveFn } from '@angular/router';
+import { AppEvent } from '@core/models';
 import { eventsResolver } from './events.resolver';
-import { Event } from '../models/event.model';
 
 describe('eventsResolver', () => {
-  const executeResolver: ResolveFn<Event | undefined> = (
+  const executeResolver: ResolveFn<AppEvent | undefined> = (
     ...resolverParameters
   ) =>
     TestBed.runInInjectionContext(() => eventsResolver(...resolverParameters));

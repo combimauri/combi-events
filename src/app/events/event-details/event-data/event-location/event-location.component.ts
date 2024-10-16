@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { Event } from '../../../../core/models/event.model';
-import { SanitizeUrlPipe } from '../../../../shared/pipes/sanitize-url.pipe';
+import { AppEvent } from '@core/models';
+import { SanitizeUrlPipe } from '@shared/pipes';
 
 @Component({
   selector: 'combi-event-location',
@@ -41,5 +41,5 @@ import { SanitizeUrlPipe } from '../../../../shared/pipes/sanitize-url.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventLocationComponent {
-  event = input.required<Event>();
+  event = input.required<AppEvent>();
 }

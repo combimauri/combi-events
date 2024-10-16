@@ -9,12 +9,11 @@ import {
 } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EventRecord } from '../../../../core/models/event-record.model';
-import { RegistrationStep } from '../../../../core/models/registration-step.enum';
-import { LoggerService } from '../../../../core/services/logger.service';
-import { RegistrationStepState } from '../../../../core/states/registration-step.state';
-import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
-import { SanitizeUrlPipe } from '../../../../shared/pipes/sanitize-url.pipe';
+import { EventRecord, RegistrationStep } from '@core/models';
+import { LoggerService } from '@core/services';
+import { RegistrationStepState } from '@core/states';
+import { BackButtonComponent } from '@shared/components';
+import { SanitizeUrlPipe } from '@shared/pipes';
 
 @Component({
   selector: 'combi-event-registration-payment',

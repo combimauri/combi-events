@@ -1,8 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { Event } from '../../../../core/models/event.model';
-import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
+import { AppEvent } from '@core/models';
+import { BackButtonComponent } from '@shared/components';
 
 @Component({
   selector: 'combi-event-main-info',
@@ -62,5 +62,5 @@ import { BackButtonComponent } from '../../../../shared/components/back-button/b
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventMainInfoComponent {
-  readonly event = input.required<Event>();
+  readonly event = input.required<AppEvent>();
 }

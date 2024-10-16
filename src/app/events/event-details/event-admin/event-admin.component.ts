@@ -3,11 +3,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { map, Observable, of, switchMap } from 'rxjs';
+import { EventRecordsService } from '@core/services';
+import { AppEvent, EventRecord } from '@core/models';
+import { BackButtonComponent } from '@shared/components';
 import { EventRecordsTableComponent } from './event-records-table/event-records-table.component';
-import { Event } from '../../../core/models/event.model';
-import { EventRecord } from '../../../core/models/event-record.model';
-import { EventRecordsService } from '../../../core/services/event-records.service';
-import { BackButtonComponent } from '../../../shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'combi-event-admin',
@@ -45,7 +44,7 @@ export default class EventAdminComponent {
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #route = inject(ActivatedRoute);
   readonly #event$ = this.#route.parent!.data.pipe(
-    map((data) => data['event'] as Event | undefined),
+    map((data) => data['event'] as AppEvent | undefined),
   );
 
   readonly event = toSignal(this.#event$);
@@ -53,7 +52,7 @@ export default class EventAdminComponent {
     switchMap((event) => this.getEventRecords(event)),
   );
 
-  private getEventRecords(event?: Event): Observable<EventRecord[]> {
+  private getEventRecords(event?: AppEvent): Observable<EventRecord[]> {
     if (!event) {
       return of([]);
     }

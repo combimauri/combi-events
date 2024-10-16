@@ -7,13 +7,12 @@ import {
   user,
 } from '@angular/fire/auth';
 import { Router } from '@angular/router';
+import { AppUser } from '@core/models';
+import { UserState } from '@core/states';
+import { loadEffect, handleError } from '@core/utils';
 import { Observable, from, tap, switchMap, catchError, of, map } from 'rxjs';
 import { AppUserService } from './app-user.service';
 import { LoggerService } from './logger.service';
-import { AppUser } from '../models/app-user.model';
-import { UserState } from '../states/user.state';
-import { handleError } from '../utils/handle-error.utils';
-import { loadEffect } from '../utils/load-effect.utils';
 
 @Injectable({
   providedIn: 'root',

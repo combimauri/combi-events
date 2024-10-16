@@ -8,21 +8,18 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
+import {
+  BillingData,
+  BillingRecord,
+  AppEvent,
+  EventRecord,
+  PartialEventRecord,
+} from '@core/models';
+import { EventRecordsService, PaymentsService } from '@core/services';
+import { SanitizeUrlPipe } from '@shared/pipes';
 import { map, Observable, of, Subject, switchMap, tap } from 'rxjs';
 import { EventRegistrationFormComponent } from './event-registration-form/event-registration-form.component';
 import { EventRegistrationPaymentComponent } from './event-registration-payment/event-registration-payment.component';
-import {
-  BillingRecord,
-  BillingData,
-} from '../../../core/models/billing-record.model';
-import { Event } from '../../../core/models/event.model';
-import {
-  EventRecord,
-  PartialEventRecord,
-} from '../../../core/models/event-record.model';
-import { EventRecordsService } from '../../../core/services/event-records.service';
-import { PaymentsService } from '../../../core/services/payments.service';
-import { SanitizeUrlPipe } from '../../../shared/pipes/sanitize-url.pipe';
 
 @Component({
   selector: 'combi-event-registration',
@@ -68,7 +65,7 @@ export default class EventRegistrationComponent {
 
   readonly event = toSignal(
     this.#route.parent!.data.pipe(
-      map((data) => data['event'] as Event | undefined),
+      map((data) => data['event'] as AppEvent | undefined),
     ),
   );
 
@@ -82,7 +79,7 @@ export default class EventRegistrationComponent {
   readonly #getBillingData$ = new Subject<{
     token: string;
     billing: BillingRecord;
-    event: Event;
+    event: AppEvent;
   }>();
   readonly #billingData = toSignal(
     this.#getBillingData$.pipe(
@@ -126,7 +123,7 @@ export default class EventRegistrationComponent {
 
   private getBillingResponse(
     token: string | undefined,
-    event: Event | undefined,
+    event: AppEvent | undefined,
   ): void {
     if (!token || !event) {
       return;
