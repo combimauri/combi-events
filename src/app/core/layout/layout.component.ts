@@ -26,7 +26,9 @@ import { UserState } from '../states/user.state';
     <header>
       <mat-toolbar>
         @if (currentUser(); as currentUser) {
-          <a mat-button class="root-link" routerLink="/">CE</a>
+          <a mat-button class="root-link" routerLink="/">
+            <img class="logo" src="logo.webp" alt="logo de combieventos" />
+          </a>
           <span class="toolbar-spacer"></span>
           <button mat-button [matMenuTriggerFor]="userMenu">
             <div
@@ -77,6 +79,12 @@ import { UserState } from '../states/user.state';
       mat-toolbar {
         background-color: #d7e3ff;
         color: #005cbb;
+
+        .logo {
+          height: auto;
+          width: 50px;
+          vertical-align: bottom;
+        }
 
         .root-link {
           color: inherit;

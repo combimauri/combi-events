@@ -32,24 +32,31 @@ import { LoadingState } from '../../../core/states/loading.state';
     @if (event(); as event) {
       <combi-event-main-info [event]="event" />
 
-      @if (
-        event.openRegistration ||
-        event.betaAccess?.includes(userState.currentUser()?.email!)
-      ) {
-        @if (eventRecord(); as record) {
-          <combi-user-event-record [eventRecord]="record" />
-        } @else if (!loading()) {
-          <a mat-fab extended routerLink="register">
-            <mat-icon>how_to_reg</mat-icon>
-            Inscribirse
-          </a>
-        }
+      @if (currentUser()?.email === event.owner) {
+        <a mat-fab extended routerLink="admin">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Gestionar Evento
+        </a>
       } @else {
-        <mat-card>
-          <mat-card-content>
-            <p>La inscripción para este evento está cerrada.</p>
-          </mat-card-content>
-        </mat-card>
+        @if (
+          event.openRegistration ||
+          event.betaAccess?.includes(currentUser()?.email!)
+        ) {
+          @if (eventRecord(); as record) {
+            <combi-user-event-record [eventRecord]="record" />
+          } @else if (!loading()) {
+            <a mat-fab extended routerLink="register">
+              <mat-icon>how_to_reg</mat-icon>
+              Inscribirse
+            </a>
+          }
+        } @else {
+          <mat-card>
+            <mat-card-content>
+              <p>La inscripción para este evento está cerrada.</p>
+            </mat-card-content>
+          </mat-card>
+        }
       }
 
       <combi-event-location [event]="event" />
@@ -68,7 +75,7 @@ export default class EventDataComponent {
   readonly #route = inject(ActivatedRoute);
   readonly #eventRecordService = inject(EventRecordsService);
 
-  readonly userState = inject(UserState);
+  readonly currentUser = inject(UserState).currentUser;
   readonly loading = inject(LoadingState).loading;
 
   readonly #event$ = this.#route.data.pipe(
@@ -89,15 +96,13 @@ export default class EventDataComponent {
   private getRecords(
     event: Event | undefined,
   ): Observable<EventRecord[] | undefined> {
-    const user = this.userState.currentUser();
-
-    if (!user || !event) {
+    if (!this.currentUser || !event) {
       return of([]);
     }
 
     return this.#eventRecordService.getRecordsByEventIdAndEmail(
       event.id,
-      user.email!,
+      this.currentUser()?.email!,
     );
   }
 }
