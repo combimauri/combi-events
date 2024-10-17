@@ -25,7 +25,7 @@ import { EventRecordsTableComponent } from './event-records-table/event-records-
         <mat-card-content>
           <combi-event-records-table
             [additionalQuestions]="event.registrationAdditionalQuestions"
-            [eventRecordsObservable]="eventRecords$"
+            [eventId]="event.id"
           />
         </mat-card-content>
       </mat-card>

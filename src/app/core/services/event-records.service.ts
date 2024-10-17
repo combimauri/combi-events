@@ -4,15 +4,26 @@ import {
   collectionData,
   doc,
   docData,
+  endBefore,
   Firestore,
+  getCountFromServer,
+  getDoc,
+  limit,
+  limitToLast,
+  orderBy,
   query,
   setDoc,
+  startAfter,
   where,
 } from '@angular/fire/firestore';
-import { EventRecord, PartialEventRecord } from '@core/models';
+import {
+  EventRecord,
+  EventRecordListing,
+  PartialEventRecord,
+} from '@core/models';
 import { EventRecordState } from '@core/states';
 import { loadEffect, handleError } from '@core/utils';
-import { catchError, from, map, Observable, take, tap } from 'rxjs';
+import { catchError, from, map, Observable, switchMap, take, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
 
 @Injectable({
@@ -50,6 +61,90 @@ export class EventRecordsService {
     return (collectionData(recordsQuery) as Observable<EventRecord[]>).pipe(
       tap(this.#loadEffectObserver),
       take(1),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  getFirstPageOfRecordsByEventId(
+    eventId: string,
+    pageSize: number,
+  ): Observable<EventRecordListing | undefined> {
+    const recordsCollection = query(
+      collection(this.#firestore, this.#collectionName),
+    );
+    const recordsQuery = query(
+      recordsCollection,
+      where('eventId', '==', eventId),
+      orderBy('createdAt', 'desc'),
+      limit(pageSize),
+    );
+
+    return (collectionData(recordsQuery) as Observable<EventRecord[]>).pipe(
+      tap(this.#loadEffectObserver),
+      take(1),
+      switchMap((items) =>
+        this.getRecordsCount(eventId).pipe(map((total) => ({ items, total }))),
+      ),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  getNextPageOfRecordsByEventId(
+    eventId: string,
+    lastVisibleRecordId: string,
+    pageSize: number,
+  ): Observable<EventRecordListing | undefined> {
+    const recordsRef = collection(this.#firestore, this.#collectionName);
+    const lastDoc = from(getDoc(doc(recordsRef, lastVisibleRecordId)));
+
+    return lastDoc.pipe(
+      tap(this.#loadEffectObserver),
+      switchMap((docSnapshot) => {
+        const recordsCollection = query(recordsRef);
+        const recordsQuery = query(
+          recordsCollection,
+          where('eventId', '==', eventId),
+          orderBy('createdAt', 'desc'),
+          startAfter(docSnapshot),
+          limit(pageSize),
+        );
+
+        return collectionData(recordsQuery) as Observable<EventRecord[]>;
+      }),
+      take(1),
+      switchMap((items) =>
+        this.getRecordsCount(eventId).pipe(map((total) => ({ items, total }))),
+      ),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  getPreviousPageOfRecordsByEventId(
+    eventId: string,
+    firstVisibleRecordId: string,
+    pageSize: number,
+  ): Observable<EventRecordListing | undefined> {
+    const recordsRef = collection(this.#firestore, this.#collectionName);
+    const firstDoc = from(getDoc(doc(recordsRef, firstVisibleRecordId)));
+
+    return firstDoc.pipe(
+      tap(this.#loadEffectObserver),
+      switchMap((docSnapshot) => {
+        const recordsCollection = query(recordsRef);
+        const recordsQuery = query(
+          recordsCollection,
+          where('eventId', '==', eventId),
+          orderBy('createdAt', 'desc'),
+          endBefore(docSnapshot),
+          limitToLast(pageSize),
+        );
+
+        return collectionData(recordsQuery) as Observable<EventRecord[]>;
+      }),
+      take(1),
+      switchMap((items) =>
+        this.getRecordsCount(eventId).pipe(map((total) => ({ items, total }))),
+      ),
       catchError((error) => handleError(error, this.#logger)),
     );
   }
@@ -107,6 +202,20 @@ export class EventRecordsService {
       tap(this.#loadEffectObserver),
       map(() => eventRecord),
       catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  private getRecordsCount(eventId: string): Observable<number> {
+    const recordsCollection = query(
+      collection(this.#firestore, this.#collectionName),
+    );
+    const recordsQuery = query(
+      recordsCollection,
+      where('eventId', '==', eventId),
+    );
+
+    return from(getCountFromServer(recordsQuery)).pipe(
+      map((snapshot) => snapshot.data().count),
     );
   }
 }
