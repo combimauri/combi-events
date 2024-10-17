@@ -5,7 +5,7 @@ export const routes: Routes = [
   {
     path: 'login',
     canActivate: [loginGuard],
-    loadComponent: () => import('./login/login.component'),
+    loadChildren: () => import('./login/login.routes').then((m) => m.routes),
   },
   {
     path: '',

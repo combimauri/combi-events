@@ -185,7 +185,9 @@ export class EventRegistrationFormComponent implements OnInit {
   readonly #eventRecordState = inject(EventRecordState);
 
   constructor() {
-    effect(() => (this.fullName = this.#userState.currentUser()?.displayName!));
+    effect(
+      () => (this.fullName = this.#userState.currentUser()?.displayName || ''),
+    );
     effect(() => this.patchForm(this.#eventRecordState.eventRecord()));
   }
 

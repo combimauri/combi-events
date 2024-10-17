@@ -46,7 +46,7 @@ import { map, Subject, switchMap, tap } from 'rxjs';
               <mat-card-title> ¡Ya eres parte! </mat-card-title>
               <mat-card-subtitle>
                 Nos vemos en el evento
-                {{ user?.displayName }}
+                {{ user?.displayName || '' }}
               </mat-card-subtitle>
             </mat-card-header>
           </mat-card>
