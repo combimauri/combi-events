@@ -27,6 +27,7 @@ import {
   PageEventRecords,
 } from '@core/models';
 import { EventRecordsService } from '@core/services';
+import { ValidatedSelectorComponent } from '@shared/components';
 import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
 import { map, Observable, Subject, switchMap } from 'rxjs';
 
@@ -41,8 +42,15 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
     MatTableModule,
     QuestionLabelPipe,
     TranslateBooleanPipe,
+    ValidatedSelectorComponent,
   ],
   template: `
+    <div class="event-records-table__filters">
+      <combi-validated-selector
+        (selectValidatedValue)="filterByValidatedValue($event)"
+      />
+    </div>
+
     <table mat-table multiTemplateDataRows [dataSource]="eventRecords()">
       @for (column of displayedColumns(); track column) {
         <ng-container [matColumnDef]="column">
@@ -146,6 +154,11 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
     ]),
   ],
   styles: `
+    .event-records-table__filters {
+      display: flex;
+      justify-content: flex-end;
+    }
+
     tr.detail-row {
       height: 0;
     }
@@ -188,6 +201,9 @@ export class EventRecordsTableComponent {
     email: 'Correo Electrónico',
     fullName: 'Nombre Completo',
     validated: 'Validado',
+  };
+  filters: Record<string, unknown> = {
+    validated: null,
   };
 
   readonly additionalQuestions = input.required<AdditionalQuestion[]>();
@@ -237,6 +253,19 @@ export class EventRecordsTableComponent {
     }
   }
 
+  filterByValidatedValue(validated: boolean | null): void {
+    this.filters['validated'] = validated;
+
+    this.resetTable();
+  }
+
+  private resetTable(): void {
+    const eventId = this.eventId();
+    this.pageIndex = 0;
+
+    this.#pageEventRecords$.next({ eventId });
+  }
+
   private getDisplayedColumns(isHandset: boolean): string[] {
     if (isHandset) {
       return ['fullName', 'validated'];
@@ -260,7 +289,12 @@ export class EventRecordsTableComponent {
   }: PageEventRecords): Observable<EventRecord[]> {
     if (lastRecord) {
       return this.#eventRecordsService
-        .getNextPageOfRecordsByEventId(eventId, lastRecord.id, this.pageSize)
+        .getNextPageOfRecordsByEventId(
+          eventId,
+          lastRecord.id,
+          this.pageSize,
+          this.filters,
+        )
         .pipe(map((listing) => this.handleLoadRecordListing(listing)));
     } else if (firstRecord) {
       return this.#eventRecordsService
@@ -268,12 +302,13 @@ export class EventRecordsTableComponent {
           eventId,
           firstRecord.id,
           this.pageSize,
+          this.filters,
         )
         .pipe(map((listing) => this.handleLoadRecordListing(listing)));
     }
 
     return this.#eventRecordsService
-      .getFirstPageOfRecordsByEventId(eventId, this.pageSize)
+      .getFirstPageOfRecordsByEventId(eventId, this.pageSize, this.filters)
       .pipe(map((listing) => this.handleLoadRecordListing(listing)));
   }
 
