@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { LoadingState } from '../states/loading.state';
+import { LoadingState } from '@core/states';
 
 export const loadEffect = () => {
   const loadingState = inject(LoadingState);

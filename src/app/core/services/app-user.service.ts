@@ -1,11 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { User } from '@angular/fire/auth';
 import { doc, docData, Firestore, setDoc } from '@angular/fire/firestore';
+import { AppUser } from '@core/models';
+import { loadEffect, handleError } from '@core/utils';
 import { catchError, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
-import { AppUser } from '../models/app-user.model';
-import { handleError } from '../utils/handle-error.utils';
-import { loadEffect } from '../utils/load-effect.utils';
 
 @Injectable({
   providedIn: 'root',

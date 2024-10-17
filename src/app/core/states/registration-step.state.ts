@@ -1,5 +1,5 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { RegistrationStep } from '../models/registration-step.enum';
+import { RegistrationStep } from '@core/models';
 
 @Injectable({
   providedIn: 'root',

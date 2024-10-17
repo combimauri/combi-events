@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from '../core/guards/admin.guard';
-import { exitRegistrationGuard } from '../core/guards/exit-registration.guard';
-import { registrationGuard } from '../core/guards/registration.guard';
-import { eventsResolver } from '../core/resolvers/events.resolver';
+import {
+  registrationGuard,
+  exitRegistrationGuard,
+  adminGuard,
+} from '@core/guards';
+import { eventsResolver } from '@core/resolvers';
 
 export const routes: Routes = [
   {
@@ -34,9 +36,7 @@ export const routes: Routes = [
         path: 'admin',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import(
-            './event-details/event-admin/event-admin.component'
-          ),
+          import('./event-details/event-admin/event-admin.component'),
       },
     ],
   },

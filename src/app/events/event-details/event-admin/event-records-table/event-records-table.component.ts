@@ -7,16 +7,20 @@ import {
 } from '@angular/animations';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { KeyValuePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { AdditionalQuestion, EventRecord } from '@core/models';
+import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
 import { map, Observable } from 'rxjs';
-import { EventRecord } from '../../../../core/models/event-record.model';
-import { AdditionalQuestion } from '../../../../core/models/additional-question.model';
-import { QuestionLabelPipe } from '../../../../shared/pipes/question-label.pipe';
-import { TranslateBooleanPipe } from '../../../../shared/pipes/translate-boolean.pipe';
 
 @Component({
   selector: 'combi-event-records-table',

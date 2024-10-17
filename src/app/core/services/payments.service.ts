@@ -1,14 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import {
+  WolipayToken,
+  BillingRecord,
+  AppEvent,
+  BillingData,
+  WolipayIFrame,
+} from '@core/models';
+import { loadEffect, handleError } from '@core/utils';
+import { environment } from '@env/environment';
 import { catchError, map, Observable, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
-import { BillingRecord, BillingData } from '../models/billing-record.model';
-import { Event } from '../models/event.model';
-import { WolipayIFrame } from '../models/wolipay-iframe.model';
-import { WolipayToken } from '../models/wolipay-token.model';
-import { loadEffect } from '../utils/load-effect.utils';
-import { handleError } from '../utils/handle-error.utils';
-import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -38,7 +40,7 @@ export class PaymentsService {
   getBillingData(
     token: string,
     { email, fullName, phoneNumber }: BillingRecord,
-    { name, price }: Event,
+    { name, price }: AppEvent,
   ): Observable<BillingData | undefined> {
     const id = crypto.randomUUID();
     const splitName = fullName.split(' ');

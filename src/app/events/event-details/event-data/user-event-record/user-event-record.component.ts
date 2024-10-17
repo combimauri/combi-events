@@ -9,13 +9,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
+import { EventRecord } from '@core/models';
+import { EventRecordsService, PaymentsService } from '@core/services';
+import { LoadingState, UserState } from '@core/states';
+import { TitleSpinnerComponent } from '@shared/components';
 import { map, Subject, switchMap, tap } from 'rxjs';
-import { EventRecord } from '../../../../core/models/event-record.model';
-import { EventRecordsService } from '../../../../core/services/event-records.service';
-import { PaymentsService } from '../../../../core/services/payments.service';
-import { UserState } from '../../../../core/states/user.state';
-import { LoadingState } from '../../../../core/states/loading.state';
-import { TitleSpinnerComponent } from '../../../../shared/components/title-spinner/title-spinner.component';
 
 @Component({
   selector: 'combi-user-event-record',

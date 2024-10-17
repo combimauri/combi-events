@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { AdditionalQuestion } from '../../core/models/additional-question.model';
+import { AdditionalQuestion } from '@core/models';
 
 @Pipe({
   name: 'questionLabel',

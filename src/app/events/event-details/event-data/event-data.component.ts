@@ -5,15 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AppEvent, EventRecord } from '@core/models';
+import { EventRecordsService } from '@core/services';
+import { UserState, LoadingState } from '@core/states';
 import { map, Observable, of, shareReplay, switchMap } from 'rxjs';
 import { EventLocationComponent } from './event-location/event-location.component';
 import { EventMainInfoComponent } from './event-main-info/event-main-info.component';
 import { UserEventRecordComponent } from './user-event-record/user-event-record.component';
-import { Event } from '../../../core/models/event.model';
-import { EventRecord } from '../../../core/models/event-record.model';
-import { EventRecordsService } from '../../../core/services/event-records.service';
-import { UserState } from '../../../core/states/user.state';
-import { LoadingState } from '../../../core/states/loading.state';
 
 @Component({
   selector: 'combi-event-data',
@@ -79,7 +77,7 @@ export default class EventDataComponent {
   readonly loading = inject(LoadingState).loading;
 
   readonly #event$ = this.#route.data.pipe(
-    map((data) => data['event'] as Event | undefined),
+    map((data) => data['event'] as AppEvent | undefined),
     shareReplay(),
   );
   readonly event = toSignal(this.#event$);
@@ -94,7 +92,7 @@ export default class EventDataComponent {
   );
 
   private getRecords(
-    event: Event | undefined,
+    event: AppEvent | undefined,
   ): Observable<EventRecord[] | undefined> {
     if (!this.currentUser || !event) {
       return of([]);

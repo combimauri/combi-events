@@ -1,12 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { EventRecord } from '@core/models';
+import { EventRecordsService, EventsService } from '@core/services';
+import { UserState, EventRecordState } from '@core/states';
 import { combineLatest, map } from 'rxjs';
-import { EventRecord } from '../models/event-record.model';
-import { EventRecordsService } from '../services/event-records.service';
-import { EventsService } from '../services/events.service';
-import { EventRecordState } from '../states/event-record.state';
-import { UserState } from '../states/user.state';
 
 export const registrationGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);

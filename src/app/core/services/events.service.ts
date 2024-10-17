@@ -6,11 +6,10 @@ import {
   docData,
   Firestore,
 } from '@angular/fire/firestore';
+import { AppEvent } from '@core/models';
+import { loadEffect, handleError } from '@core/utils';
 import { catchError, Observable, take, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
-import { Event } from '../models/event.model';
-import { handleError } from '../utils/handle-error.utils';
-import { loadEffect } from '../utils/load-effect.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -21,11 +20,11 @@ export class EventsService {
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
 
-  getEvents(): Observable<Event[] | undefined> {
+  getEvents(): Observable<AppEvent[] | undefined> {
     const eventsCollection = collection(this.#firestore, this.#collectionName);
 
     return (
-      collectionData<Event>(eventsCollection) as Observable<Event[]>
+      collectionData<AppEvent>(eventsCollection) as Observable<AppEvent[]>
     ).pipe(
       tap(this.#loadEffectObserver),
       take(1),
@@ -33,10 +32,10 @@ export class EventsService {
     );
   }
 
-  getEventById(id: string): Observable<Event | undefined> {
+  getEventById(id: string): Observable<AppEvent | undefined> {
     const docRef = doc(this.#firestore, this.#collectionName, id);
 
-    return (docData(docRef) as Observable<Event>).pipe(
+    return (docData(docRef) as Observable<AppEvent>).pipe(
       tap(this.#loadEffectObserver),
       take(1),
       catchError((error) => handleError(error, this.#logger)),

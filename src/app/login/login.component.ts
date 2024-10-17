@@ -4,10 +4,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AppUser } from '@core/models';
+import { AuthService } from '@core/services';
+import { LoadingState } from '@core/states';
 import { Subject, switchMap, tap } from 'rxjs';
-import { AppUser } from '../core/models/app-user.model';
-import { AuthService } from '../core/services/auth.service';
-import { LoadingState } from '../core/states/loading.state';
 
 @Component({
   selector: 'combi-login',
