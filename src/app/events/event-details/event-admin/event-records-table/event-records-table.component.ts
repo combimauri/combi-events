@@ -11,16 +11,24 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AdditionalQuestion, EventRecord } from '@core/models';
+import {
+  AdditionalQuestion,
+  EventRecord,
+  EventRecordListing,
+  PageEventRecords,
+} from '@core/models';
+import { EventRecordsService } from '@core/services';
 import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
-import { map, Observable } from 'rxjs';
+import { map, Observable, Subject, switchMap } from 'rxjs';
 
 @Component({
   selector: 'combi-event-records-table',
@@ -29,16 +37,13 @@ import { map, Observable } from 'rxjs';
     KeyValuePipe,
     MatButtonModule,
     MatIconModule,
+    MatPaginatorModule,
     MatTableModule,
     QuestionLabelPipe,
     TranslateBooleanPipe,
   ],
   template: `
-    <table
-      mat-table
-      multiTemplateDataRows
-      [dataSource]="eventRecordsObservable()"
-    >
+    <table mat-table multiTemplateDataRows [dataSource]="eventRecords()">
       @for (column of displayedColumns(); track column) {
         <ng-container [matColumnDef]="column">
           <th mat-header-cell *matHeaderCellDef>{{ translations[column] }}</th>
@@ -116,6 +121,19 @@ import { map, Observable } from 'rxjs';
         class="detail-row"
       ></tr>
     </table>
+    <mat-paginator
+      [length]="recordsTotal"
+      [pageIndex]="pageIndex"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[1, 5, 10, 15, 20, 50, 100]"
+      (page)="
+        handlePageChange(
+          $event,
+          eventRecords()[0],
+          eventRecords()[eventRecords().length - 1]
+        )
+      "
+    ></mat-paginator>
   `,
   animations: [
     trigger('detailExpand', [
@@ -156,10 +174,15 @@ import { map, Observable } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRecordsTableComponent {
+  readonly #eventRecordsService = inject(EventRecordsService);
+  readonly #pageEventRecords$ = new Subject<PageEventRecords>();
   readonly #isHandset$ = inject(BreakpointObserver)
     .observe(Breakpoints.Handset)
     .pipe(map((result) => result.matches));
 
+  pageIndex = 0;
+  pageSize = 15;
+  recordsTotal = 100;
   expandedElement: EventRecord | null = null;
   translations: Record<string, string> = {
     email: 'Correo Electrónico',
@@ -168,7 +191,7 @@ export class EventRecordsTableComponent {
   };
 
   readonly additionalQuestions = input.required<AdditionalQuestion[]>();
-  readonly eventRecordsObservable = input.required<Observable<EventRecord[]>>();
+  readonly eventId = input.required<string>();
   readonly isHandset = toSignal(this.#isHandset$);
   readonly displayedColumns = toSignal(
     this.#isHandset$.pipe(
@@ -179,9 +202,39 @@ export class EventRecordsTableComponent {
   readonly displayedColumnsWithExpand = computed(() =>
     this.displayedColumns().concat('expand'),
   );
+  readonly eventRecords = toSignal(
+    this.#pageEventRecords$.pipe(
+      switchMap((pageRecords) => this.loadRecords(pageRecords)),
+    ),
+    { initialValue: [] },
+  );
+
+  constructor() {
+    effect(() => this.loadFirstEventRecords(this.eventId()));
+  }
 
   toggleExpand(element: EventRecord): void {
     this.expandedElement = this.expandedElement === element ? null : element;
+  }
+
+  handlePageChange(
+    { pageIndex, pageSize, previousPageIndex }: PageEvent,
+    firstRecord: EventRecord,
+    lastRecord: EventRecord,
+  ): void {
+    const eventId = this.eventId();
+    const previousPageSize = this.pageSize;
+    this.pageSize = pageSize;
+    this.pageIndex = pageIndex;
+    previousPageIndex = previousPageIndex ?? 0;
+
+    if (pageIndex === previousPageIndex || pageSize !== previousPageSize) {
+      this.#pageEventRecords$.next({ eventId });
+    } else if (pageIndex > previousPageIndex) {
+      this.#pageEventRecords$.next({ eventId, lastRecord });
+    } else {
+      this.#pageEventRecords$.next({ eventId, firstRecord });
+    }
   }
 
   private getDisplayedColumns(isHandset: boolean): string[] {
@@ -190,5 +243,43 @@ export class EventRecordsTableComponent {
     }
 
     return ['email', 'fullName', 'validated'];
+  }
+
+  private loadFirstEventRecords(eventId: string): void {
+    if (!eventId) {
+      return;
+    }
+
+    queueMicrotask(() => this.#pageEventRecords$.next({ eventId }));
+  }
+
+  private loadRecords({
+    eventId,
+    firstRecord,
+    lastRecord,
+  }: PageEventRecords): Observable<EventRecord[]> {
+    if (lastRecord) {
+      return this.#eventRecordsService
+        .getNextPageOfRecordsByEventId(eventId, lastRecord.id, this.pageSize)
+        .pipe(map((listing) => this.handleLoadRecordListing(listing)));
+    } else if (firstRecord) {
+      return this.#eventRecordsService
+        .getPreviousPageOfRecordsByEventId(
+          eventId,
+          firstRecord.id,
+          this.pageSize,
+        )
+        .pipe(map((listing) => this.handleLoadRecordListing(listing)));
+    }
+
+    return this.#eventRecordsService
+      .getFirstPageOfRecordsByEventId(eventId, this.pageSize)
+      .pipe(map((listing) => this.handleLoadRecordListing(listing)));
+  }
+
+  private handleLoadRecordListing(listing: EventRecordListing | undefined) {
+    this.recordsTotal = listing?.total ?? 0;
+
+    return listing?.items ? [...listing.items] : [];
   }
 }

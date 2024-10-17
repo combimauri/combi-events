@@ -12,3 +12,8 @@ export interface EventRecord extends PartialEventRecord {
   updatedAt: unknown;
   validated: boolean;
 }
+
+export interface EventRecordListing {
+  items: EventRecord[];
+  total: number;
+}
