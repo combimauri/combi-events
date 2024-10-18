@@ -31,7 +31,7 @@ import { Subject, switchMap, tap } from 'rxjs';
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <p>Inicia sesión para ver nuestros eventos</p>
+        <p>Por favor, inicia sesión o regístrate para ver nuestros eventos</p>
         <form #loginForm="ngForm" (ngSubmit)="sendSignInLink()">
           <mat-form-field appearance="outline" class="login-field">
             <mat-label>Correo Electrónico</mat-label>
