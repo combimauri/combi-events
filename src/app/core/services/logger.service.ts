@@ -8,7 +8,11 @@ export class LoggerService {
   #snackBar = inject(MatSnackBar);
 
   handleSuccess(message: string): void {
-    this.#snackBar.open(message, 'cerrar', { panelClass: 'info-snackbar' });
+    this.#snackBar.open(message, 'cerrar', {
+      panelClass: 'info-snackbar',
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+    });
   }
 
   handleError(message: string | { message: string }): void {
@@ -16,6 +20,8 @@ export class LoggerService {
 
     this.#snackBar.open(messageText, 'cerrar', {
       panelClass: 'error-snackbar',
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
     });
     console.error(message);
   }
