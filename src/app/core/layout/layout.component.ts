@@ -30,11 +30,15 @@ import { Subject, switchMap } from 'rxjs';
           </a>
           <span class="toolbar-spacer"></span>
           <button mat-button [matMenuTriggerFor]="userMenu">
-            <div
-              class="avatar"
-              [style.background-image]="'url(' + currentUser.photoURL + ')'"
-              [style.background-size]="'cover'"
-            ></div>
+            @if (currentUser.photoURL) {
+              <div
+                class="avatar"
+                [style.background-image]="'url(' + currentUser.photoURL + ')'"
+                [style.background-size]="'cover'"
+              ></div>
+            } @else {
+              <mat-icon class="avatar__image">account_circle</mat-icon>
+            }
           </button>
           <mat-menu #userMenu="matMenu">
             <button mat-menu-item (click)="logout$.next()">
@@ -98,8 +102,13 @@ import { Subject, switchMap } from 'rxjs';
 
         .avatar {
           border-radius: 50%;
-          height: 40px;
-          width: 40px;
+          height: 36px;
+          width: 36px;
+        }
+
+        .avatar__image {
+          margin: 0 auto;
+          transform: scale(2);
         }
       }
     }
