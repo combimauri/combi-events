@@ -41,5 +41,5 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventLocationComponent {
-  event = input.required<AppEvent>();
+  readonly event = input.required<AppEvent>();
 }

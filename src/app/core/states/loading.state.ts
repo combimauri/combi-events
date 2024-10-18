@@ -4,9 +4,9 @@ import { computed, Injectable, signal } from '@angular/core';
   providedIn: 'root',
 })
 export class LoadingState {
-  loading = computed(() => this.#loadRequests() > 0);
+  readonly loading = computed(() => this.#loadRequests() > 0);
 
-  #loadRequests = signal(0);
+  readonly #loadRequests = signal(0);
 
   startLoading(): void {
     this.#loadRequests.update((loadRequests) => loadRequests + 1);

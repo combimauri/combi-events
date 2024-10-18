@@ -5,9 +5,9 @@ import { AppUser } from '@core/models';
   providedIn: 'root',
 })
 export class UserState {
-  currentUser = computed(() => this.#user());
+  readonly currentUser = computed(() => this.#user());
 
-  #user = signal<AppUser | undefined>(undefined);
+  readonly #user = signal<AppUser | undefined>(undefined);
 
   setUser(user: AppUser | undefined): void {
     this.#user.set(user);

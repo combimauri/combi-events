@@ -10,10 +10,10 @@ import { LoggerService } from './logger.service';
   providedIn: 'root',
 })
 export class AppUserService {
-  #firestore = inject(Firestore);
-  #collectionName = 'users';
-  #loadEffectObserver = loadEffect();
-  #logger = inject(LoggerService);
+  readonly #firestore = inject(Firestore);
+  readonly #collectionName = 'users';
+  readonly #loadEffectObserver = loadEffect();
+  readonly #logger = inject(LoggerService);
 
   getUser(email: string): Observable<AppUser | undefined> {
     const docRef = doc(this.#firestore, this.#collectionName, email);

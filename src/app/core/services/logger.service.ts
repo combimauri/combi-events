@@ -5,7 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   providedIn: 'root',
 })
 export class LoggerService {
-  #snackBar = inject(MatSnackBar);
+  readonly #snackBar = inject(MatSnackBar);
 
   handleSuccess(message: string): void {
     this.#snackBar.open(message, 'cerrar', {

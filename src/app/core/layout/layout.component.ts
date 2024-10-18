@@ -60,7 +60,6 @@ import { Subject, switchMap } from 'rxjs';
     <footer>
       <a
         href="https://linktr.ee/combimauri"
-        rel="noopener noreferrer"
         target="_blank"
       >
         &#64;combimauri
@@ -134,9 +133,10 @@ import { Subject, switchMap } from 'rxjs';
     footer {
       border-top: 1px solid #e0e0e0;
       display: flex;
+      font-size: 0.75rem;
       justify-content: flex-end;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 0.5rem;
       width: 95%;
     }
   `,
@@ -145,13 +145,10 @@ import { Subject, switchMap } from 'rxjs';
 export class LayoutComponent {
   readonly #auth = inject(AuthService);
 
-  readonly #userState = inject(UserState);
-  readonly currentUser = this.#userState.currentUser;
-
+  readonly loading = inject(LoadingState).loading;
+  readonly currentUser = inject(UserState).currentUser;
   readonly logout$ = new Subject<void>();
   readonly logout = toSignal(
     this.logout$.pipe(switchMap(() => this.#auth.logout())),
   );
-
-  readonly loading = inject(LoadingState).loading;
 }

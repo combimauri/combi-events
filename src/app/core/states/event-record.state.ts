@@ -5,15 +5,15 @@ import { EventRecord } from '@core/models';
   providedIn: 'root',
 })
 export class EventRecordState {
-  #eventRecord = signal<EventRecord | null>(null);
+  readonly #eventRecord = signal<EventRecord | null>(null);
 
-  eventRecord = computed(() => this.#eventRecord());
+  readonly eventRecord = computed(() => this.#eventRecord());
 
-  setEventRecord(eventRecord: EventRecord) {
+  setEventRecord(eventRecord: EventRecord): void {
     this.#eventRecord.set(eventRecord);
   }
 
-  clearEventRecord() {
+  clearEventRecord(): void {
     this.#eventRecord.set(null);
   }
 }

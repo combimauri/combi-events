@@ -57,25 +57,16 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventRegistrationComponent {
-  #billingRecord?: BillingRecord;
-
   readonly #paymentsService = inject(PaymentsService);
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #route = inject(ActivatedRoute);
-
-  readonly event = toSignal(
-    this.#route.parent!.data.pipe(
-      map((data) => data['event'] as AppEvent | undefined),
-    ),
-  );
-
   readonly #generateToken$ = new Subject<void>();
   readonly #token = toSignal(
     this.#generateToken$.pipe(
       switchMap(() => this.#paymentsService.generateAuthToken()),
     ),
   );
-
+  readonly #getEventRecord$ = new Subject<string>();
   readonly #getBillingData$ = new Subject<{
     token: string;
     billing: BillingRecord;
@@ -97,9 +88,15 @@ export default class EventRegistrationComponent {
       ),
     ),
   );
-  readonly iFrameUrl = computed(() => this.#billingData()?.url);
 
-  readonly #getEventRecord$ = new Subject<string>();
+  #billingRecord?: BillingRecord;
+
+  readonly event = toSignal(
+    this.#route.parent!.data.pipe(
+      map((data) => data['event'] as AppEvent | undefined),
+    ),
+  );
+  readonly iFrameUrl = computed(() => this.#billingData()?.url);
   readonly realtimeEventRecord = toSignal(
     this.#getEventRecord$.pipe(
       switchMap((id) => this.#eventRecordsService.getRealtimeRecordById(id)),

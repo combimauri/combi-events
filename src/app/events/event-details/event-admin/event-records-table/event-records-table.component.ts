@@ -312,7 +312,9 @@ export class EventRecordsTableComponent {
       .pipe(map((listing) => this.handleLoadRecordListing(listing)));
   }
 
-  private handleLoadRecordListing(listing: EventRecordListing | undefined) {
+  private handleLoadRecordListing(
+    listing: EventRecordListing | undefined,
+  ): EventRecord[] {
     this.recordsTotal = listing?.total ?? 0;
 
     return listing?.items ? [...listing.items] : [];
