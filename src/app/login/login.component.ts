@@ -10,6 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppUser } from '@core/models';
 import { AuthService } from '@core/services';
 import { LoadingState } from '@core/states';
+import { isAppBuiltInBrowser } from '@core/utils';
 import { Subject, switchMap, tap } from 'rxjs';
 
 @Component({
@@ -54,19 +55,23 @@ import { Subject, switchMap, tap } from 'rxjs';
             Continuar con Correo Electrónico
           </button>
         </form>
-        <hr />
+        @if (!isAppBuiltInBrowser) {
+          <hr />
+        }
       </mat-card-content>
-      <mat-card-actions>
-        <button
-          mat-raised-button
-          class="login__button"
-          [disabled]="loading()"
-          (click)="signInWithGoogle$.next()"
-        >
-          <mat-icon>login</mat-icon>
-          Iniciar Sesión con Google
-        </button>
-      </mat-card-actions>
+      @if (!isAppBuiltInBrowser) {
+        <mat-card-actions>
+          <button
+            mat-raised-button
+            class="login__button"
+            [disabled]="loading()"
+            (click)="signInWithGoogle$.next()"
+          >
+            <mat-icon>login</mat-icon>
+            Iniciar Sesión con Google
+          </button>
+        </mat-card-actions>
+      }
     </mat-card>
   `,
   styles: `
@@ -108,6 +113,7 @@ export default class LoginComponent {
 
   email = '';
 
+  readonly isAppBuiltInBrowser = isAppBuiltInBrowser();
   readonly loading = inject(LoadingState).loading;
   readonly signInWithGoogle$ = new Subject<void>();
   readonly googleAuth = toSignal(
