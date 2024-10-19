@@ -23,6 +23,12 @@ import { Subject, switchMap } from 'rxjs';
   ],
   template: `
     <header>
+      @if (loading()) {
+        <mat-progress-bar
+          class="loading-spinner"
+          mode="indeterminate"
+        ></mat-progress-bar>
+      }
       <mat-toolbar>
         @if (currentUser(); as currentUser) {
           <a mat-button class="root-link" routerLink="/">
@@ -48,9 +54,6 @@ import { Subject, switchMap } from 'rxjs';
           </mat-menu>
         }
       </mat-toolbar>
-      @if (loading()) {
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      }
     </header>
     <main>
       <div class="container">
@@ -73,6 +76,11 @@ import { Subject, switchMap } from 'rxjs';
 
     header {
       width: 100%;
+
+      .loading-spinner {
+        position: fixed;
+        z-index: 1;
+      }
 
       mat-toolbar {
         background: transparent;
