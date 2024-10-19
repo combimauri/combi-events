@@ -8,6 +8,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { EventRecord } from '@core/models';
 import { EventRecordsService, PaymentsService } from '@core/services';
@@ -18,12 +19,18 @@ import { map, Subject, switchMap, tap } from 'rxjs';
 @Component({
   selector: 'combi-user-event-record',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, RouterLink, TitleSpinnerComponent],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    RouterLink,
+    TitleSpinnerComponent,
+  ],
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          <h6>Registro</h6>
+          <h4>Registro</h4>
         </mat-card-title>
         @if (validationLoadingState.loading()) {
           <combi-title-spinner />
@@ -33,9 +40,9 @@ import { map, Subject, switchMap, tap } from 'rxjs';
         @if (eventRecord().validated || validatedRecordResult()) {
           <mat-card class="user-event-record" appearance="outlined">
             <mat-card-header>
-              @let user = currentUser();
+              @let user = currentUser()!;
 
-              @if (user) {
+              @if (user && user.photoURL) {
                 <div
                   mat-card-avatar
                   class="user-event-record__avatar"
@@ -60,12 +67,7 @@ import { map, Subject, switchMap, tap } from 'rxjs';
               click aquí: <a mat-button routerLink="register">Completar Pago</a>
               <br />
               Si consideras que es un error, por favor, contacta a soporte:
-              <a
-                mat-button
-                href="https://wa.me/59177996059"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a mat-button href="https://wa.me/59177996059" target="_blank">
                 Soporte
               </a>
             }
@@ -102,7 +104,6 @@ export class UserEventRecordComponent {
   readonly validationLoadingState = new LoadingState();
   readonly eventRecord = input.required<EventRecord>();
   readonly currentUser = inject(UserState).currentUser;
-
   readonly validatePayment$ = new Subject<EventRecord>();
   readonly validatedRecordResult = toSignal(
     this.validatePayment$.pipe(

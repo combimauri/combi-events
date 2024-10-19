@@ -33,7 +33,6 @@ import { map } from 'rxjs';
 
     .event-details__banner {
       border-radius: 0.75rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       height: auto;
       width: 100%;
     }

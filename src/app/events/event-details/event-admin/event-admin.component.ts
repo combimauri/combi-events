@@ -14,14 +14,14 @@ import { EventRecordsTableComponent } from './event-records-table/event-records-
   imports: [BackButtonComponent, EventRecordsTableComponent, MatCardModule],
   template: `
     @if (event(); as event) {
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-content class="page-title">
           <combi-back-button />
-          <h6>Gestionar {{ event.name }}</h6>
+          <h4>Gestionar {{ event.name }}</h4>
         </mat-card-content>
       </mat-card>
 
-      <mat-card>
+      <mat-card appearance="outlined">
         <mat-card-content>
           <combi-event-records-table
             [additionalQuestions]="event.registrationAdditionalQuestions"

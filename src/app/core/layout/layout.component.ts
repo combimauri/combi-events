@@ -58,30 +58,24 @@ import { Subject, switchMap } from 'rxjs';
       </div>
     </main>
     <footer>
-      <a
-        href="https://linktr.ee/combimauri"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
+      <a href="https://linktr.ee/combimauri" target="_blank">
         &#64;combimauri
       </a>
     </footer>
   `,
   styles: `
     :host {
+      background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
       display: flex;
       flex-direction: column;
-      height: 100dvh;
+      min-height: 100dvh;
     }
 
     header {
-      position: fixed;
       width: 100%;
-      z-index: 1;
 
       mat-toolbar {
-        background-color: #d7e3ff;
-        color: #005cbb;
+        background: transparent;
 
         .logo {
           height: auto;
@@ -115,7 +109,6 @@ import { Subject, switchMap } from 'rxjs';
 
     main {
       flex: 1 0 auto;
-      margin-top: 64px;
 
       .container {
         height: 100%;
@@ -134,9 +127,10 @@ import { Subject, switchMap } from 'rxjs';
     footer {
       border-top: 1px solid #e0e0e0;
       display: flex;
+      font-size: 0.75rem;
       justify-content: flex-end;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 0.5rem;
       width: 95%;
     }
   `,
@@ -145,13 +139,10 @@ import { Subject, switchMap } from 'rxjs';
 export class LayoutComponent {
   readonly #auth = inject(AuthService);
 
-  readonly #userState = inject(UserState);
-  readonly currentUser = this.#userState.currentUser;
-
+  readonly loading = inject(LoadingState).loading;
+  readonly currentUser = inject(UserState).currentUser;
   readonly logout$ = new Subject<void>();
   readonly logout = toSignal(
     this.logout$.pipe(switchMap(() => this.#auth.logout())),
   );
-
-  readonly loading = inject(LoadingState).loading;
 }

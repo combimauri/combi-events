@@ -5,11 +5,11 @@ import { RegistrationStep } from '@core/models';
   providedIn: 'root',
 })
 export class RegistrationStepState {
-  #registrationStep = signal<RegistrationStep>(RegistrationStep.form);
+  readonly #registrationStep = signal<RegistrationStep>(RegistrationStep.form);
 
-  registrationStep = computed(() => this.#registrationStep());
+  readonly registrationStep = computed(() => this.#registrationStep());
 
-  setRegistrationStep(step: RegistrationStep) {
+  setRegistrationStep(step: RegistrationStep): void {
     this.#registrationStep.set(step);
   }
 }

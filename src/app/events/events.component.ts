@@ -9,7 +9,7 @@ import { EventCardComponent } from './event-card/event-card.component';
   standalone: true,
   imports: [DatePipe, EventCardComponent],
   template: `
-    <h3>Eventos</h3>
+    <h1>Eventos</h1>
     @for (event of events(); track event.id) {
       <div class="events__item">
         <div class="events__date">
@@ -33,7 +33,7 @@ import { EventCardComponent } from './event-card/event-card.component';
       }
 
       .events__line {
-        border-left: 2px dashed #e0e0e0;
+        border-left: 2px dashed #9119ff;
         margin: 1rem 1rem 0;
 
         @media (min-width: 960px) {
@@ -41,7 +41,7 @@ import { EventCardComponent } from './event-card/event-card.component';
         }
 
         &::before {
-          background-color: #e0e0e0;
+          background-color: #9119ff;
           border-radius: 50%;
           content: '';
           display: block;

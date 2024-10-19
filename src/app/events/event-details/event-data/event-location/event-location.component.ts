@@ -8,10 +8,10 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   standalone: true,
   imports: [MatCardModule, SanitizeUrlPipe],
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          <h6>Ubicación</h6>
+          <h4>Ubicación</h4>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
@@ -41,5 +41,5 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventLocationComponent {
-  event = input.required<AppEvent>();
+  readonly event = input.required<AppEvent>();
 }

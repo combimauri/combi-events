@@ -49,7 +49,7 @@ import { BackButtonComponent } from '@shared/components';
       <mat-card appearance="outlined">
         <mat-card-content class="page-title">
           <combi-back-button />
-          <h6>Inscripción al Evento</h6>
+          <h4>Inscripción al Evento</h4>
         </mat-card-content>
       </mat-card>
 
@@ -172,6 +172,10 @@ import { BackButtonComponent } from '@shared/components';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationFormComponent implements OnInit {
+  readonly #registrationStepState = inject(RegistrationStepState);
+  readonly #userState = inject(UserState);
+  readonly #eventRecordState = inject(EventRecordState);
+
   fullName = '';
   phoneNumber = '';
 
@@ -179,10 +183,6 @@ export class EventRegistrationFormComponent implements OnInit {
   readonly eventForm = viewChild.required(NgForm);
   readonly submitForm = output<BillingRecord>();
   readonly loading = inject(LoadingState).loading;
-
-  readonly #registrationStepState = inject(RegistrationStepState);
-  readonly #userState = inject(UserState);
-  readonly #eventRecordState = inject(EventRecordState);
 
   constructor() {
     effect(

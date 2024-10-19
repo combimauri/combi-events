@@ -8,7 +8,9 @@
       "schematics": {
         "@schematics/angular:component": {
           "inlineTemplate": true,
-          "inlineStyle": true
+          "inlineStyle": true,
+          "changeDetection": "OnPush",
+          "style": "scss"
         }
       },
       "root": "",
@@ -30,8 +32,7 @@
               }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/azure-blue.css",
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": [],
             "server": "src/main.server.ts",
@@ -42,10 +43,14 @@
           },
           "configurations": {
             "production": {
+              "allowedCommonJsDependencies": [
+                "undici",
+                "@grpc"
+              ],
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1MB",
+                  "maximumWarning": "1.5MB",
                   "maximumError": "2MB"
                 },
                 {
@@ -97,8 +102,7 @@
               }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/azure-blue.css",
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": []
           }

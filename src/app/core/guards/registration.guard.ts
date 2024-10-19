@@ -37,15 +37,6 @@ export const registrationGuard: CanActivateFn = (route, _state) => {
       }
 
       if (!event.openRegistration) {
-        if (event.betaAccess?.includes(user.email!)) {
-          return validateEventRecord(
-            eventRecordState,
-            eventId,
-            eventRecords,
-            router,
-          );
-        }
-
         return router.createUrlTree([eventId]);
       }
 

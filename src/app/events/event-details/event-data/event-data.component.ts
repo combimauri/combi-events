@@ -36,10 +36,7 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
           Gestionar Evento
         </a>
       } @else {
-        @if (
-          event.openRegistration ||
-          event.betaAccess?.includes(currentUser()?.email!)
-        ) {
+        @if (event.openRegistration) {
           @if (eventRecord(); as record) {
             <combi-user-event-record [eventRecord]="record" />
           } @else if (!loading()) {
@@ -49,7 +46,7 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
             </a>
           }
         } @else {
-          <mat-card>
+          <mat-card appearance="outlined">
             <mat-card-content>
               <p>La inscripción para este evento está cerrada.</p>
             </mat-card-content>
@@ -72,19 +69,17 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
 export default class EventDataComponent {
   readonly #route = inject(ActivatedRoute);
   readonly #eventRecordService = inject(EventRecordsService);
-
-  readonly currentUser = inject(UserState).currentUser;
-  readonly loading = inject(LoadingState).loading;
-
   readonly #event$ = this.#route.data.pipe(
     map((data) => data['event'] as AppEvent | undefined),
     shareReplay(),
   );
-  readonly event = toSignal(this.#event$);
-
   readonly #eventRecords$ = this.#event$.pipe(
     switchMap((event) => this.getRecords(event)),
   );
+
+  readonly currentUser = inject(UserState).currentUser;
+  readonly loading = inject(LoadingState).loading;
+  readonly event = toSignal(this.#event$);
   readonly eventRecord = toSignal(
     this.#eventRecords$.pipe(
       map((records) => (records?.length ? records[0] : undefined)),

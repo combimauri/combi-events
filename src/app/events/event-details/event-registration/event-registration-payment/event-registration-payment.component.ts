@@ -20,10 +20,10 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   standalone: true,
   imports: [BackButtonComponent, MatCardModule, SanitizeUrlPipe],
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-content class="page-title">
         <combi-back-button />
-        <h6>Pasarela de Pago</h6>
+        <h4>Pasarela de Pago</h4>
       </mat-card-content>
     </mat-card>
 
@@ -58,9 +58,6 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationPaymentComponent implements OnInit {
-  readonly iFrameUrl = input.required<string>();
-  readonly realtimeEventRecord = input<EventRecord>();
-
   readonly #registrationStepState = inject(RegistrationStepState);
   readonly #logger = inject(LoggerService);
   readonly #activatedRoute = inject(ActivatedRoute);
@@ -68,6 +65,9 @@ export class EventRegistrationPaymentComponent implements OnInit {
   readonly #paymentValidated = computed(
     () => this.realtimeEventRecord()?.validated,
   );
+
+  readonly iFrameUrl = input.required<string>();
+  readonly realtimeEventRecord = input<EventRecord>();
 
   constructor() {
     effect(() => {
