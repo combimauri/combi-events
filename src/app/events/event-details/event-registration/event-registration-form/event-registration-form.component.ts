@@ -49,7 +49,7 @@ import { BackButtonComponent } from '@shared/components';
       <mat-card appearance="outlined">
         <mat-card-content class="page-title">
           <combi-back-button />
-          <h6>Inscripción al Evento</h6>
+          <h4>Inscripción al Evento</h4>
         </mat-card-content>
       </mat-card>
 

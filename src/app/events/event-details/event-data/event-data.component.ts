@@ -46,7 +46,7 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
             </a>
           }
         } @else {
-          <mat-card>
+          <mat-card appearance="outlined">
             <mat-card-content>
               <p>La inscripción para este evento está cerrada.</p>
             </mat-card-content>

@@ -27,10 +27,10 @@ import { map, Subject, switchMap, tap } from 'rxjs';
     TitleSpinnerComponent,
   ],
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          <h6>Registro</h6>
+          <h4>Registro</h4>
         </mat-card-title>
         @if (validationLoadingState.loading()) {
           <combi-title-spinner />

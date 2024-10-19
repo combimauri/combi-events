@@ -25,10 +25,11 @@ import { Subject, switchMap, tap } from 'rxjs';
     MatFormFieldModule,
   ],
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          <h6>Bienvenido a Combieventos</h6>
+          <img src="logo.webp" alt="logo de combieventos" width="100" />
+          <h4>Bienvenido a Combieventos</h4>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
@@ -72,21 +73,23 @@ import { Subject, switchMap, tap } from 'rxjs';
           </button>
         </mat-card-actions>
       }
+      <span>project-475094595977</span>
     </mat-card>
   `,
   styles: `
-    :host {
-      align-items: center;
-      display: flex;
-      height: 100%;
-    }
-
     mat-card {
       display: flex;
       height: fit-content;
       max-width: 400px;
-      margin: 80px auto 140px;
+      margin: 10vh auto 0;
       padding: 1rem;
+
+      span {
+        font-size: 0.65rem;
+        font-weight: 300;
+        margin-top: 1rem;
+        text-align: center;
+      }
     }
 
     mat-card-actions {

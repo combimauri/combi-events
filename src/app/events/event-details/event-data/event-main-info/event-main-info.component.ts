@@ -9,14 +9,14 @@ import { BackButtonComponent } from '@shared/components';
   standalone: true,
   imports: [BackButtonComponent, DatePipe, MatCardModule],
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-content class="page-title">
         <combi-back-button />
-        <h6>{{ event().name }}</h6>
+        <h4>{{ event().name }}</h4>
       </mat-card-content>
     </mat-card>
 
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-content>
         <div>
           <p>{{ event().description }}</p>

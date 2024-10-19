@@ -58,29 +58,24 @@ import { Subject, switchMap } from 'rxjs';
       </div>
     </main>
     <footer>
-      <a
-        href="https://linktr.ee/combimauri"
-        target="_blank"
-      >
+      <a href="https://linktr.ee/combimauri" target="_blank">
         &#64;combimauri
       </a>
     </footer>
   `,
   styles: `
     :host {
+      background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
       display: flex;
       flex-direction: column;
-      height: 100dvh;
+      min-height: 100dvh;
     }
 
     header {
-      position: fixed;
       width: 100%;
-      z-index: 1;
 
       mat-toolbar {
-        background-color: #d7e3ff;
-        color: #005cbb;
+        background: transparent;
 
         .logo {
           height: auto;
@@ -114,7 +109,6 @@ import { Subject, switchMap } from 'rxjs';
 
     main {
       flex: 1 0 auto;
-      margin-top: 64px;
 
       .container {
         height: 100%;
