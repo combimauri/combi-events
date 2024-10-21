@@ -1,5 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
-import { inject, PLATFORM_ID } from '@angular/core';
+import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { EventRecord } from '@core/models';
 import {
@@ -12,12 +11,6 @@ import { combineLatest, map, switchMap } from 'rxjs';
 
 export const registrationGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);
-  const platformId = inject(PLATFORM_ID);
-
-  if (!isPlatformBrowser(platformId)) {
-    return false;
-  }
-
   const eventId = route.parent?.params['id'];
 
   if (!eventId) {

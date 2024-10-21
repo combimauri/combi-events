@@ -1,14 +1,15 @@
 import { Routes } from '@angular/router';
-import { loginGuard } from '@core/guards';
+import { loginGuard, platformGuard } from '@core/guards';
 
 export const routes: Routes = [
   {
     path: 'login',
-    canActivate: [loginGuard],
+    canActivate: [platformGuard, loginGuard],
     loadChildren: () => import('./login/login.routes').then((m) => m.routes),
   },
   {
     path: '',
+    canActivate: [platformGuard],
     loadChildren: () => import('./events/events.routes').then((m) => m.routes),
   },
   {
