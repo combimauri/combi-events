@@ -1,4 +1,9 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { UserCredential } from '@angular/fire/auth';
 import { ActivatedRoute, Router } from '@angular/router';

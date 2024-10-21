@@ -7,9 +7,8 @@ describe('EventLocationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EventLocationComponent]
-    })
-    .compileComponents();
+      imports: [EventLocationComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EventLocationComponent);
     component = fixture.componentInstance;
