@@ -4,7 +4,7 @@ import { registrationGuard } from './registration.guard';
 
 describe('registrationGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) =>
-    TestBed.runInInjectionContext(() => registrationGuard(...guardParameters));
+      TestBed.runInInjectionContext(() => registrationGuard(...guardParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

@@ -7,8 +7,9 @@ describe('EventRecordsTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EventRecordsTableComponent],
-    }).compileComponents();
+      imports: [EventRecordsTableComponent]
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(EventRecordsTableComponent);
     component = fixture.componentInstance;

@@ -8,8 +8,8 @@ import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { customPaginator } from '@core/utils';
 import { environment } from '@env/environment';
+import { customPaginator } from '@core/utils';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {

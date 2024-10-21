@@ -9,4 +9,4 @@ export const customPaginator = () => {
   customPaginatorIntl.lastPageLabel = 'Última página';
 
   return customPaginatorIntl;
-};
+}

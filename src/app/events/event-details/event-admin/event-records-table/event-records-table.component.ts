@@ -68,11 +68,13 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
             mat-icon-button
             (click)="toggleExpand(element); $event.stopPropagation()"
           >
-            @if (expandedElement === element) {
-              <mat-icon fontIcon="keyboard_arrow_up" />
-            } @else {
-              <mat-icon fontIcon="keyboard_arrow_down" />
-            }
+            <mat-icon>
+              @if (expandedElement === element) {
+                keyboard_arrow_up
+              } @else {
+                keyboard_arrow_down
+              }
+            </mat-icon>
           </button>
         </td>
       </ng-container>

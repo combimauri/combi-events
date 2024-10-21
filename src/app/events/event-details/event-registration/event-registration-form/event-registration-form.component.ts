@@ -1,15 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
+  effect,
   inject,
   input,
   OnInit,
   output,
   viewChild,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { User } from '@angular/fire/auth';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -24,10 +22,10 @@ import {
   RegistrationStep,
   EventRecord,
 } from '@core/models';
-import { AuthService } from '@core/services';
 import {
   LoadingState,
   RegistrationStepState,
+  UserState,
   EventRecordState,
 } from '@core/states';
 import { BackButtonComponent } from '@shared/components';
@@ -51,7 +49,7 @@ import { BackButtonComponent } from '@shared/components';
       <mat-card appearance="outlined">
         <mat-card-content class="page-title">
           <combi-back-button />
-          <h4>Registrarse al Evento</h4>
+          <h4>Inscripción al Evento</h4>
         </mat-card-content>
       </mat-card>
 
@@ -72,7 +70,7 @@ import { BackButtonComponent } from '@shared/components';
               id="fullName"
               name="fullName"
               [disabled]="loading()"
-              [ngModel]="fullName()"
+              [(ngModel)]="fullName"
             />
           </mat-form-field>
         </mat-card-content>
@@ -94,13 +92,13 @@ import { BackButtonComponent } from '@shared/components';
               id="phoneNumber"
               name="phoneNumber"
               [disabled]="loading()"
-              [ngModel]="phoneNumber()"
+              [(ngModel)]="phoneNumber"
             />
           </mat-form-field>
         </mat-card-content>
       </mat-card>
 
-      @for (question of answeredQuestions(); track question.key) {
+      @for (question of additionalQuestions(); track question.key) {
         <mat-card appearance="outlined">
           <mat-card-header>
             <mat-card-title>
@@ -121,7 +119,7 @@ import { BackButtonComponent } from '@shared/components';
                     [name]="question.key"
                     [disabled]="loading()"
                     [required]="question.required"
-                    [ngModel]="question.answer"
+                    [(ngModel)]="question.answer"
                   />
                 }
                 @case ('select') {
@@ -130,7 +128,7 @@ import { BackButtonComponent } from '@shared/components';
                     [name]="question.key"
                     [disabled]="loading()"
                     [required]="question.required"
-                    [ngModel]="question.answer"
+                    [(ngModel)]="question.answer"
                   >
                     <mat-option value=""></mat-option>
                     @for (option of question.options; track option) {
@@ -174,24 +172,24 @@ import { BackButtonComponent } from '@shared/components';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationFormComponent implements OnInit {
-  readonly #eventRecord = inject(EventRecordState).eventRecord;
   readonly #registrationStepState = inject(RegistrationStepState);
-  readonly #user = toSignal(inject(AuthService).user$, { initialValue: null });
+  readonly #userState = inject(UserState);
+  readonly #eventRecordState = inject(EventRecordState);
+
+  fullName = '';
+  phoneNumber = '';
 
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
   readonly eventForm = viewChild.required(NgForm);
-  readonly loading = inject(LoadingState).loading;
   readonly submitForm = output<BillingRecord>();
+  readonly loading = inject(LoadingState).loading;
 
-  fullName = computed(() =>
-    this.mapFullName(this.#eventRecord(), this.#user()),
-  );
-  phoneNumber = computed(() =>
-    this.mapPhoneNumber(this.#eventRecord(), this.#user()),
-  );
-  answeredQuestions = computed(() =>
-    this.mapQuestions(this.additionalQuestions(), this.#eventRecord()),
-  );
+  constructor() {
+    effect(
+      () => (this.fullName = this.#userState.currentUser()?.displayName || ''),
+    );
+    effect(() => this.patchForm(this.#eventRecordState.eventRecord()));
+  }
 
   ngOnInit(): void {
     this.#registrationStepState.setRegistrationStep(RegistrationStep.form);
@@ -205,7 +203,7 @@ export class EventRegistrationFormComponent implements OnInit {
     }
 
     const formValue = this.eventForm().value;
-    const email = this.#user()?.email!;
+    const email = this.#userState.currentUser()?.email!;
     const { fullName, phoneNumber } = formValue;
 
     delete formValue.fullName;
@@ -221,33 +219,18 @@ export class EventRegistrationFormComponent implements OnInit {
     this.submitForm.emit(billingRecord);
   }
 
-  private mapFullName(
-    eventRecord: EventRecord | null,
-    user: User | null,
-  ): string {
-    return eventRecord?.fullName || user?.displayName || '';
-  }
-
-  private mapPhoneNumber(
-    eventRecord: EventRecord | null,
-    user: User | null,
-  ): string {
-    return eventRecord?.phoneNumber || user?.phoneNumber || '';
-  }
-
-  private mapQuestions(
-    questions: AdditionalQuestion[],
-    eventRecord: EventRecord | null,
-  ): AdditionalQuestion[] {
+  private patchForm(eventRecord: EventRecord | null): void {
     if (!eventRecord) {
-      return questions;
+      return;
     }
 
-    for (const question of questions) {
+    this.fullName = eventRecord.fullName;
+    this.phoneNumber = eventRecord.phoneNumber;
+    const additionalQuestions = this.additionalQuestions();
+
+    for (const question of additionalQuestions) {
       question.answer = eventRecord.additionalAnswers[question.key] ?? '';
     }
-
-    return questions;
   }
 
   private trimValues(): void {

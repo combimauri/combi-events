@@ -38,7 +38,7 @@ import { AppEvent } from '@core/models';
                 aria-hidden="false"
                 aria-label="ícono de ubicación"
                 fontIcon="location_on"
-              />
+              ></mat-icon>
               <span>
                 {{ event().location.name }}
               </span>
@@ -48,7 +48,7 @@ import { AppEvent } from '@core/models';
                 aria-hidden="false"
                 aria-label="ícono de personas"
                 fontIcon="groups"
-              />
+              ></mat-icon>
               <span>
                 {{ event().capacity }}
               </span>
