@@ -7,9 +7,8 @@ describe('TitleSpinnerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TitleSpinnerComponent]
-    })
-    .compileComponents();
+      imports: [TitleSpinnerComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TitleSpinnerComponent);
     component = fixture.componentInstance;

@@ -4,7 +4,7 @@ import { loginGuard } from './login.guard';
 
 describe('loginGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) =>
-      TestBed.runInInjectionContext(() => loginGuard(...guardParameters));
+    TestBed.runInInjectionContext(() => loginGuard(...guardParameters));
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

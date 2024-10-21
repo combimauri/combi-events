@@ -2,9 +2,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { EventRecord } from '@core/models';
-import { EventRecordsService, EventsService } from '@core/services';
-import { UserState, EventRecordState } from '@core/states';
-import { combineLatest, map } from 'rxjs';
+import {
+  AuthService,
+  EventRecordsService,
+  EventsService,
+} from '@core/services';
+import { EventRecordState } from '@core/states';
+import { combineLatest, map, switchMap } from 'rxjs';
 
 export const registrationGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);
@@ -14,21 +18,25 @@ export const registrationGuard: CanActivateFn = (route, _state) => {
     return false;
   }
 
-  const userState = inject(UserState);
-  const user = userState.currentUser();
   const eventId = route.parent?.params['id'];
 
-  if (!eventId || !user) {
+  if (!eventId) {
     return router.createUrlTree(['/']);
   }
 
+  const user$ = inject(AuthService).user$;
   const eventRecordsService = inject(EventRecordsService);
   const eventRecordState = inject(EventRecordState);
   const eventsService = inject(EventsService);
-  const data$ = combineLatest([
-    eventsService.getEventById(eventId),
-    eventRecordsService.getRecordsByEventIdAndEmail(eventId, user.email!),
-  ]);
+  const records$ = user$.pipe(
+    switchMap((user) =>
+      eventRecordsService.getRecordsByEventIdAndEmail(
+        eventId,
+        user?.email || '',
+      ),
+    ),
+  );
+  const data$ = combineLatest([eventsService.getEventById(eventId), records$]);
 
   return data$.pipe(
     map(([event, eventRecords]) => {

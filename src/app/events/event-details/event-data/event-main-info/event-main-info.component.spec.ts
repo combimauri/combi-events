@@ -7,9 +7,8 @@ describe('EventMainInfoComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EventMainInfoComponent]
-    })
-    .compileComponents();
+      imports: [EventMainInfoComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EventMainInfoComponent);
     component = fixture.componentInstance;
