@@ -7,9 +7,8 @@ describe('UserEventRecordComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UserEventRecordComponent]
-    })
-    .compileComponents();
+      imports: [UserEventRecordComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(UserEventRecordComponent);
     component = fixture.componentInstance;

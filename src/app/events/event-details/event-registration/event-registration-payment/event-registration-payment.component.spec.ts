@@ -7,9 +7,8 @@ describe('EventRegistrationPaymentComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EventRegistrationPaymentComponent]
-    })
-    .compileComponents();
+      imports: [EventRegistrationPaymentComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EventRegistrationPaymentComponent);
     component = fixture.componentInstance;
