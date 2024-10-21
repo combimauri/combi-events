@@ -1,8 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService, EventsService } from '@core/services';
-import { combineLatest, map } from 'rxjs';
+import { EventsService } from '@core/services';
+import { UserState } from '@core/states';
+import { map } from 'rxjs';
 
 export const adminGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);
@@ -12,23 +13,23 @@ export const adminGuard: CanActivateFn = (route, _state) => {
     return false;
   }
 
+  const userState = inject(UserState);
+  const user = userState.currentUser();
   const eventId = route.parent?.params['id'];
 
-  if (!eventId) {
+  if (!eventId || !user) {
     return router.createUrlTree(['/']);
   }
 
   const eventsService = inject(EventsService);
-  const user$ = inject(AuthService).user$;
-  const data$ = combineLatest([user$, eventsService.getEventById(eventId)]);
 
-  return data$.pipe(
-    map(([user, event]) => {
+  return eventsService.getEventById(eventId).pipe(
+    map((event) => {
       if (!event) {
         return router.createUrlTree(['/']);
       }
 
-      if (user?.email !== event.owner) {
+      if (user.email !== event.owner) {
         return router.createUrlTree([eventId]);
       }
 

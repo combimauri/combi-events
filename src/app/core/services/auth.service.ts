@@ -9,11 +9,13 @@ import {
   signInWithPopup,
   User,
   user,
-  UserCredential,
 } from '@angular/fire/auth';
 import { Router } from '@angular/router';
+import { AppUser } from '@core/models';
+import { UserState } from '@core/states';
 import { loadEffect, handleError } from '@core/utils';
-import { Observable, from, tap, catchError, of } from 'rxjs';
+import { Observable, from, tap, switchMap, catchError, of, map } from 'rxjs';
+import { AppUserService } from './app-user.service';
 import { LoggerService } from './logger.service';
 
 @Injectable({
@@ -21,14 +23,21 @@ import { LoggerService } from './logger.service';
 })
 export class AuthService {
   readonly #auth = inject(Auth);
-  readonly #broadcastChannel = new BroadcastChannel('auth');
   readonly #googleProvider = new GoogleAuthProvider();
+  readonly #userService = inject(AppUserService);
+  readonly #userState = inject(UserState);
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
-  readonly #platformId = inject(PLATFORM_ID);
   readonly #router = inject(Router);
+  readonly #platformId = inject(PLATFORM_ID);
+  readonly #broadcastChannel = new BroadcastChannel('auth');
 
-  readonly user$: Observable<User | null> = user(this.#auth);
+  readonly loggedIn$ = user(this.#auth).pipe(
+    switchMap((user: User) => {
+      return this.getCurrentUser(user);
+    }),
+    map((user) => !!user),
+  );
 
   constructor() {
     this.listenBroadcastChannel();
@@ -68,7 +77,7 @@ export class AuthService {
     );
   }
 
-  signInWithEmailLink(): Observable<UserCredential | undefined> {
+  signInWithEmailLink(): Observable<AppUser | undefined> {
     if (!isPlatformBrowser(this.#platformId)) {
       return of(undefined);
     }
@@ -89,18 +98,24 @@ export class AuthService {
 
     return from(signInWithEmailLink(this.#auth, email!, url)).pipe(
       tap(this.#loadEffectObserver),
-      tap(() => {
+      switchMap(({ user }) => this.#userService.createUser(user)),
+      tap((user) => {
         window.localStorage.removeItem('emailForSignIn');
         this.#broadcastChannel.postMessage('loggedIn');
+        this.#userState.setUser(user);
       }),
       catchError((error) => handleError(error, this.#logger)),
     );
   }
 
-  signInWithGoogle(): Observable<UserCredential | undefined> {
+  signInWithGoogle(): Observable<AppUser | undefined> {
     return from(signInWithPopup(this.#auth, this.#googleProvider)).pipe(
       tap(this.#loadEffectObserver),
-      tap(() => this.#broadcastChannel.postMessage('loggedIn')),
+      switchMap(({ user }) => this.#userService.createUser(user)),
+      tap((user) => {
+        this.#broadcastChannel.postMessage('loggedIn');
+        this.#userState.setUser(user);
+      }),
       catchError((error) => handleError(error, this.#logger)),
     );
   }
@@ -109,9 +124,26 @@ export class AuthService {
     return from(this.#auth.signOut()).pipe(
       tap(this.#loadEffectObserver),
       tap(() => {
+        this.#userState.cleanUser();
         this.#broadcastChannel.postMessage('loggedOut');
         this.#router.navigateByUrl('/login');
       }),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  private getCurrentUser(user: User | null): Observable<AppUser | undefined> {
+    if (!user) {
+      return of(undefined);
+    }
+
+    if (this.#userState.currentUser()) {
+      return of(this.#userState.currentUser());
+    }
+
+    return this.#userService.getUser(user.email || '').pipe(
+      tap(this.#loadEffectObserver),
+      tap((user) => this.#userState.setUser(user)),
       catchError((error) => handleError(error, this.#logger)),
     );
   }

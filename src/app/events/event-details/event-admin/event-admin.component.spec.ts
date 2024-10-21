@@ -7,8 +7,9 @@ describe('EventAdminComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EventAdminComponent],
-    }).compileComponents();
+      imports: [EventAdminComponent]
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(EventAdminComponent);
     component = fixture.componentInstance;

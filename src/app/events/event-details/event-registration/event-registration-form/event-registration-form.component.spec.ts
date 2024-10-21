@@ -7,8 +7,9 @@ describe('EventRegistrationFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EventRegistrationFormComponent],
-    }).compileComponents();
+      imports: [EventRegistrationFormComponent]
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(EventRegistrationFormComponent);
     component = fixture.componentInstance;
