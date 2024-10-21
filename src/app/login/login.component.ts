@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { UserCredential } from '@angular/fire/auth';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -7,7 +8,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AppUser } from '@core/models';
 import { AuthService } from '@core/services';
 import { LoadingState } from '@core/states';
 import { isAppBuiltInBrowser } from '@core/utils';
@@ -68,7 +68,7 @@ import { Subject, switchMap, tap } from 'rxjs';
             [disabled]="loading()"
             (click)="signInWithGoogle$.next()"
           >
-            <mat-icon>login</mat-icon>
+            <mat-icon fontIcon="login" />
             Iniciar Sesión con Google
           </button>
         </mat-card-actions>
@@ -141,7 +141,7 @@ export default class LoginComponent {
     this.#sendSignInLink$.next(this.email);
   }
 
-  private handleSignInResponse(response: AppUser | undefined): void {
+  private handleSignInResponse(response: UserCredential | undefined): void {
     if (!response) {
       return;
     }

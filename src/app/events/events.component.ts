@@ -61,5 +61,7 @@ import { EventCardComponent } from './event-card/event-card.component';
 export default class EventsComponent {
   readonly #eventsService = inject(EventsService);
 
-  readonly events = toSignal(this.#eventsService.getEvents(), { initialValue: [] });
+  readonly events = toSignal(this.#eventsService.getEvents(), {
+    initialValue: [],
+  });
 }

@@ -1,7 +1,12 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { UserCredential } from '@angular/fire/auth';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AppUser } from '@core/models';
 import { AuthService } from '@core/services';
 import { Subject, switchMap, tap } from 'rxjs';
 
@@ -29,7 +34,7 @@ export default class VerifyLinkComponent implements AfterViewInit {
     this.#verifyAndSignIn$.next();
   }
 
-  private handleSignInResponse(response: AppUser | undefined): void {
+  private handleSignInResponse(response: UserCredential | undefined): void {
     if (!response) {
       this.#router.navigate(['..'], { relativeTo: this.#route });
     }

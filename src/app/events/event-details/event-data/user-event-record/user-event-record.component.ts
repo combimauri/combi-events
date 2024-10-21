@@ -11,8 +11,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { EventRecord } from '@core/models';
-import { EventRecordsService, PaymentsService } from '@core/services';
-import { LoadingState, UserState } from '@core/states';
+import {
+  AuthService,
+  EventRecordsService,
+  PaymentsService,
+} from '@core/services';
+import { LoadingState } from '@core/states';
 import { TitleSpinnerComponent } from '@shared/components';
 import { map, Subject, switchMap, tap } from 'rxjs';
 
@@ -40,20 +44,20 @@ import { map, Subject, switchMap, tap } from 'rxjs';
         @if (eventRecord().validated || validatedRecordResult()) {
           <mat-card class="user-event-record" appearance="outlined">
             <mat-card-header>
-              @let user = currentUser()!;
+              @let currentUser = user();
 
-              @if (user && user.photoURL) {
+              @if (currentUser && currentUser.photoURL) {
                 <div
                   mat-card-avatar
                   class="user-event-record__avatar"
-                  [style.background-image]="'url(' + user.photoURL + ')'"
+                  [style.background-image]="'url(' + currentUser.photoURL + ')'"
                   [style.background-size]="'cover'"
                 ></div>
               }
               <mat-card-title> ¡Ya eres parte! </mat-card-title>
               <mat-card-subtitle>
                 Nos vemos en el evento
-                {{ user?.displayName || '' }}
+                {{ currentUser?.displayName || '' }}
               </mat-card-subtitle>
             </mat-card-header>
           </mat-card>
@@ -98,13 +102,15 @@ import { map, Subject, switchMap, tap } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserEventRecordComponent {
+  readonly #authService = inject(AuthService);
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #paymentsService = inject(PaymentsService);
 
-  readonly validationLoadingState = new LoadingState();
   readonly eventRecord = input.required<EventRecord>();
-  readonly currentUser = inject(UserState).currentUser;
+  readonly user = toSignal(this.#authService.user$);
   readonly validatePayment$ = new Subject<EventRecord>();
+  readonly validationLoadingState = new LoadingState();
+
   readonly validatedRecordResult = toSignal(
     this.validatePayment$.pipe(
       tap(() => this.validationLoadingState.startLoading()),

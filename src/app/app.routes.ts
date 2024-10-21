@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, loginGuard } from '@core/guards';
+import { loginGuard } from '@core/guards';
 
 export const routes: Routes = [
   {
@@ -9,7 +9,6 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canActivate: [authGuard],
     loadChildren: () => import('./events/events.routes').then((m) => m.routes),
   },
   {

@@ -31,9 +31,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "scripts": [],
             "server": "src/main.server.ts",
             "prerender": false,
@@ -43,10 +41,7 @@
           },
           "configurations": {
             "production": {
-              "allowedCommonJsDependencies": [
-                "undici",
-                "@grpc"
-              ],
+              "allowedCommonJsDependencies": ["undici", "@grpc"],
               "budgets": [
                 {
                   "type": "initial",
@@ -101,9 +96,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "scripts": []
           }
         }

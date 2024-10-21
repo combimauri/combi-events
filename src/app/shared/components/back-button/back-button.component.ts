@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
   imports: [MatButtonModule, MatIconModule, RouterLink],
   template: `
     <a mat-icon-button routerLink="..">
-      <mat-icon>chevron_left</mat-icon>
+      <mat-icon fontIcon="chevron_left" />
     </a>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
