@@ -3,6 +3,7 @@ import {
   adminGuard,
   authGuard,
   exitRegistrationGuard,
+  platformGuard,
   registrationGuard,
 } from '@core/guards';
 import { eventsResolver } from '@core/resolvers';
@@ -14,6 +15,7 @@ export const routes: Routes = [
   },
   {
     path: ':id',
+    canActivate: [platformGuard],
     resolve: {
       event: eventsResolver,
     },
