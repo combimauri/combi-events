@@ -1,6 +1,5 @@
 export * from './additional-question.model';
 export * from './app-event.model';
-export * from './app-user.model';
 export * from './billing-record.model';
 export * from './event-record.model';
 export * from './page-event-records.model';

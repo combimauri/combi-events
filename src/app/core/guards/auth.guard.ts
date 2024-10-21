@@ -5,7 +5,6 @@ import { AuthService } from '@core/services';
 import { map } from 'rxjs';
 
 export const authGuard: CanActivateFn = (route, state) => {
-  const auth = inject(AuthService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
 
@@ -13,9 +12,9 @@ export const authGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  return auth.loggedIn$.pipe(
-    map((loggedIn) => {
-      if (loggedIn) {
+  return inject(AuthService).user$.pipe(
+    map((user) => {
+      if (user) {
         return true;
       }
 
