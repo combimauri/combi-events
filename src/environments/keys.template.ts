@@ -7,10 +7,4 @@ export const keys = {
     authDomain: '',
     messagingSenderId: '',
   },
-  wolipay: {
-    email: '',
-    password: '',
-    basePath: '',
-    notifyUrl: '',
-  },
 };

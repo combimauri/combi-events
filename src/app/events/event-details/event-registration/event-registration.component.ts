@@ -11,20 +11,11 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
-import {
-  BillingData,
-  BillingRecord,
-  AppEvent,
-  EventRecord,
-  PartialEventRecord,
-  Price,
-  RegistrationStep,
-} from '@core/models';
-import { EventRecordsService, PaymentsService } from '@core/services';
+import { BillingRecord, AppEvent, RegistrationStep } from '@core/models';
+import { EventRecordsService } from '@core/services';
 import { RegistrationStepState } from '@core/states';
 import { BackButtonComponent } from '@shared/components';
-import { SanitizeUrlPipe } from '@shared/pipes';
-import { map, Observable, of, Subject, switchMap, tap } from 'rxjs';
+import { map, Subject, switchMap } from 'rxjs';
 import { EventRegistrationDetailsComponent } from './event-registration-details/event-registration-details.component';
 import { EventRegistrationFormComponent } from './event-registration-form/event-registration-form.component';
 import { EventRegistrationPaymentComponent } from './event-registration-payment/event-registration-payment.component';
@@ -38,7 +29,6 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
     EventRegistrationFormComponent,
     EventRegistrationPaymentComponent,
     MatCardModule,
-    SanitizeUrlPipe,
   ],
   template: `
     <div
@@ -109,36 +99,18 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
 })
 export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #eventRecordsService = inject(EventRecordsService);
-  readonly #generateToken$ = new Subject<void>();
   readonly #getEventRecord$ = new Subject<string>();
-  readonly #paymentsService = inject(PaymentsService);
   readonly #registrationStepState = inject(RegistrationStepState);
   readonly #route = inject(ActivatedRoute);
 
   readonly #getBillingData$ = new Subject<{
-    token: string;
+    eventId: string;
     billing: BillingRecord;
-    title: string;
-    price: Price;
   }>();
-  readonly #token = toSignal(
-    this.#generateToken$.pipe(
-      switchMap(() => this.#paymentsService.generateAuthToken()),
-    ),
-  );
   readonly #billingData = toSignal(
     this.#getBillingData$.pipe(
-      switchMap(({ token, billing, title, price }) =>
-        this.#paymentsService.getBillingData(token, billing, title, price),
-      ),
-      switchMap((data) =>
-        this.registerEventRecord(data).pipe(
-          tap(
-            (eventRecord) =>
-              eventRecord && this.#getEventRecord$.next(eventRecord.id),
-          ),
-          map(() => data),
-        ),
+      switchMap(({ eventId, billing }) =>
+        this.#eventRecordsService.registerRecord(eventId, billing),
       ),
     ),
   );
@@ -163,7 +135,13 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   );
 
   constructor() {
-    effect(() => this.getBillingResponse(this.#token(), this.event()));
+    effect(() => {
+      const eventRecordId = this.#billingData()?.eventRecordId;
+
+      if (eventRecordId) {
+        this.#getEventRecord$.next(eventRecordId);
+      }
+    });
   }
 
   @HostListener('window:beforeunload')
@@ -186,52 +164,13 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   }
 
   triggerOrderGeneration(): void {
-    if (!this.billingRecord) {
+    const eventId = this.event()?.id;
+
+    if (!this.billingRecord || !eventId) {
       return;
     }
 
-    this.#generateToken$.next();
+    this.#getBillingData$.next({ eventId, billing: this.billingRecord });
     this.#registrationStepState.setRegistrationStep(RegistrationStep.payment);
-  }
-
-  private getBillingResponse(
-    token: string | undefined,
-    event: AppEvent | undefined,
-  ): void {
-    if (!token || !event) {
-      return;
-    }
-
-    // queueMicrotask is used to ensure the next event loop is used
-    queueMicrotask(() =>
-      this.#getBillingData$.next({
-        token,
-        billing: this.billingRecord!,
-        title: event.name,
-        price: event.price,
-      }),
-    );
-  }
-
-  private registerEventRecord(
-    billingData: BillingData | undefined,
-  ): Observable<EventRecord | undefined> {
-    if (!billingData) {
-      return of(undefined);
-    }
-
-    const { orderId, paymentId } = billingData;
-
-    const record: PartialEventRecord = {
-      email: this.billingRecord?.email!,
-      eventId: this.event()!.id,
-      fullName: this.billingRecord?.fullName!,
-      orderId,
-      phoneNumber: this.billingRecord?.phoneNumber!,
-      paymentId,
-      additionalAnswers: this.billingRecord?.additionalAnswers!,
-    };
-
-    return this.#eventRecordsService.registerRecord(record);
   }
 }
