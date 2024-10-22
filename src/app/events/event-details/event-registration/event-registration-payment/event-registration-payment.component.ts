@@ -5,68 +5,67 @@ import {
   effect,
   inject,
   input,
-  OnInit,
 } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EventRecord, RegistrationStep } from '@core/models';
+import { EventRecord } from '@core/models';
 import { LoggerService } from '@core/services';
-import { RegistrationStepState } from '@core/states';
-import { BackButtonComponent } from '@shared/components';
 import { SanitizeUrlPipe } from '@shared/pipes';
 
 @Component({
   selector: 'combi-event-registration-payment',
   standalone: true,
-  imports: [BackButtonComponent, MatCardModule, SanitizeUrlPipe],
+  imports: [MatProgressSpinnerModule, SanitizeUrlPipe],
   template: `
-    <mat-card appearance="outlined">
-      <mat-card-content class="page-title">
-        <combi-back-button />
-        <h4>Pasarela de Pago</h4>
-      </mat-card-content>
-    </mat-card>
-
     <div class="event-registration-payment">
-      <iframe
-        class="event-registration-payment__iframe"
-        [src]="iFrameUrl() | sanitizeUrl"
-      ></iframe>
+      <mat-spinner />
+
+      @if (iFrameUrl(); as iFrameUrl) {
+        <iframe
+          class="event-registration-payment__iframe"
+          [src]="iFrameUrl | sanitizeUrl"
+        ></iframe>
+      }
     </div>
   `,
   styles: `
-    :host {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
     .event-registration-payment {
+      background-color: #fef9fc;
       border-radius: 0.75rem;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       height: 600px;
+      position: relative;
       width: 100%;
+
+      mat-spinner {
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
 
       .event-registration-payment__iframe {
         border: 0;
         border-radius: 0.75rem;
         height: 100%;
+        position: relative;
         width: 100%;
+        z-index: 1;
       }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRegistrationPaymentComponent implements OnInit {
-  readonly #registrationStepState = inject(RegistrationStepState);
-  readonly #logger = inject(LoggerService);
+export class EventRegistrationPaymentComponent {
   readonly #activatedRoute = inject(ActivatedRoute);
+  readonly #logger = inject(LoggerService);
   readonly #router = inject(Router);
+
   readonly #paymentValidated = computed(
     () => this.realtimeEventRecord()?.validated,
   );
 
-  readonly iFrameUrl = input.required<string>();
+  readonly iFrameUrl = input<string>();
   readonly realtimeEventRecord = input<EventRecord>();
 
   constructor() {
@@ -76,9 +75,5 @@ export class EventRegistrationPaymentComponent implements OnInit {
         this.#router.navigate(['..'], { relativeTo: this.#activatedRoute });
       }
     });
-  }
-
-  ngOnInit(): void {
-    this.#registrationStepState.setRegistrationStep(RegistrationStep.payment);
   }
 }

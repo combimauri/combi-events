@@ -16,6 +16,7 @@ import {
   query,
   setDoc,
   startAfter,
+  Timestamp,
   where,
 } from '@angular/fire/firestore';
 import {
@@ -193,15 +194,15 @@ export class EventRecordsService {
       return this.upsertRecord({
         ...currentEventRecord,
         ...eventRecord,
-        updatedAt: new Date(),
+        updatedAt: Timestamp.fromDate(new Date()),
       });
     }
 
     return this.upsertRecord({
       ...eventRecord,
       id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Timestamp.fromDate(new Date()),
+      updatedAt: Timestamp.fromDate(new Date()),
       validated: false,
     });
   }

@@ -3,6 +3,7 @@ export * from './app-event.model';
 export * from './billing-record.model';
 export * from './event-record.model';
 export * from './page-event-records.model';
+export * from './price.model';
 export * from './registration-step.enum';
 export * from './wolipay-iframe.model';
 export * from './wolipay-payment.model';

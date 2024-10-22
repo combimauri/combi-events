@@ -1,11 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import {
-  WolipayToken,
-  BillingRecord,
-  AppEvent,
   BillingData,
+  BillingRecord,
+  Price,
   WolipayIFrame,
+  WolipayToken,
 } from '@core/models';
 import { loadEffect, handleError } from '@core/utils';
 import { environment } from '@env/environment';
@@ -40,7 +40,8 @@ export class PaymentsService {
   getBillingData(
     token: string,
     { email, fullName, phoneNumber }: BillingRecord,
-    { name, price }: AppEvent,
+    title: string,
+    { description, amount, currency, discount }: Price,
   ): Observable<BillingData | undefined> {
     const id = crypto.randomUUID();
     const splitName = fullName.split(' ');
@@ -52,15 +53,15 @@ export class PaymentsService {
         `${this.#basePath}/getWolipayiFrame`,
         {
           id,
-          title: name,
-          description: price.description,
+          title,
+          description: description,
           notifyUrl: environment.wolipay.notifyUrl,
           payment: {
-            amount: price.amount,
-            currency: price.currency,
-            totalAmount: price.amount - price.discount,
+            amount: amount,
+            currency: currency,
+            totalAmount: amount - discount,
             discount: {
-              amount: price.discount,
+              amount: discount,
               type: 'amount',
             },
           },

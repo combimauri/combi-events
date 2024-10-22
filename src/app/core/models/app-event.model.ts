@@ -1,5 +1,6 @@
 import { GeoPoint, Timestamp } from '@angular/fire/firestore';
 import { AdditionalQuestion } from './additional-question.model';
+import { Price } from './price.model';
 
 export interface AppEvent {
   bannerImage: string;
@@ -10,12 +11,7 @@ export interface AppEvent {
   image: string;
   location: { name: string; geolocation: GeoPoint };
   name: string;
-  price: {
-    amount: number;
-    discount: number;
-    currency: string;
-    description: string;
-  };
+  price: Price;
   shortDescription: string;
   registrationAdditionalQuestions: AdditionalQuestion[];
   openRegistration: boolean;

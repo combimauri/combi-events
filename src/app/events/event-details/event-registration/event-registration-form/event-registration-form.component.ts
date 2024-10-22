@@ -4,7 +4,6 @@ import {
   computed,
   inject,
   input,
-  OnInit,
   output,
   viewChild,
 } from '@angular/core';
@@ -14,46 +13,44 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { RouterLink } from '@angular/router';
 import {
   AdditionalQuestion,
   BillingRecord,
-  RegistrationStep,
   EventRecord,
+  Price,
 } from '@core/models';
 import { AuthService } from '@core/services';
-import {
-  LoadingState,
-  RegistrationStepState,
-  EventRecordState,
-} from '@core/states';
-import { BackButtonComponent } from '@shared/components';
+import { LoadingState, EventRecordState } from '@core/states';
 
 @Component({
   selector: 'combi-event-registration-form',
   standalone: true,
   imports: [
-    BackButtonComponent,
     FormsModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    MatIconModule,
     MatInputModule,
     MatSelectModule,
-    RouterLink,
   ],
   template: `
     <form #eventForm="ngForm" (ngSubmit)="register()">
-      <mat-card appearance="outlined">
-        <mat-card-content class="page-title">
-          <combi-back-button />
-          <h4>Registrarse al Evento</h4>
-        </mat-card-content>
-      </mat-card>
+      @if (price(); as price) {
+        <mat-card appearance="outlined">
+          <mat-card-content class="event-registration-form__price">
+            <p>
+              Una vez completes el formulario, deberás pagar
+              <b>
+                {{ price.amount - price.discount }}
+                {{ price.currency }}
+              </b>
+              para confirmar tu registro.
+            </p>
+          </mat-card-content>
+        </mat-card>
+      }
 
       <mat-card appearance="outlined">
         <mat-card-header>
@@ -152,7 +149,7 @@ import { BackButtonComponent } from '@shared/components';
         type="submit"
         [disabled]="eventForm.invalid || loading()"
       >
-        Registrarse y Pagar
+        Revisar Detalles
       </button>
     </form>
   `,
@@ -173,29 +170,34 @@ import { BackButtonComponent } from '@shared/components';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRegistrationFormComponent implements OnInit {
+export class EventRegistrationFormComponent {
   readonly #eventRecord = inject(EventRecordState).eventRecord;
-  readonly #registrationStepState = inject(RegistrationStepState);
   readonly #user = toSignal(inject(AuthService).user$, { initialValue: null });
 
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
+  readonly billingRecord = input<BillingRecord>();
   readonly eventForm = viewChild.required(NgForm);
   readonly loading = inject(LoadingState).loading;
+  readonly price = input<Price>();
   readonly submitForm = output<BillingRecord>();
 
   fullName = computed(() =>
-    this.mapFullName(this.#eventRecord(), this.#user()),
+    this.mapFullName(this.billingRecord(), this.#eventRecord(), this.#user()),
   );
   phoneNumber = computed(() =>
-    this.mapPhoneNumber(this.#eventRecord(), this.#user()),
+    this.mapPhoneNumber(
+      this.billingRecord(),
+      this.#eventRecord(),
+      this.#user(),
+    ),
   );
   answeredQuestions = computed(() =>
-    this.mapQuestions(this.additionalQuestions(), this.#eventRecord()),
+    this.mapQuestions(
+      this.billingRecord(),
+      this.additionalQuestions(),
+      this.#eventRecord(),
+    ),
   );
-
-  ngOnInit(): void {
-    this.#registrationStepState.setRegistrationStep(RegistrationStep.form);
-  }
 
   register(): void {
     this.trimValues();
@@ -222,29 +224,45 @@ export class EventRegistrationFormComponent implements OnInit {
   }
 
   private mapFullName(
+    billingRecord: BillingRecord | undefined,
     eventRecord: EventRecord | null,
     user: User | null,
   ): string {
-    return eventRecord?.fullName || user?.displayName || '';
+    return (
+      billingRecord?.fullName ||
+      eventRecord?.fullName ||
+      user?.displayName ||
+      ''
+    );
   }
 
   private mapPhoneNumber(
+    billingRecord: BillingRecord | undefined,
     eventRecord: EventRecord | null,
     user: User | null,
   ): string {
-    return eventRecord?.phoneNumber || user?.phoneNumber || '';
+    return (
+      billingRecord?.phoneNumber ||
+      eventRecord?.phoneNumber ||
+      user?.phoneNumber ||
+      ''
+    );
   }
 
   private mapQuestions(
+    billingRecord: BillingRecord | undefined,
     questions: AdditionalQuestion[],
     eventRecord: EventRecord | null,
   ): AdditionalQuestion[] {
-    if (!eventRecord) {
+    const answers =
+      billingRecord?.additionalAnswers || eventRecord?.additionalAnswers;
+
+    if (!answers) {
       return questions;
     }
 
     for (const question of questions) {
-      question.answer = eventRecord.additionalAnswers[question.key] ?? '';
+      question.answer = answers[question.key] ?? '';
     }
 
     return questions;
