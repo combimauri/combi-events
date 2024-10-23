@@ -40,11 +40,15 @@ export class CouponsService {
       map((coupons) => {
         const coupon = coupons[0];
 
+        if (!coupon) {
+          throw new Error('No se encontró el cupón.');
+        }
+
         if (coupon.count < coupon.limit) {
           return coupon;
         }
 
-        throw new Error('Coupon limit reached.');
+        throw new Error('Se alcanzó el límite de usos del cupón.');
       }),
       catchError((error) => handleError(error, this.#logger)),
     );

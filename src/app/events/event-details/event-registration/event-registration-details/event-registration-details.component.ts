@@ -205,12 +205,14 @@ export class EventRegistrationDetailsComponent {
       tap((coupon) => this.handleCouponResponse(coupon)),
     ),
   );
-  readonly amountToPay = computed(
-    () =>
+  readonly amountToPay = computed(() => {
+    const total =
       (this.price()?.amount || 0) -
       (this.price()?.discount || 0) -
-      (this.appliedCoupon()?.value || 0),
-  );
+      (this.appliedCoupon()?.value || 0);
+
+    return total > 0 ? total : 0;
+  });
 
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
   readonly billingRecord = input<BillingRecord>();
@@ -243,14 +245,14 @@ export class EventRegistrationDetailsComponent {
   }
 
   private handleCouponResponse(coupon: Coupon | undefined): void {
-    if (coupon) {
-      this.couponCode = '';
-
-      this.appliedCoupon.set(coupon);
-      this.toggleCouponInputVisibility();
-      this.#logger.handleSuccess('Cupón habilitado');
-    } else {
-      this.#logger.handleError('No se encontró el cupón');
+    if (!coupon) {
+      return;
     }
+
+    this.couponCode = '';
+
+    this.appliedCoupon.set(coupon);
+    this.toggleCouponInputVisibility();
+    this.#logger.handleSuccess('Cupón válido');
   }
 }

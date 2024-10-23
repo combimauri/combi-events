@@ -1,15 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
-  effect,
   inject,
   input,
 } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EventRecord } from '@core/models';
-import { LoggerService } from '@core/services';
+import { LoadingState } from '@core/states';
 import { SanitizeUrlPipe } from '@shared/pipes';
 
 @Component({
@@ -18,13 +14,22 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   imports: [MatProgressSpinnerModule, SanitizeUrlPipe],
   template: `
     <div class="event-registration-payment">
-      <mat-spinner />
+      @if (!loading() && !iFrameUrl()) {
+        @defer (on timer(2s)) {
+          <p>
+            Ha ocurrido un error al cargar la pasarela de pago. Por favor,
+            inténtalo de nuevo.
+          </p>
+        }
+      } @else {
+        <mat-spinner />
 
-      @if (iFrameUrl(); as iFrameUrl) {
-        <iframe
-          class="event-registration-payment__iframe"
-          [src]="iFrameUrl | sanitizeUrl"
-        ></iframe>
+        @if (iFrameUrl(); as iFrameUrl) {
+          <iframe
+            class="event-registration-payment__iframe"
+            [src]="iFrameUrl | sanitizeUrl"
+          ></iframe>
+        }
       }
     </div>
   `,
@@ -57,23 +62,6 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRegistrationPaymentComponent {
-  readonly #activatedRoute = inject(ActivatedRoute);
-  readonly #logger = inject(LoggerService);
-  readonly #router = inject(Router);
-
-  readonly #paymentValidated = computed(
-    () => this.realtimeEventRecord()?.validated,
-  );
-
   readonly iFrameUrl = input<string>();
-  readonly realtimeEventRecord = input<EventRecord>();
-
-  constructor() {
-    effect(() => {
-      if (this.#paymentValidated()) {
-        this.#logger.handleSuccess('¡Pago comprobado con éxito!');
-        this.#router.navigate(['..'], { relativeTo: this.#activatedRoute });
-      }
-    });
-  }
+  readonly loading = inject(LoadingState).loading;
 }

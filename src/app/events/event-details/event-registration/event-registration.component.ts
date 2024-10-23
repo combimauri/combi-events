@@ -10,9 +10,9 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BillingRecord, AppEvent, RegistrationStep } from '@core/models';
-import { EventRecordsService } from '@core/services';
+import { EventRecordsService, LoggerService } from '@core/services';
 import { RegistrationStepState } from '@core/states';
 import { BackButtonComponent } from '@shared/components';
 import { map, Subject, switchMap } from 'rxjs';
@@ -73,10 +73,7 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
         </div>
       }
       @case (RegistrationStep.payment) {
-        <combi-event-registration-payment
-          [iFrameUrl]="iFrameUrl()"
-          [realtimeEventRecord]="realtimeEventRecord()"
-        />
+        <combi-event-registration-payment [iFrameUrl]="iFrameUrl()" />
       }
     }
   `,
@@ -101,8 +98,10 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
 export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #getEventRecord$ = new Subject<string>();
+  readonly #logger = inject(LoggerService);
   readonly #registrationStepState = inject(RegistrationStepState);
   readonly #route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
 
   readonly #getBillingData$ = new Subject<{
     eventId: string;
@@ -114,6 +113,9 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
         this.#eventRecordsService.registerRecord(eventId, billing),
       ),
     ),
+  );
+  readonly #paymentValidated = computed(
+    () => !!this.realtimeEventRecord()?.validated,
   );
 
   billingRecord?: BillingRecord;
@@ -143,11 +145,17 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
         this.#getEventRecord$.next(eventRecordId);
       }
     });
+    effect(() => {
+      if (this.#paymentValidated()) {
+        this.#logger.handleSuccess('¡Registro comprobado con éxito!');
+        this.#router.navigate(['..'], { relativeTo: this.#route });
+      }
+    });
   }
 
   @HostListener('window:beforeunload')
   canDeactivate(): boolean {
-    return !!this.realtimeEventRecord()?.validated;
+    return this.#paymentValidated();
   }
 
   ngOnInit(): void {
