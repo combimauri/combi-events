@@ -1,18 +1,24 @@
 import { initializeApp } from 'firebase-admin/app';
 import {
-  onCall,
   CallableRequest,
   HttpsError,
+  onCall,
+  onRequest,
 } from 'firebase-functions/v2/https';
-import { PartialEventRecord } from './models';
+import { PartialEventRecord } from './models/event-record.model';
+import {
+  getCouponByIdAndEventId,
+  incrementCouponCount,
+} from './utils/coupons.utils';
+import { getEventById } from './utils/events.utils';
 import {
   addEventRecord,
-  getCoupon,
-  getEvent,
+  getEventRecordByOrderId,
   getFirstEventRecord,
-  getWolipayiFrame,
   updateEventRecord,
-} from './utils';
+} from './utils/event-records.utils';
+import { upsertPayment } from './utils/payments.utils';
+import { getWolipayIFrame, getPaymentById } from './utils/wolipay.utils';
 
 initializeApp();
 
@@ -57,15 +63,15 @@ export const createOrder = onCall(
       throw new HttpsError('internal', 'Missing required fields.');
     }
 
-    const event = await getEvent(eventId);
+    const event = await getEventById(eventId);
 
     if (!event) {
       throw new HttpsError('internal', 'Event does not exist.');
     }
 
-    const coupon = await getCoupon(couponId, eventId);
+    const coupon = await getCouponByIdAndEventId(couponId, eventId);
     const email = request.auth.token.email!;
-    const billingData = await getWolipayiFrame(
+    const billingData = await getWolipayIFrame(
       email,
       fullName,
       phoneNumber,
@@ -83,6 +89,8 @@ export const createOrder = onCall(
     }
 
     const { orderId, paymentId, url } = billingData;
+    // If paymentId and orderId are the same, it's a free event.
+    const freeEvent = orderId === paymentId;
     const eventRecord: PartialEventRecord = {
       additionalAnswers,
       email,
@@ -91,8 +99,20 @@ export const createOrder = onCall(
       orderId,
       paymentId,
       phoneNumber,
+      validated: false,
     };
     const existingRecord = await getFirstEventRecord(eventId, email);
+
+    if (freeEvent) {
+      eventRecord.validated = true;
+
+      await upsertPayment({
+        id: paymentId,
+        orderId,
+        billing: { email },
+        payment: { totalAmount: 0, status: 'success' },
+      });
+    }
 
     if (coupon) {
       eventRecord.couponId = coupon.id;
@@ -108,7 +128,15 @@ export const createOrder = onCall(
       throw new HttpsError('internal', 'Failed to create order.');
     }
 
-    const { id: eventRecordId } = upsertedRecord;
+    const {
+      id: eventRecordId,
+      couponId: usedCouponId,
+      validated,
+    } = upsertedRecord;
+
+    if (usedCouponId && validated) {
+      await incrementCouponCount(usedCouponId);
+    }
 
     return {
       eventRecordId,
@@ -119,45 +147,81 @@ export const createOrder = onCall(
   },
 );
 
-export const validatePayment = onCall(
+export const validatePayment = onRequest(
   {
-    secrets: ['WOLIPAY_NOTIFY_URL'],
+    cors: true,
+    secrets: ['WOLIPAY_BASE_PATH', 'WOLIPAY_EMAIL', 'WOLIPAY_PASSWORD'],
   },
-  async (request: CallableRequest<any>) => {
-    if (!request.auth) {
-      throw new HttpsError(
-        'unauthenticated',
-        'The function must be called while authenticated.',
-      );
+  async (request, response) => {
+    const wolipayEmail = process.env.WOLIPAY_EMAIL;
+    const wolipayPassword = process.env.WOLIPAY_PASSWORD;
+    const wolipayBasePath = process.env.WOLIPAY_BASE_PATH;
+
+    if (!wolipayEmail || !wolipayPassword || !wolipayBasePath) {
+      response.status(500).send('Missing required environment variables.');
+      return;
     }
 
-    const wolipayNotifyUrl = process.env.WOLIPAY_NOTIFY_URL;
-
-    if (!wolipayNotifyUrl) {
-      throw new HttpsError(
-        'internal',
-        'Missing required environment variables.',
-      );
-    }
-
-    const { orderId } = request.data;
+    const orderId = request.body.orderId || request.body.data.orderId;
 
     if (!orderId) {
-      throw new HttpsError('internal', 'Missing required fields.');
+      response.status(400).send('Missing required fields.');
+      return;
     }
 
-    try {
-      return await fetch(wolipayNotifyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId,
-        }),
-      });
-    } catch {
-      throw new HttpsError('internal', 'Failed to validate payment.');
+    const eventRecord = await getEventRecordByOrderId(orderId);
+
+    if (!eventRecord) {
+      response.status(404).send('Event record not found.');
+      return;
     }
+
+    const { paymentId } = eventRecord;
+    let status = '';
+
+    if (orderId !== paymentId) {
+      const payment = await getPaymentById(
+        paymentId,
+        wolipayEmail,
+        wolipayPassword,
+        wolipayBasePath,
+      );
+
+      if (!payment) {
+        response.status(404).send('Payment not found.');
+        return;
+      }
+
+      status = payment.payment.status;
+
+      await upsertPayment({ ...payment, orderId });
+    } else {
+      status = 'success';
+
+      await upsertPayment({
+        id: paymentId,
+        orderId,
+        billing: { email: eventRecord.email },
+        payment: { totalAmount: 0, status },
+      });
+    }
+
+    const updatedEventRecord = await updateEventRecord(
+      { validated: status === 'success' },
+      eventRecord,
+    );
+
+    if (!updatedEventRecord) {
+      response.status(500).send('Failed to update event record.');
+      return;
+    }
+
+    const { couponId: usedCouponId, validated } = updatedEventRecord;
+
+    if (usedCouponId && validated) {
+      await incrementCouponCount(usedCouponId);
+    }
+
+    response.send({ data: { validated: updatedEventRecord.validated } });
   },
 );

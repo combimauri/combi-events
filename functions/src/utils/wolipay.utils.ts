@@ -1,0 +1,168 @@
+import { logger } from 'firebase-functions/v2';
+import { BillingData } from '../models/billing-data.model';
+import { Coupon } from '../models/coupon.model';
+import { Payment } from '../models/payment.model';
+import { Price } from '../models/price.model';
+import { WolipayIFrame } from '../models/wolipay-iframe.model';
+import { WolipayPayment } from '../models/wolipay-payment.model';
+import { WolipayToken } from '../models/wolipay-token.model';
+
+export async function getWolipayIFrame(
+  email: string,
+  fullName: string,
+  phoneNumber: string,
+  title: string,
+  { description, amount, currency, discount }: Price,
+  coupon: Coupon | null,
+  wolipayEmail: string,
+  wolipayPassword: string,
+  wolipayBasePath: string,
+  wolipayNotifyUrl: string,
+): Promise<BillingData | null> {
+  try {
+    const id = crypto.randomUUID();
+    const splitName = fullName.split(' ');
+    const lastName = splitName.pop();
+    const firstName = splitName.join(' ') || lastName;
+    const totalDiscount = calculateDiscount(
+      amount,
+      discount,
+      coupon?.value || 0,
+    );
+    let data: WolipayIFrame | null = null;
+
+    if (amount - totalDiscount > 0) {
+      const token = await generateToken(
+        wolipayEmail,
+        wolipayPassword,
+        wolipayBasePath,
+      );
+
+      if (!token) {
+        logger.error('Failed to get token.');
+        return null;
+      }
+
+      const response = await fetch(`${wolipayBasePath}/getWolipayiFrame`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id,
+          title,
+          description: description,
+          notifyUrl: wolipayNotifyUrl,
+          payment: {
+            amount: amount,
+            currency: currency,
+            totalAmount: amount - totalDiscount,
+            discount: {
+              amount: totalDiscount,
+              type: 'amount',
+            },
+          },
+          billing: {
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+          },
+        }),
+      });
+
+      data = await response.json();
+    }
+
+    const url = data?.body.iFrameUrl || '';
+    const paymentId = id;
+    const lastSlashIndex = url.lastIndexOf('/');
+    // Extract orderId from the URL. If it's not present, use the generated ID.
+    // If paymentId and orderId are the same, it's a free event.
+    const orderId = url.substring(lastSlashIndex + 1) || id;
+
+    return {
+      url,
+      orderId,
+      paymentId,
+    };
+  } catch (error) {
+    logger.error('Failed to get Billing Data.');
+    return null;
+  }
+}
+
+export async function getPaymentById(
+  paymentId: string,
+  wolipayEmail: string,
+  wolipayPassword: string,
+  wolipayBasePath: string,
+): Promise<Payment | null> {
+  const token = await generateToken(
+    wolipayEmail,
+    wolipayPassword,
+    wolipayBasePath,
+  );
+
+  if (!token) {
+    logger.error('Failed to get token.');
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${wolipayBasePath}/getPaymentById?id=${paymentId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const data: WolipayPayment = await response.json();
+
+    return data.body.order;
+  } catch {
+    logger.error('Failed to get payment.');
+    return null;
+  }
+}
+
+async function generateToken(
+  email: string,
+  password: string,
+  wolipayBasePath: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(`${wolipayBasePath}/generateToken`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data: WolipayToken = await response.json();
+
+    return data.body.token;
+  } catch {
+    logger.error('Failed to generate token.');
+    return null;
+  }
+}
+
+function calculateDiscount(
+  amount: number,
+  discount: number,
+  couponValue: number,
+): number {
+  let discountAmount = discount + couponValue;
+
+  if (discountAmount > amount) {
+    discountAmount = amount;
+  }
+
+  return discountAmount;
+}
