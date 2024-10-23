@@ -1,9 +1,5 @@
 # CombiEvents
 
-## Configure environment variables for Firebase App Hosting
-
-https://firebase.google.com/docs/app-hosting/configure?hl=es-419#secret-parameters
-
 ## Create SECRETS for Firebase Cloud Functions
 
 `firebase functions:secrets:set <SECRET_KEY>`
@@ -31,3 +27,9 @@ export const keys = {
   }
 };
 ```
+
+## Important Links
+
+### Cloud Secret Manager
+
+https://cloud.google.com/security/products/secret-manager

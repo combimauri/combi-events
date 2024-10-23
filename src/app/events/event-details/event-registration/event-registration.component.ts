@@ -66,8 +66,9 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
               event()?.registrationAdditionalQuestions || []
             "
             [billingRecord]="billingRecord"
+            [eventId]="event()?.id!"
             [price]="event()?.price"
-            (confirmDetails)="triggerOrderGeneration()"
+            (confirmDetails)="triggerOrderGeneration($event)"
           />
         </div>
       }
@@ -163,11 +164,15 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     this.#registrationStepState.setRegistrationStep(RegistrationStep.details);
   }
 
-  triggerOrderGeneration(): void {
+  triggerOrderGeneration(couponId: string | null): void {
     const eventId = this.event()?.id;
 
     if (!this.billingRecord || !eventId) {
       return;
+    }
+
+    if (couponId) {
+      this.billingRecord.couponId = couponId;
     }
 
     this.#getBillingData$.next({ eventId, billing: this.billingRecord });

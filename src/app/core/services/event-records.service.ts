@@ -186,12 +186,12 @@ export class EventRecordsService {
 
   registerRecord(
     eventId: string,
-    { additionalAnswers, fullName, phoneNumber }: BillingRecord,
+    { additionalAnswers, fullName, phoneNumber, couponId }: BillingRecord,
   ): Observable<BillingData | undefined> {
     const response = httpsCallable(
       this.#functions,
       'createOrder',
-    )({ eventId, fullName, phoneNumber, additionalAnswers });
+    )({ eventId, fullName, phoneNumber, additionalAnswers, couponId });
 
     return from(response).pipe(
       tap(this.#loadEffectObserver),
