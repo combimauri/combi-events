@@ -110,7 +110,7 @@ import { Subject, switchMap, tap } from 'rxjs';
             </span>
           </p>
         </mat-card-content>
-        <mat-card-actions [align]="showCouponInput() ? 'end' : 'start'">
+        <mat-card-actions>
           @if (!showCouponInput()) {
             @if (appliedCoupon()) {
               <button mat-button (click)="removeCoupon()">Quitar Cupón</button>
