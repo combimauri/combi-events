@@ -110,11 +110,15 @@ import { Subject, switchMap, tap } from 'rxjs';
             </span>
           </p>
         </mat-card-content>
-        <mat-card-actions>
+        <mat-card-actions [align]="showCouponInput() ? 'end' : 'start'">
           @if (!showCouponInput()) {
-            <button mat-button (click)="toggleCouponInputVisibility()">
-              Agregar Cupón
-            </button>
+            @if (appliedCoupon()) {
+              <button mat-button (click)="removeCoupon()">Quitar Cupón</button>
+            } @else {
+              <button mat-button (click)="toggleCouponInputVisibility()">
+                Agregar Cupón
+              </button>
+            }
           } @else {
             <form #couponForm="ngForm" (submit)="triggerCouponSearch()">
               <mat-form-field appearance="outline">
@@ -127,9 +131,20 @@ import { Subject, switchMap, tap } from 'rxjs';
                   [(ngModel)]="couponCode"
                 />
                 <button mat-icon-button matSuffix type="submit">
-                  <mat-icon fontIcon="search" />
+                  <mat-icon fontIcon="redeem" />
                 </button>
               </mat-form-field>
+              <button mat-button class="action-button" type="submit">
+                Agregar
+              </button>
+              <button
+                mat-button
+                class="action-button"
+                type="button"
+                (click)="toggleCouponInputVisibility()"
+              >
+                Cancelar
+              </button>
             </form>
           }
         </mat-card-actions>
@@ -184,6 +199,10 @@ import { Subject, switchMap, tap } from 'rxjs';
           margin-right: 0.5rem;
         }
       }
+
+      .action-button {
+        margin-top: -1rem;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -227,6 +246,10 @@ export class EventRegistrationDetailsComponent {
 
   toggleCouponInputVisibility(): void {
     this.showCouponInput.update((show) => !show);
+  }
+
+  removeCoupon(): void {
+    this.appliedCoupon.set(null);
   }
 
   triggerCouponSearch(): void {
