@@ -4,14 +4,14 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LoadingState } from '@core/states';
 import { SanitizeUrlPipe } from '@shared/pipes';
 
 @Component({
   selector: 'combi-event-registration-payment',
   standalone: true,
-  imports: [MatProgressSpinnerModule, SanitizeUrlPipe],
+  imports: [MatProgressBarModule, SanitizeUrlPipe],
   template: `
     <div class="event-registration-payment">
       @if (!loading() && !iFrameUrl()) {
@@ -22,7 +22,10 @@ import { SanitizeUrlPipe } from '@shared/pipes';
           </p>
         }
       } @else {
-        <mat-spinner />
+        <mat-progress-bar
+          class="wolipay-spinner"
+          mode="indeterminate"
+        ></mat-progress-bar>
 
         @if (iFrameUrl(); as iFrameUrl) {
           <iframe
@@ -42,11 +45,10 @@ import { SanitizeUrlPipe } from '@shared/pipes';
       position: relative;
       width: 100%;
 
-      mat-spinner {
-        left: 50%;
+      .wolipay-spinner {
         position: absolute;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        top: 0.75rem;
+        width: 100%;
       }
 
       .event-registration-payment__iframe {
