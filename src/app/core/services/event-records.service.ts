@@ -14,16 +14,16 @@ import {
   orderBy,
   Query,
   query,
-  setDoc,
   startAfter,
   where,
 } from '@angular/fire/firestore';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import {
+  BillingData,
+  BillingRecord,
   EventRecord,
   EventRecordListing,
-  PartialEventRecord,
 } from '@core/models';
-import { EventRecordState } from '@core/states';
 import { loadEffect, handleError } from '@core/utils';
 import { catchError, from, map, Observable, switchMap, take, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
@@ -32,11 +32,11 @@ import { LoggerService } from './logger.service';
   providedIn: 'root',
 })
 export class EventRecordsService {
-  readonly #firestore = inject(Firestore);
   readonly #collectionName = 'event-records';
+  readonly #firestore = inject(Firestore);
+  readonly #functions = inject(Functions);
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
-  readonly #eventRecordState = inject(EventRecordState);
 
   getRealtimeRecordById(id: string): Observable<EventRecord | undefined> {
     const recordRef = doc(this.#firestore, this.#collectionName, id);
@@ -185,39 +185,17 @@ export class EventRecordsService {
   }
 
   registerRecord(
-    eventRecord: PartialEventRecord,
-  ): Observable<EventRecord | undefined> {
-    const currentEventRecord = this.#eventRecordState.eventRecord();
+    eventId: string,
+    { additionalAnswers, fullName, phoneNumber, couponId }: BillingRecord,
+  ): Observable<BillingData | undefined> {
+    const response = httpsCallable(
+      this.#functions,
+      'createOrder',
+    )({ eventId, fullName, phoneNumber, additionalAnswers, couponId });
 
-    if (currentEventRecord) {
-      return this.upsertRecord({
-        ...currentEventRecord,
-        ...eventRecord,
-        updatedAt: new Date(),
-      });
-    }
-
-    return this.upsertRecord({
-      ...eventRecord,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      validated: false,
-    });
-  }
-
-  private upsertRecord(
-    eventRecord: EventRecord,
-  ): Observable<EventRecord | undefined> {
-    const recordRef = doc(
-      this.#firestore,
-      this.#collectionName,
-      eventRecord.id,
-    );
-
-    return from(setDoc(recordRef, eventRecord)).pipe(
+    return from(response).pipe(
       tap(this.#loadEffectObserver),
-      map(() => eventRecord),
+      map((result) => result.data as BillingData),
       catchError((error) => handleError(error, this.#logger)),
     );
   }

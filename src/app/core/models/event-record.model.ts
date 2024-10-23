@@ -1,4 +1,12 @@
-import { BillingRecord } from './billing-record.model';
+import { Timestamp } from '@angular/fire/firestore';
+
+export interface BillingRecord {
+  additionalAnswers: Record<string, string>;
+  couponId?: string;
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+}
 
 export interface PartialEventRecord extends BillingRecord {
   eventId: string;
@@ -7,9 +15,9 @@ export interface PartialEventRecord extends BillingRecord {
 }
 
 export interface EventRecord extends PartialEventRecord {
-  createdAt: unknown;
+  createdAt: Timestamp;
   id: string;
-  updatedAt: unknown;
+  updatedAt: Timestamp;
   validated: boolean;
 }
 
