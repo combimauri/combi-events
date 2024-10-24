@@ -4,18 +4,18 @@ import { AuthService } from '@core/services';
 import { EventState } from '@core/states';
 import { map } from 'rxjs';
 
-export const adminGuard: CanActivateFn = (route, _state) => {
+export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
   const event = inject(EventState).event()!;
   const user$ = inject(AuthService).user$;
 
   return user$.pipe(
     map((user) => {
-      if (user?.email !== event.owner) {
-        return router.createUrlTree([event.id]);
+      if (user!.email === event.owner || event.admins.includes(user!.email!)) {
+        return true;
       }
 
-      return true;
+      return router.createUrlTree([event.id]);
     }),
   );
 };

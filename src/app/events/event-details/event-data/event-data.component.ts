@@ -4,11 +4,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services';
 import { EventRecordState, EventState, LoadingState } from '@core/states';
+import { EventAdminButtonComponent } from './event-admin-button/event-admin-button.component';
+import { EventClosedCardComponent } from './event-closed-card/event-closed-card.component';
 import { EventLocationComponent } from './event-location/event-location.component';
+import { EventLoginButtonComponent } from './event-login-button/event-login-button.component';
 import { EventMainInfoComponent } from './event-main-info/event-main-info.component';
+import { EventRegistrationButtonComponent } from './event-registration-button/event-registration-button.component';
 import { UserEventRecordComponent } from './user-event-record/user-event-record.component';
 
 @Component({
@@ -16,8 +20,12 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
   standalone: true,
   imports: [
     DatePipe,
+    EventAdminButtonComponent,
+    EventClosedCardComponent,
     EventLocationComponent,
+    EventLoginButtonComponent,
     EventMainInfoComponent,
+    EventRegistrationButtonComponent,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -30,33 +38,24 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
 
       @if (user(); as user) {
         @if (user.email === event.owner) {
-          <a mat-fab extended routerLink="admin">
-            <mat-icon fontIcon="admin_panel_settings" />
-            Gestionar Evento
-          </a>
+          <combi-event-admin-button />
         } @else {
           @if (event.openRegistration) {
             @if (eventRecord(); as record) {
               <combi-user-event-record [eventRecord]="record" />
             } @else if (!loading()) {
-              <a mat-fab extended routerLink="register">
-                <mat-icon fontIcon="how_to_reg" />
-                Registrarse
-              </a>
+              <combi-event-registration-button />
             }
           } @else {
-            <mat-card appearance="outlined">
-              <mat-card-content>
-                <p>El registro para este evento está cerrado.</p>
-              </mat-card-content>
-            </mat-card>
+            <combi-event-closed-card />
+          }
+
+          @if (event.admins.includes(user.email!)) {
+            <combi-event-admin-button />
           }
         }
       } @else {
-        <button mat-fab extended (click)="navigateToLogin()">
-          <mat-icon fontIcon="login" />
-          Iniciar Sesión y Registrarse
-        </button>
+        <combi-event-login-button [eventId]="event.id" />
       }
 
       <combi-event-location [event]="event" />
@@ -72,21 +71,10 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDataComponent {
-  readonly #router = inject(Router);
   readonly #user$ = inject(AuthService).user$;
 
   readonly loading = inject(LoadingState).loading;
   readonly event = inject(EventState).event;
   readonly user = toSignal(this.#user$);
-
   readonly eventRecord = inject(EventRecordState).eventRecord;
-
-  navigateToLogin(): void {
-    const eventId = this.event()?.id!;
-    const returnUrl = `/${eventId}/register`;
-
-    this.#router.navigate(['/login'], {
-      queryParams: { returnUrl },
-    });
-  }
 }
