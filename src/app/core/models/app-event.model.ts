@@ -3,6 +3,7 @@ import { AdditionalQuestion } from './additional-question.model';
 import { Price } from './price.model';
 
 export interface AppEvent {
+  admins: string[];
   bannerImage: string;
   capacity: number;
   date: { end: Timestamp; start: Timestamp };
