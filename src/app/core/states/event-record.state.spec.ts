@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { EventRecordState } from './event-record.state';
 
-describe('EventRecordService', () => {
+describe('EventRecordState', () => {
   let service: EventRecordState;
 
   beforeEach(() => {

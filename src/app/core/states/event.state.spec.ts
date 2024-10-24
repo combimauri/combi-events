@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { LoadingState } from './loading.state';
+import { EventState } from './event.state';
 
-describe('LoadingState', () => {
-  let service: LoadingState;
+describe('EventState', () => {
+  let service: EventState;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(LoadingState);
+    service = TestBed.inject(EventState);
   });
 
   it('should be created', () => {

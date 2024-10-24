@@ -1,1 +1,1 @@
-export * from './events.resolver';
+export * from './event-record.resolver';

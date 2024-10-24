@@ -2,11 +2,12 @@ import { Routes } from '@angular/router';
 import {
   adminGuard,
   authGuard,
+  eventGuard,
   exitRegistrationGuard,
   platformGuard,
   registrationGuard,
 } from '@core/guards';
-import { eventsResolver } from '@core/resolvers';
+import { eventRecordResolver } from '@core/resolvers';
 
 export const routes: Routes = [
   {
@@ -15,9 +16,9 @@ export const routes: Routes = [
   },
   {
     path: ':id',
-    canActivate: [platformGuard],
+    canActivate: [platformGuard, eventGuard],
     resolve: {
-      event: eventsResolver,
+      eventRecord: eventRecordResolver,
     },
     loadComponent: () => import('./event-details/event-details.component'),
     children: [

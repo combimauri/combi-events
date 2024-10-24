@@ -1,13 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  effect,
   inject,
+  OnDestroy,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { AppEvent } from '@core/models';
-import { map } from 'rxjs';
+import { RouterOutlet } from '@angular/router';
+import { EventRecordState, EventState } from '@core/states';
 
 @Component({
   selector: 'combi-event-details',
@@ -39,21 +37,14 @@ import { map } from 'rxjs';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class EventDetailsComponent {
-  readonly #route = inject(ActivatedRoute);
-  readonly #router = inject(Router);
+export default class EventDetailsComponent implements OnDestroy {
+  readonly #eventState = inject(EventState);
+  readonly #eventRecordState = inject(EventRecordState);
 
-  readonly event = toSignal(
-    this.#route.data.pipe(map((data) => data['event'] as AppEvent | undefined)),
-  );
+  readonly event = this.#eventState.event;
 
-  constructor() {
-    effect(() => this.handleLoadEvent(this.event()));
-  }
-
-  private handleLoadEvent(event: AppEvent | undefined): void {
-    if (!event) {
-      this.#router.navigateByUrl('/');
-    }
+  ngOnDestroy(): void {
+    this.#eventState.clearEvent();
+    this.#eventRecordState.clearEventRecord();
   }
 }
