@@ -69,8 +69,38 @@ export const createOrder = onCall(
       throw new HttpsError('internal', 'Event does not exist.');
     }
 
-    const coupon = await getCouponByIdAndEventId(couponId, eventId);
     const email = request.auth.token.email!;
+    const existingRecord = await getFirstEventRecord(eventId, email);
+
+    if (existingRecord) {
+      if (existingRecord.validated) {
+        throw new HttpsError(
+          'already-exists',
+          'You have already registered for this event.',
+        );
+      } else if (existingRecord.paymentId === existingRecord.orderId) {
+        throw new HttpsError(
+          'already-exists',
+          'You have already registered for this free event.',
+        );
+      } else {
+        const existingPayment = await getPaymentById(
+          existingRecord.paymentId,
+          wolipayEmail,
+          wolipayPassword,
+          wolipayBasePath,
+        );
+
+        if (existingPayment && existingPayment.payment.status === 'success') {
+          throw new HttpsError(
+            'already-exists',
+            'You have already paid for this event.',
+          );
+        }
+      }
+    }
+
+    const coupon = await getCouponByIdAndEventId(couponId, eventId);
     const billingData = await getWolipayIFrame(
       email,
       fullName,
@@ -101,7 +131,6 @@ export const createOrder = onCall(
       phoneNumber,
       validated: false,
     };
-    const existingRecord = await getFirstEventRecord(eventId, email);
 
     if (freeEvent) {
       eventRecord.validated = true;

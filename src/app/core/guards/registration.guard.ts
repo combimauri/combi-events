@@ -1,74 +1,52 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { EventRecord } from '@core/models';
-import {
-  AuthService,
-  EventRecordsService,
-  EventsService,
-} from '@core/services';
-import { EventRecordState } from '@core/states';
-import { combineLatest, map, switchMap } from 'rxjs';
+import { AuthService, EventRecordsService } from '@core/services';
+import { EventRecordState, EventState } from '@core/states';
+import { map, switchMap } from 'rxjs';
 
-export const registrationGuard: CanActivateFn = (route, _state) => {
+export const registrationGuard: CanActivateFn = () => {
+  const event = inject(EventState).event()!;
   const router = inject(Router);
-  const eventId = route.parent?.params['id'];
 
-  if (!eventId) {
-    return router.createUrlTree(['/']);
+  if (!event.openRegistration) {
+    return router.createUrlTree([event.id]);
   }
 
-  const user$ = inject(AuthService).user$;
-  const eventRecordsService = inject(EventRecordsService);
   const eventRecordState = inject(EventRecordState);
-  const eventsService = inject(EventsService);
-  const records$ = user$.pipe(
+  const eventRecordsService = inject(EventRecordsService);
+  const user$ = inject(AuthService).user$;
+  const eventRecord = eventRecordState.eventRecord();
+
+  if (eventRecord) {
+    return validateExistingRecord(eventRecord, router);
+  }
+
+  return user$.pipe(
     switchMap((user) =>
-      eventRecordsService.getRecordsByEventIdAndEmail(
-        eventId,
-        user?.email || '',
-      ),
+      eventRecordsService.getRecordByEventIdAndEmail(event.id, user?.email!),
     ),
-  );
-  const data$ = combineLatest([eventsService.getEventById(eventId), records$]);
+    map((eventRecord) => {
+      if (!eventRecord) {
+        eventRecordState.clearEventRecord();
 
-  return data$.pipe(
-    map(([event, eventRecords]) => {
-      if (!event) {
-        return router.createUrlTree(['/']);
+        return true;
       }
 
-      if (!event.openRegistration) {
-        return router.createUrlTree([eventId]);
-      }
+      eventRecordState.setEventRecord(eventRecord);
 
-      return validateEventRecord(
-        eventRecordState,
-        eventId,
-        eventRecords,
-        router,
-      );
+      return validateExistingRecord(eventRecord, router);
     }),
   );
 };
 
-const validateEventRecord = (
-  eventRecordState: EventRecordState,
-  eventId: string,
-  eventRecords: EventRecord[] | undefined,
+const validateExistingRecord = (
+  eventRecord: EventRecord,
   router: Router,
-) => {
-  if (!eventRecords || eventRecords?.length === 0) {
-    eventRecordState.clearEventRecord();
-
-    return true;
+): UrlTree | boolean => {
+  if (eventRecord.validated) {
+    return router.createUrlTree([eventRecord.eventId]);
   }
-
-  // There should be only one record per user, but this is a safety check
-  if (eventRecords.some((record) => record.validated)) {
-    return router.createUrlTree([eventId]);
-  }
-
-  eventRecordState.setEventRecord(eventRecords[0]);
 
   return true;
 };

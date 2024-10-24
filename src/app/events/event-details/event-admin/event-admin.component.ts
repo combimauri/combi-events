@@ -1,11 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute } from '@angular/router';
-import { map, Observable, of, switchMap } from 'rxjs';
-import { EventRecordsService } from '@core/services';
-import { AppEvent, EventRecord } from '@core/models';
 import { BackButtonComponent } from '@shared/components';
+import { EventState } from '@core/states';
 import { EventRecordsTableComponent } from './event-records-table/event-records-table.component';
 
 @Component({
@@ -41,24 +37,5 @@ import { EventRecordsTableComponent } from './event-records-table/event-records-
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventAdminComponent {
-  readonly #eventRecordsService = inject(EventRecordsService);
-  readonly #route = inject(ActivatedRoute);
-  readonly #event$ = this.#route.parent!.data.pipe(
-    map((data) => data['event'] as AppEvent | undefined),
-  );
-
-  readonly event = toSignal(this.#event$);
-  readonly eventRecords$ = this.#event$.pipe(
-    switchMap((event) => this.getEventRecords(event)),
-  );
-
-  private getEventRecords(event?: AppEvent): Observable<EventRecord[]> {
-    if (!event) {
-      return of([]);
-    }
-
-    return this.#eventRecordsService
-      .getRecordsByEventId(event.id)
-      .pipe(map((records) => records || []));
-  }
+  readonly event = inject(EventState).event;
 }

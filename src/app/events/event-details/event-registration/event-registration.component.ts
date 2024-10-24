@@ -11,11 +11,15 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BillingRecord, AppEvent, RegistrationStep } from '@core/models';
+import { BillingRecord, RegistrationStep } from '@core/models';
 import { EventRecordsService, LoggerService } from '@core/services';
-import { RegistrationStepState } from '@core/states';
+import {
+  EventRecordState,
+  EventState,
+  RegistrationStepState,
+} from '@core/states';
 import { BackButtonComponent } from '@shared/components';
-import { map, Subject, switchMap } from 'rxjs';
+import { filter, Subject, switchMap, tap } from 'rxjs';
 import { EventRegistrationDetailsComponent } from './event-registration-details/event-registration-details.component';
 import { EventRegistrationFormComponent } from './event-registration-form/event-registration-form.component';
 import { EventRegistrationPaymentComponent } from './event-registration-payment/event-registration-payment.component';
@@ -97,6 +101,8 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
 })
 export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #eventRecordsService = inject(EventRecordsService);
+  readonly #eventRecordState = inject(EventRecordState);
+  readonly #eventRecord = this.#eventRecordState.eventRecord;
   readonly #getEventRecord$ = new Subject<string>();
   readonly #logger = inject(LoggerService);
   readonly #registrationStepState = inject(RegistrationStepState);
@@ -126,28 +132,27 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly registrationStep = this.#registrationStepState.registrationStep;
   readonly title = computed(() => this.event()?.name);
 
-  readonly event = toSignal(
-    this.#route.parent!.data.pipe(
-      map((data) => data['event'] as AppEvent | undefined),
-    ),
-  );
+  readonly event = inject(EventState).event;
   readonly realtimeEventRecord = toSignal(
     this.#getEventRecord$.pipe(
       switchMap((id) => this.#eventRecordsService.getRealtimeRecordById(id)),
+      filter((record) => !!record),
+      tap((eventRecord) => this.#eventRecordState.setEventRecord(eventRecord)),
     ),
   );
 
   constructor() {
     effect(() => {
-      const eventRecordId = this.#billingData()?.eventRecordId;
+      const eventRecordId =
+        this.#eventRecord()?.id || this.#billingData()?.eventRecordId;
 
-      if (eventRecordId) {
+      if (eventRecordId && !this.realtimeEventRecord()) {
         this.#getEventRecord$.next(eventRecordId);
       }
     });
     effect(() => {
       if (this.#paymentValidated()) {
-        this.#logger.handleSuccess('¡Registro comprobado con éxito!');
+        this.#logger.handleSuccess('¡Registro validado con éxito!');
         this.#router.navigate(['..'], { relativeTo: this.#route });
       }
     });

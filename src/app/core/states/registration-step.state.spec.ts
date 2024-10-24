@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RegistrationStepState } from './registration-step.state';
 
-describe('RegistrationStepService', () => {
+describe('RegistrationStepState', () => {
   let service: RegistrationStepState;
 
   beforeEach(() => {

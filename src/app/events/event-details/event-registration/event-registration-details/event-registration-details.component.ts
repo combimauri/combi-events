@@ -210,7 +210,6 @@ import { Subject, switchMap, tap } from 'rxjs';
 export class EventRegistrationDetailsComponent {
   couponCode = '';
 
-  readonly appliedCoupon = signal<Coupon | null>(null);
   readonly #couponService = inject(CouponsService);
   readonly #getCoupon$ = new Subject<{ couponId: string; eventId: string }>();
   readonly #logger = inject(LoggerService);
@@ -234,6 +233,7 @@ export class EventRegistrationDetailsComponent {
   });
 
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
+  readonly appliedCoupon = signal<Coupon | null>(null);
   readonly billingRecord = input<BillingRecord>();
   readonly confirmDetails = output<string | null>();
   readonly eventId = input.required<string>();

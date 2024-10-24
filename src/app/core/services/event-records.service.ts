@@ -53,16 +53,22 @@ export class EventRecordsService {
     );
   }
 
-  getRecordsByEventId(eventId: string): Observable<EventRecord[] | undefined> {
+  getRecordByEventIdAndEmail(
+    eventId: string,
+    email: string,
+  ): Observable<EventRecord | undefined> {
     const recordsCollection = collection(this.#firestore, this.#collectionName);
     const recordsQuery = query(
       recordsCollection,
       where('eventId', '==', eventId),
+      where('email', '==', email),
+      limit(1),
     );
 
     return (collectionData(recordsQuery) as Observable<EventRecord[]>).pipe(
       tap(this.#loadEffectObserver),
       take(1),
+      map((records) => records[0]),
       catchError((error) => handleError(error, this.#logger)),
     );
   }
@@ -162,24 +168,6 @@ export class EventRecordsService {
           map((total) => ({ items, total })),
         ),
       ),
-      catchError((error) => handleError(error, this.#logger)),
-    );
-  }
-
-  getRecordsByEventIdAndEmail(
-    eventId: string,
-    email: string,
-  ): Observable<EventRecord[] | undefined> {
-    const recordsCollection = collection(this.#firestore, this.#collectionName);
-    const recordsQuery = query(
-      recordsCollection,
-      where('eventId', '==', eventId),
-      where('email', '==', email),
-    );
-
-    return (collectionData(recordsQuery) as Observable<EventRecord[]>).pipe(
-      tap(this.#loadEffectObserver),
-      take(1),
       catchError((error) => handleError(error, this.#logger)),
     );
   }

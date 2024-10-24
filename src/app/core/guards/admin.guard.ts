@@ -1,28 +1,18 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService, EventsService } from '@core/services';
-import { combineLatest, map } from 'rxjs';
+import { AuthService } from '@core/services';
+import { EventState } from '@core/states';
+import { map } from 'rxjs';
 
 export const adminGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);
-  const eventId = route.parent?.params['id'];
-
-  if (!eventId) {
-    return router.createUrlTree(['/']);
-  }
-
-  const eventsService = inject(EventsService);
+  const event = inject(EventState).event()!;
   const user$ = inject(AuthService).user$;
-  const data$ = combineLatest([user$, eventsService.getEventById(eventId)]);
 
-  return data$.pipe(
-    map(([user, event]) => {
-      if (!event) {
-        return router.createUrlTree(['/']);
-      }
-
+  return user$.pipe(
+    map((user) => {
       if (user?.email !== event.owner) {
-        return router.createUrlTree([eventId]);
+        return router.createUrlTree([event.id]);
       }
 
       return true;

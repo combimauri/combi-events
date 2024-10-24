@@ -1,22 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { User } from '@angular/fire/auth';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AppEvent, EventRecord } from '@core/models';
-import { AuthService, EventRecordsService } from '@core/services';
-import { LoadingState } from '@core/states';
-import {
-  combineLatest,
-  map,
-  Observable,
-  of,
-  shareReplay,
-  switchMap,
-} from 'rxjs';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '@core/services';
+import { EventRecordState, EventState, LoadingState } from '@core/states';
 import { EventLocationComponent } from './event-location/event-location.component';
 import { EventMainInfoComponent } from './event-main-info/event-main-info.component';
 import { UserEventRecordComponent } from './user-event-record/user-event-record.component';
@@ -82,28 +72,14 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventDataComponent {
-  readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
-  readonly #eventRecordService = inject(EventRecordsService);
   readonly #user$ = inject(AuthService).user$;
 
-  readonly #event$ = this.#route.data.pipe(
-    map((data) => data['event'] as AppEvent | undefined),
-    shareReplay(),
-  );
-  readonly #eventRecords$ = combineLatest([this.#user$, this.#event$]).pipe(
-    switchMap(([user, event]) => this.getRecords(user, event)),
-  );
-
   readonly loading = inject(LoadingState).loading;
-  readonly event = toSignal(this.#event$);
+  readonly event = inject(EventState).event;
   readonly user = toSignal(this.#user$);
 
-  readonly eventRecord = toSignal(
-    this.#eventRecords$.pipe(
-      map((records) => (records?.length ? records[0] : undefined)),
-    ),
-  );
+  readonly eventRecord = inject(EventRecordState).eventRecord;
 
   navigateToLogin(): void {
     const eventId = this.event()?.id!;
@@ -112,19 +88,5 @@ export default class EventDataComponent {
     this.#router.navigate(['/login'], {
       queryParams: { returnUrl },
     });
-  }
-
-  private getRecords(
-    user: User | null,
-    event: AppEvent | undefined,
-  ): Observable<EventRecord[] | undefined> {
-    if (!user || !event) {
-      return of([]);
-    }
-
-    return this.#eventRecordService.getRecordsByEventIdAndEmail(
-      event.id,
-      user.email!,
-    );
   }
 }
