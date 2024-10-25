@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import { RecordRole } from './record-role.enum';
 
 export interface PartialEventRecord {
   additionalAnswers: Record<string, string>;
@@ -9,6 +10,7 @@ export interface PartialEventRecord {
   orderId: string;
   paymentId: string;
   phoneNumber: string;
+  role: RecordRole;
   searchTerm: string;
   validated: boolean;
 }

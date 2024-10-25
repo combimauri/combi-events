@@ -6,6 +6,7 @@ import {
   onRequest,
 } from 'firebase-functions/v2/https';
 import { PartialEventRecord } from './models/event-record.model';
+import { RecordRole } from './models/record-role.enum';
 import {
   getCouponByIdAndEventId,
   incrementCouponCount,
@@ -129,6 +130,7 @@ export const createOrder = onCall(
       orderId,
       paymentId,
       phoneNumber,
+      role: RecordRole.Attendee,
       searchTerm: fullName.replace(/\s/g, '').toLowerCase(),
       validated: false,
     };
@@ -146,6 +148,10 @@ export const createOrder = onCall(
 
     if (coupon) {
       eventRecord.couponId = coupon.id;
+
+      if (coupon.recordLabel) {
+        eventRecord.role = coupon.recordLabel;
+      }
     } else {
       delete existingRecord?.couponId;
     }

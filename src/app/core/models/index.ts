@@ -5,4 +5,5 @@ export * from './coupon.model';
 export * from './event-record.model';
 export * from './page-event-records.model';
 export * from './price.model';
+export * from './record-role.enum';
 export * from './registration-step.enum';
