@@ -1,4 +1,4 @@
-import { keys } from './keys.prod';
+import { keys } from './keys';
 
 export const environment = {
   firebase: keys.firebase,

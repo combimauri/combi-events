@@ -7,7 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
   standalone: true,
   imports: [MatFormFieldModule, MatSelectModule],
   template: `
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="no-hint dense-2">
       <mat-label>Estado</mat-label>
       <mat-select
         [(value)]="selectedValue"

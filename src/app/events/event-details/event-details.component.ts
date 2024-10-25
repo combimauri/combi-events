@@ -26,7 +26,7 @@ import { EventRecordState, EventState } from '@core/states';
     :host {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.5rem;
     }
 
     .event-details__banner {

@@ -16,7 +16,7 @@ import { debounceTime, of, tap } from 'rxjs';
   imports: [MatFormFieldModule, MatInputModule, ReactiveFormsModule],
   template: `
     <form [formGroup]="searchBoxForm">
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="no-hint dense-2">
         <mat-label>Buscar</mat-label>
         <input matInput type="search" formControlName="term" />
       </mat-form-field>

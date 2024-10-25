@@ -9,7 +9,7 @@ import { translations } from '@core/utils';
   standalone: true,
   imports: [MatFormFieldModule, MatSelectModule],
   template: `
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="no-hint dense-2">
       <mat-label>Rol</mat-label>
       <mat-select
         [(value)]="selectedValue"
