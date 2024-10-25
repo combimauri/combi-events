@@ -1,4 +1,5 @@
 import { Timestamp } from '@angular/fire/firestore';
+import { RecordRole } from './record-role.enum';
 
 export interface BillingRecord {
   additionalAnswers: Record<string, string>;
@@ -12,6 +13,8 @@ export interface PartialEventRecord extends BillingRecord {
   eventId: string;
   orderId: string;
   paymentId: string;
+  role: RecordRole;
+  searchTerm: string;
 }
 
 export interface EventRecord extends PartialEventRecord {

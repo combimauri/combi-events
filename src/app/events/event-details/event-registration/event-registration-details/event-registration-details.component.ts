@@ -98,7 +98,7 @@ import { Subject, switchMap, tap } from 'rxjs';
                 {{ coupon.value }} {{ price.currency }}
               </span>
               <span class="coupon-warning">
-                El cupón no se aplicará hasta que confirmes el pago.
+                *No se aplicará hasta que confirmes el pago.
               </span>
             </p>
           }

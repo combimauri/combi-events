@@ -45,10 +45,17 @@ $combi-events-theme: mat.define-theme(
   box-sizing: border-box;
 }
 
-html,
+html {
+  font-size: 14px;
+  scroll-behavior: smooth;
+
+  @media (min-width: 960px) {
+    font-size: 16px;
+  }
+}
+
 body {
   height: 100%;
-  scroll-behavior: smooth;
 }
 
 body {
