@@ -1,21 +1,26 @@
 import { ChangeDetectionStrategy, Component, output } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { RecordRole } from '@core/models';
+import { translations } from '@core/utils';
 
 @Component({
-  selector: 'combi-validated-selector',
+  selector: 'combi-role-selector',
   standalone: true,
   imports: [MatFormFieldModule, MatSelectModule],
   template: `
     <mat-form-field appearance="outline">
-      <mat-label>Estado</mat-label>
+      <mat-label>Rol</mat-label>
       <mat-select
         [(value)]="selectedValue"
-        (valueChange)="selectValidatedValue.emit(selectedValue)"
+        (valueChange)="selectRoleValue.emit(selectedValue)"
       >
         <mat-option [value]="null"> Todos </mat-option>
-        <mat-option [value]="true"> Validado </mat-option>
-        <mat-option [value]="false"> No Validado </mat-option>
+        @for (role of roles; track role) {
+          <mat-option [value]="role">
+            {{ translations[role] }}
+          </mat-option>
+        }
       </mat-select>
     </mat-form-field>
   `,
@@ -31,7 +36,15 @@ import { MatSelectModule } from '@angular/material/select';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ValidatedSelectorComponent {
-  readonly selectedValue: boolean | null = null;
-  readonly selectValidatedValue = output<boolean | null>();
+export class RoleSelectorComponent {
+  readonly roles = [
+    RecordRole.Attendee,
+    RecordRole.Mentor,
+    RecordRole.Speaker,
+    RecordRole.Sponsor,
+    RecordRole.Staff,
+  ];
+  readonly selectedValue: RecordRole | null = null;
+  readonly selectRoleValue = output<RecordRole | null>();
+  readonly translations = translations;
 }

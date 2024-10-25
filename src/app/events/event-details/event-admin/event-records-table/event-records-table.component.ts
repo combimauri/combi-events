@@ -6,7 +6,7 @@ import {
   trigger,
 } from '@angular/animations';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { KeyValuePipe } from '@angular/common';
+import { DatePipe, KeyValuePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,19 +15,26 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AdditionalQuestion,
   EventRecord,
   EventRecordListing,
   PageEventRecords,
+  RecordRole,
 } from '@core/models';
 import { EventRecordsService } from '@core/services';
-import { ValidatedSelectorComponent } from '@shared/components';
+import { translations } from '@core/utils';
+import {
+  RoleSelectorComponent,
+  SearchBoxComponent,
+  ValidatedSelectorComponent,
+} from '@shared/components';
 import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
 import { map, Observable, Subject, switchMap } from 'rxjs';
 
@@ -35,28 +42,50 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
   selector: 'combi-event-records-table',
   standalone: true,
   imports: [
+    DatePipe,
     KeyValuePipe,
     MatButtonModule,
     MatIconModule,
     MatPaginatorModule,
+    MatSortModule,
     MatTableModule,
     QuestionLabelPipe,
+    RoleSelectorComponent,
+    SearchBoxComponent,
     TranslateBooleanPipe,
     ValidatedSelectorComponent,
   ],
   template: `
     <div class="event-records-table__filters">
+      <combi-search-box (search)="searchRecord($event)" />
+      <combi-role-selector (selectRoleValue)="filterByRoleValue($event)" />
       <combi-validated-selector
         (selectValidatedValue)="filterByValidatedValue($event)"
       />
     </div>
 
-    <table mat-table multiTemplateDataRows [dataSource]="eventRecords()">
+    <table
+      mat-table
+      multiTemplateDataRows
+      matSort
+      [dataSource]="eventRecords()"
+      (matSortChange)="handleSortChange($event)"
+    >
       @for (column of displayedColumns(); track column) {
         <ng-container [matColumnDef]="column">
-          <th mat-header-cell *matHeaderCellDef>{{ translations[column] }}</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ translations[column] }}
+          </th>
           <td mat-cell *matCellDef="let element">
-            {{ element[column] | translateBoolean }}
+            @if (column === 'createdAt') {
+              {{ element[column].toDate() | date: 'dd/MM/yy HH:mm' }}
+            } @else if (column === 'role') {
+              {{ translations[element[column]] }}
+            } @else if (column === 'validated') {
+              {{ element[column] | translateBoolean }}
+            } @else {
+              {{ element[column] }}
+            }
           </td>
         </ng-container>
       }
@@ -91,6 +120,14 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
           >
             <dl>
               @if (isHandset()) {
+                <dt>Creado</dt>
+                <dd>
+                  {{ element.createdAt.toDate() | date: 'dd/MM/yy HH:mm' }}
+                </dd>
+
+                <dt>Rol</dt>
+                <dd>{{ translations[element.role] }}</dd>
+
                 <dt>Correo Electrónico</dt>
                 <dd>{{ element.email }}</dd>
               }
@@ -154,7 +191,15 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
   styles: `
     .event-records-table__filters {
       display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
       justify-content: flex-end;
+    }
+
+    th,
+    td {
+      font-size: 0.75rem;
+      padding: 0 0.5rem;
     }
 
     tr.detail-row {
@@ -193,13 +238,10 @@ export class EventRecordsTableComponent {
 
   pageIndex = 0;
   pageSize = 15;
-  recordsTotal = 100;
+  recordsTotal = 0;
+  searchTerm = '';
+  sortState: Sort = { active: 'createdAt', direction: 'desc' };
   expandedElement: EventRecord | null = null;
-  translations: Record<string, string> = {
-    email: 'Correo Electrónico',
-    fullName: 'Nombre Completo',
-    validated: 'Validado',
-  };
   filters: Record<string, unknown> = {
     validated: null,
   };
@@ -207,6 +249,8 @@ export class EventRecordsTableComponent {
   readonly additionalQuestions = input.required<AdditionalQuestion[]>();
   readonly eventId = input.required<string>();
   readonly isHandset = toSignal(this.#isHandset$);
+  readonly translations = translations;
+
   readonly displayedColumns = toSignal(
     this.#isHandset$.pipe(
       map((isHandset) => this.getDisplayedColumns(isHandset)),
@@ -231,6 +275,28 @@ export class EventRecordsTableComponent {
     this.expandedElement = this.expandedElement === element ? null : element;
   }
 
+  searchRecord(term: string | Event): void {
+    if (typeof term !== 'string') {
+      return;
+    }
+
+    this.searchTerm = term.replace(/\s/g, '').toLowerCase();
+
+    this.resetTable();
+  }
+
+  handleSortChange(sortState: Sort) {
+    this.sortState = sortState;
+
+    if (this.sortState.active === 'fullName') {
+      this.sortState.active = 'searchTerm';
+    }
+
+    if (sortState.direction) {
+      this.resetTable();
+    }
+  }
+
   handlePageChange(
     { pageIndex, pageSize, previousPageIndex }: PageEvent,
     firstRecord: EventRecord,
@@ -251,6 +317,12 @@ export class EventRecordsTableComponent {
     }
   }
 
+  filterByRoleValue(role: RecordRole | null): void {
+    this.filters['role'] = role;
+
+    this.resetTable();
+  }
+
   filterByValidatedValue(validated: boolean | null): void {
     this.filters['validated'] = validated;
 
@@ -269,7 +341,7 @@ export class EventRecordsTableComponent {
       return ['fullName', 'validated'];
     }
 
-    return ['email', 'fullName', 'validated'];
+    return ['createdAt', 'email', 'fullName', 'role', 'validated'];
   }
 
   private loadFirstEventRecords(eventId: string): void {
@@ -291,6 +363,8 @@ export class EventRecordsTableComponent {
           eventId,
           lastRecord.id,
           this.pageSize,
+          this.sortState,
+          this.searchTerm,
           this.filters,
         )
         .pipe(map((listing) => this.handleLoadRecordListing(listing)));
@@ -300,13 +374,21 @@ export class EventRecordsTableComponent {
           eventId,
           firstRecord.id,
           this.pageSize,
+          this.sortState,
+          this.searchTerm,
           this.filters,
         )
         .pipe(map((listing) => this.handleLoadRecordListing(listing)));
     }
 
     return this.#eventRecordsService
-      .getFirstPageOfRecordsByEventId(eventId, this.pageSize, this.filters)
+      .getFirstPageOfRecordsByEventId(
+        eventId,
+        this.pageSize,
+        this.sortState,
+        this.searchTerm,
+        this.filters,
+      )
       .pipe(map((listing) => this.handleLoadRecordListing(listing)));
   }
 
