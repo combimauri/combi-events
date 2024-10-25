@@ -75,6 +75,14 @@ body {
   --mdc-snackbar-supporting-text-color: #ffffff;
 }
 
+.no-hint .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.dense-2 {
+  @include mat.all-component-densities(-2);
+}
+
 .page-title {
   align-items: center;
   display: flex !important;

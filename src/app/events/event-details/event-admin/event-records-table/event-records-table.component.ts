@@ -17,6 +17,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
@@ -28,12 +29,13 @@ import {
   PageEventRecords,
   RecordRole,
 } from '@core/models';
-import { EventRecordsService } from '@core/services';
+import { AuthService, EventRecordsService } from '@core/services';
 import { translations } from '@core/utils';
 import {
   RoleSelectorComponent,
   SearchBoxComponent,
   ValidatedSelectorComponent,
+  WhatsappSendFormComponent,
 } from '@shared/components';
 import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
 import { map, Observable, Subject, switchMap } from 'rxjs';
@@ -135,6 +137,9 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
               <dt>Número de Teléfono</dt>
               <dd>
                 {{ element.phoneNumber }}
+                <button mat-icon-button (click)="openWhatsAppDialog(element)">
+                  <mat-icon>sms</mat-icon>
+                </button>
               </dd>
 
               @for (
@@ -225,13 +230,26 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
       dt {
         font-weight: bold;
       }
+
+      dd {
+        align-items: center;
+        display: flex;
+        height: 40px;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRecordsTableComponent {
+  readonly #dialog = inject(MatDialog);
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #pageEventRecords$ = new Subject<PageEventRecords>();
+  readonly #user = toSignal(inject(AuthService).user$);
+
+  readonly #filters: Record<string, unknown> = {
+    role: null,
+    validated: null,
+  };
   readonly #isHandset$ = inject(BreakpointObserver)
     .observe(Breakpoints.Handset)
     .pipe(map((result) => result.matches));
@@ -242,12 +260,10 @@ export class EventRecordsTableComponent {
   searchTerm = '';
   sortState: Sort = { active: 'createdAt', direction: 'desc' };
   expandedElement: EventRecord | null = null;
-  filters: Record<string, unknown> = {
-    validated: null,
-  };
 
   readonly additionalQuestions = input.required<AdditionalQuestion[]>();
   readonly eventId = input.required<string>();
+  readonly eventName = input.required<string>();
   readonly isHandset = toSignal(this.#isHandset$);
   readonly translations = translations;
 
@@ -318,15 +334,29 @@ export class EventRecordsTableComponent {
   }
 
   filterByRoleValue(role: RecordRole | null): void {
-    this.filters['role'] = role;
+    this.#filters['role'] = role;
 
     this.resetTable();
   }
 
   filterByValidatedValue(validated: boolean | null): void {
-    this.filters['validated'] = validated;
+    this.#filters['validated'] = validated;
 
     this.resetTable();
+  }
+
+  openWhatsAppDialog({ fullName, phoneNumber, validated }: EventRecord): void {
+    const countryCode = '591'; // Hardcoded country code for Bolivia
+    phoneNumber = `${countryCode}${phoneNumber.replace(/\s/g, '')}`;
+    let message = `¡Hola ${fullName}! Espero te encuentres bien. Mi nombre es ${this.#user()?.displayName}.`;
+
+    if (!validated) {
+      message = `${message} Te escribo para informarte que tu inscripción al evento ${this.eventName()} aún no ha sido completada, ya que no hemos podido validar tu pago. Para asegurar tu lugar, te pedimos que completes el pago lo antes posible, ya que los cupos son limitados y se están agotando rápidamente. Si tienes alguna duda o necesitas más información, no dudes en contactarnos. ¡Esperamos contar con tu presencia en este gran evento!`;
+    }
+
+    this.#dialog.open(WhatsappSendFormComponent, {
+      data: { phoneNumber, message },
+    });
   }
 
   private resetTable(): void {
@@ -365,7 +395,7 @@ export class EventRecordsTableComponent {
           this.pageSize,
           this.sortState,
           this.searchTerm,
-          this.filters,
+          this.#filters,
         )
         .pipe(map((listing) => this.handleLoadRecordListing(listing)));
     } else if (firstRecord) {
@@ -376,7 +406,7 @@ export class EventRecordsTableComponent {
           this.pageSize,
           this.sortState,
           this.searchTerm,
-          this.filters,
+          this.#filters,
         )
         .pipe(map((listing) => this.handleLoadRecordListing(listing)));
     }
@@ -387,7 +417,7 @@ export class EventRecordsTableComponent {
         this.pageSize,
         this.sortState,
         this.searchTerm,
-        this.filters,
+        this.#filters,
       )
       .pipe(map((listing) => this.handleLoadRecordListing(listing)));
   }
