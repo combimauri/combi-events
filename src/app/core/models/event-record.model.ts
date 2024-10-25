@@ -12,6 +12,7 @@ export interface PartialEventRecord extends BillingRecord {
   eventId: string;
   orderId: string;
   paymentId: string;
+  searchTerm: string;
 }
 
 export interface EventRecord extends PartialEventRecord {

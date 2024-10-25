@@ -9,6 +9,7 @@ export interface PartialEventRecord {
   orderId: string;
   paymentId: string;
   phoneNumber: string;
+  searchTerm: string;
   validated: boolean;
 }
 

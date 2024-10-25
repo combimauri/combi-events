@@ -129,6 +129,7 @@ export const createOrder = onCall(
       orderId,
       paymentId,
       phoneNumber,
+      searchTerm: fullName.replace(/\s/g, '').toLowerCase(),
       validated: false,
     };
 
