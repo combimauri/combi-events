@@ -60,7 +60,7 @@ export class EventRecordNotesComponent {
   }
 
   private setNotes(notes?: string): void {
-    if (!notes) {
+    if (notes === null || notes === undefined) {
       return;
     }
 
