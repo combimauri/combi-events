@@ -39,12 +39,14 @@ import {
 } from '@shared/components';
 import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
 import { map, Observable, Subject, switchMap } from 'rxjs';
+import { EventRecordNotesComponent } from './event-record-notes/event-record-notes.component';
 
 @Component({
   selector: 'combi-event-records-table',
   standalone: true,
   imports: [
     DatePipe,
+    EventRecordNotesComponent,
     KeyValuePipe,
     MatButtonModule,
     MatIconModule,
@@ -152,6 +154,10 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
                 </dd>
               }
             </dl>
+            <combi-event-record-notes
+              [notes]="element.notes"
+              (notesChange)="saveNotes(element, $event)"
+            />
           </div>
         </td>
       </ng-container>
@@ -226,15 +232,25 @@ import { map, Observable, Subject, switchMap } from 'rxjs';
     .element-detail {
       overflow: hidden;
       display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
 
-      dt {
-        font-weight: bold;
+      dl {
+        flex-grow: 1;
+
+        dt {
+          font-weight: bold;
+        }
+
+        dd {
+          align-items: center;
+          display: flex;
+          height: 40px;
+        }
       }
 
-      dd {
-        align-items: center;
-        display: flex;
-        height: 40px;
+      combi-event-record-notes {
+        flex-grow: 1;
       }
     }
   `,
@@ -244,6 +260,10 @@ export class EventRecordsTableComponent {
   readonly #dialog = inject(MatDialog);
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #pageEventRecords$ = new Subject<PageEventRecords>();
+  readonly #updateNotes$ = new Subject<{
+    record: EventRecord;
+    notes: string;
+  }>();
   readonly #user = toSignal(inject(AuthService).user$);
 
   readonly #filters: Record<string, unknown> = {
@@ -281,6 +301,13 @@ export class EventRecordsTableComponent {
       switchMap((pageRecords) => this.loadRecords(pageRecords)),
     ),
     { initialValue: [] },
+  );
+  readonly updateNotes = toSignal(
+    this.#updateNotes$.pipe(
+      switchMap(({ record, notes }) =>
+        this.#eventRecordsService.updateRecordNotes(record.id, notes),
+      ),
+    ),
   );
 
   constructor() {
@@ -357,6 +384,14 @@ export class EventRecordsTableComponent {
     this.#dialog.open(WhatsappSendFormComponent, {
       data: { phoneNumber, message },
     });
+  }
+
+  saveNotes(record: EventRecord, notes: string): void {
+    if (record.notes === notes) {
+      return;
+    }
+
+    this.#updateNotes$.next({ record, notes });
   }
 
   private resetTable(): void {
