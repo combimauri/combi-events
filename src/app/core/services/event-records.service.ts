@@ -14,6 +14,7 @@ import {
   orderBy,
   Query,
   query,
+  setDoc,
   startAfter,
   where,
 } from '@angular/fire/firestore';
@@ -197,6 +198,15 @@ export class EventRecordsService {
     return from(response).pipe(
       tap(this.#loadEffectObserver),
       map((result) => result.data as BillingData),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  updateRecordNotes(id: string, notes: string): Observable<void> {
+    const recordRef = doc(this.#firestore, this.#collectionName, id);
+
+    return from(setDoc(recordRef, { notes }, { merge: true })).pipe(
+      tap(this.#loadEffectObserver),
       catchError((error) => handleError(error, this.#logger)),
     );
   }

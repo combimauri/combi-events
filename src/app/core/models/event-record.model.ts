@@ -11,6 +11,7 @@ export interface BillingRecord {
 
 export interface PartialEventRecord extends BillingRecord {
   eventId: string;
+  notes?: string;
   orderId: string;
   paymentId: string;
   role: RecordRole;
