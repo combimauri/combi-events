@@ -12,10 +12,10 @@ export class PaymentsService {
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
 
-  validatePayment(orderId: string): Observable<unknown> {
+  validateEventPayment(orderId: string): Observable<unknown> {
     const response = httpsCallable(
       this.#functions,
-      'validatePayment',
+      'validateEventPayment',
     )({ orderId });
 
     return from(response).pipe(

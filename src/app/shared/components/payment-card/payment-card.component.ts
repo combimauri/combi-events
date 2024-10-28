@@ -9,11 +9,11 @@ import { LoadingState } from '@core/states';
 import { SanitizeUrlPipe } from '@shared/pipes';
 
 @Component({
-  selector: 'combi-event-registration-payment',
+  selector: 'combi-payment-card',
   standalone: true,
   imports: [MatProgressBarModule, SanitizeUrlPipe],
   template: `
-    <div class="event-registration-payment">
+    <div class="payment-card">
       @if (!loading() && !iFrameUrl()) {
         @defer (on timer(2s)) {
           <p>
@@ -29,7 +29,7 @@ import { SanitizeUrlPipe } from '@shared/pipes';
 
         @if (iFrameUrl(); as iFrameUrl) {
           <iframe
-            class="event-registration-payment__iframe"
+            class="payment-card__iframe"
             [src]="iFrameUrl | sanitizeUrl"
           ></iframe>
         }
@@ -37,7 +37,7 @@ import { SanitizeUrlPipe } from '@shared/pipes';
     </div>
   `,
   styles: `
-    .event-registration-payment {
+    .payment-card {
       background-color: #fef9fc;
       border-radius: 0.75rem;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -51,7 +51,7 @@ import { SanitizeUrlPipe } from '@shared/pipes';
         width: 100%;
       }
 
-      .event-registration-payment__iframe {
+      .payment-card__iframe {
         border: 0;
         border-radius: 0.75rem;
         height: 100%;
@@ -63,7 +63,7 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRegistrationPaymentComponent {
+export class PaymentCardComponent {
   readonly iFrameUrl = input<string>();
   readonly loading = inject(LoadingState).loading;
 }

@@ -8,8 +8,9 @@ These are the necessary secrets:
 
 - WOLIPAY_BASE_PATH
 - WOLIPAY_EMAIL
-- WOLIPAY_NOTIFY_URL
+- WOLIPAY_EVENT_NOTIFY_URL
 - WOLIPAY_PASSWORD
+- WOLIPAY_PRODUCT_NOTIFY_URL
 
 ## Add environment variables for Vercel deployment
 

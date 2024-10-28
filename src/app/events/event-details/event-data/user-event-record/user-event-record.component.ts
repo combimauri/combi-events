@@ -115,7 +115,7 @@ export class UserEventRecordComponent {
     this.validatePayment$.pipe(
       tap(() => this.validationLoadingState.startLoading()),
       switchMap(({ id, orderId }) =>
-        this.#paymentsService.validatePayment(orderId).pipe(map(() => id)),
+        this.#paymentsService.validateEventPayment(orderId).pipe(map(() => id)),
       ),
       switchMap((recordId) =>
         this.#eventRecordsService.getRecordById(recordId),

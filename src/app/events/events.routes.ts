@@ -4,18 +4,19 @@ import {
   authGuard,
   eventGuard,
   exitRegistrationGuard,
+  marketplaceGuard,
   platformGuard,
   registrationGuard,
 } from '@core/guards';
 import { eventRecordResolver } from '@core/resolvers';
 
-export const routes: Routes = [
+const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./events.component'),
   },
   {
-    path: ':id',
+    path: ':eventId',
     canActivate: [platformGuard, eventGuard],
     resolve: {
       eventRecord: eventRecordResolver,
@@ -42,6 +43,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./event-details/event-admin/event-admin.component'),
       },
+      {
+        path: 'marketplace',
+        canActivate: [authGuard, marketplaceGuard],
+        loadChildren: () =>
+          import('./event-details/event-marketplace/event-marketplace.routes'),
+      },
     ],
   },
 ];
+
+export default routes;

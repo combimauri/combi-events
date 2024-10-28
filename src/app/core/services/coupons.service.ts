@@ -37,20 +37,43 @@ export class CouponsService {
     return (collectionData(couponsQuery) as Observable<Coupon[]>).pipe(
       tap(this.#loadEffectObserver),
       take(1),
-      map((coupons) => {
-        const coupon = coupons[0];
-
-        if (!coupon) {
-          throw new Error('No se encontró el cupón.');
-        }
-
-        if (coupon.count < coupon.limit) {
-          return coupon;
-        }
-
-        throw new Error('Se alcanzó el límite de usos del cupón.');
-      }),
+      map((coupons) => this.mapCouponData(coupons)),
       catchError((error) => handleError(error, this.#logger)),
     );
+  }
+
+  getCouponByIdAndProductId(
+    id: string,
+    productId: string,
+  ): Observable<Coupon | undefined> {
+    const couponsCollection = collection(this.#firestore, this.#collectionName);
+    const couponsQuery = query(
+      couponsCollection,
+      where('id', '==', id),
+      where('productId', '==', productId),
+      where('isActive', '==', true),
+      limit(1),
+    );
+
+    return (collectionData(couponsQuery) as Observable<Coupon[]>).pipe(
+      tap(this.#loadEffectObserver),
+      take(1),
+      map((coupons) => this.mapCouponData(coupons)),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  private mapCouponData(coupons: Coupon[]): Coupon {
+    const coupon = coupons[0];
+
+    if (!coupon) {
+      throw new Error('No se encontró el cupón.');
+    }
+
+    if (coupon.count < coupon.limit) {
+      return coupon;
+    }
+
+    throw new Error('Se alcanzó el límite de usos del cupón.');
   }
 }

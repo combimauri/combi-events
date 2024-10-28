@@ -6,7 +6,7 @@ import { EventState } from '@core/states';
 import { map, tap } from 'rxjs';
 
 export const eventGuard: CanActivateFn = (route) => {
-  const eventId = route.params['id'];
+  const eventId = route.params['eventId'];
   const eventsService = inject(EventsService);
   const eventState = inject(EventState);
   const router = inject(Router);
