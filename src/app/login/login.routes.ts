@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [
+const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./login.component'),
@@ -10,3 +10,5 @@ export const routes: Routes = [
     loadComponent: () => import('./verify-link/verify-link.component'),
   },
 ];
+
+export default routes;

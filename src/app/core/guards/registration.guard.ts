@@ -19,6 +19,7 @@ export const registrationGuard: CanActivateFn = () => {
   const eventRecord = eventRecordState.eventRecord();
 
   if (eventRecord) {
+    // The event record was set in the event-record resolver, no need to fetch it again
     return validateExistingRecord(eventRecord, router);
   }
 

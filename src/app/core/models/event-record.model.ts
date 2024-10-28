@@ -1,13 +1,6 @@
 import { Timestamp } from '@angular/fire/firestore';
+import { BillingRecord } from './billing-record.model';
 import { RecordRole } from './record-role.enum';
-
-export interface BillingRecord {
-  additionalAnswers: Record<string, string>;
-  couponId?: string;
-  email: string;
-  fullName: string;
-  phoneNumber: string;
-}
 
 export interface PartialEventRecord extends BillingRecord {
   eventId: string;

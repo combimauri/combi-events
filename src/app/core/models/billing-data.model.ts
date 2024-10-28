@@ -1,5 +1,5 @@
 export interface BillingData {
-  eventRecordId: string;
+  recordId: string;
   orderId: string;
   paymentId: string;
   url: string;

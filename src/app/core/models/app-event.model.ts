@@ -6,17 +6,17 @@ export interface AppEvent {
   admins: string[];
   bannerImage: string;
   capacity: number;
+  createdAt: Timestamp;
   date: { end: Timestamp; start: Timestamp };
   description: string;
   id: string;
   image: string;
   location: { name: string; geolocation: GeoPoint };
   name: string;
-  price: Price;
-  shortDescription: string;
-  registrationAdditionalQuestions: AdditionalQuestion[];
   openRegistration: boolean;
   owner: string;
-  createdAt: Timestamp;
+  price: Price;
+  registrationAdditionalQuestions: AdditionalQuestion[];
+  shortDescription: string;
   updatedAt: Timestamp;
 }

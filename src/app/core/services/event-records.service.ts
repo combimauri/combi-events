@@ -192,7 +192,7 @@ export class EventRecordsService {
   ): Observable<BillingData | undefined> {
     const response = httpsCallable(
       this.#functions,
-      'createOrder',
+      'createEventOrder',
     )({ eventId, fullName, phoneNumber, additionalAnswers, couponId });
 
     return from(response).pipe(

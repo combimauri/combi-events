@@ -9,7 +9,6 @@ import {
   OnInit,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BillingRecord, RegistrationStep } from '@core/models';
 import { EventRecordsService, LoggerService } from '@core/services';
@@ -18,21 +17,19 @@ import {
   EventState,
   RegistrationStepState,
 } from '@core/states';
-import { BackButtonComponent } from '@shared/components';
+import { PageTitleComponent, PaymentCardComponent } from '@shared/components';
 import { filter, Subject, switchMap, tap } from 'rxjs';
 import { EventRegistrationDetailsComponent } from './event-registration-details/event-registration-details.component';
 import { EventRegistrationFormComponent } from './event-registration-form/event-registration-form.component';
-import { EventRegistrationPaymentComponent } from './event-registration-payment/event-registration-payment.component';
 
 @Component({
   selector: 'combi-event-registration',
   standalone: true,
   imports: [
-    BackButtonComponent,
     EventRegistrationDetailsComponent,
     EventRegistrationFormComponent,
-    EventRegistrationPaymentComponent,
-    MatCardModule,
+    PageTitleComponent,
+    PaymentCardComponent,
   ],
   template: `
     <div
@@ -42,12 +39,7 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
         )
       "
     >
-      <mat-card appearance="outlined">
-        <mat-card-content class="page-title">
-          <combi-back-button />
-          <h4>Registrarse a: {{ title() }}</h4>
-        </mat-card-content>
-      </mat-card>
+      <combi-page-title> Registrarse a: {{ title() }} </combi-page-title>
     </div>
 
     @switch (registrationStep()) {
@@ -77,7 +69,7 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
         </div>
       }
       @case (RegistrationStep.payment) {
-        <combi-event-registration-payment [iFrameUrl]="iFrameUrl()" />
+        <combi-payment-card [iFrameUrl]="iFrameUrl()" />
       }
     }
   `,
@@ -100,6 +92,8 @@ import { EventRegistrationPaymentComponent } from './event-registration-payment/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class EventRegistrationComponent implements OnInit, OnDestroy {
+  billingRecord?: BillingRecord;
+
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #eventRecordState = inject(EventRecordState);
   readonly #eventRecord = this.#eventRecordState.eventRecord;
@@ -124,15 +118,13 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     () => !!this.realtimeEventRecord()?.validated,
   );
 
-  billingRecord?: BillingRecord;
-
   readonly RegistrationStep = RegistrationStep;
 
+  readonly event = inject(EventState).event;
   readonly iFrameUrl = computed(() => this.#billingData()?.url);
   readonly registrationStep = this.#registrationStepState.registrationStep;
   readonly title = computed(() => this.event()?.name);
 
-  readonly event = inject(EventState).event;
   readonly realtimeEventRecord = toSignal(
     this.#getEventRecord$.pipe(
       switchMap((id) => this.#eventRecordsService.getRealtimeRecordById(id)),
@@ -144,7 +136,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       const eventRecordId =
-        this.#eventRecord()?.id || this.#billingData()?.eventRecordId;
+        this.#eventRecord()?.id || this.#billingData()?.recordId;
 
       if (eventRecordId && !this.realtimeEventRecord()) {
         this.#getEventRecord$.next(eventRecordId);

@@ -5,12 +5,12 @@ export const routes: Routes = [
   {
     path: 'login',
     canActivate: [platformGuard, loginGuard],
-    loadChildren: () => import('./login/login.routes').then((m) => m.routes),
+    loadChildren: () => import('./login/login.routes'),
   },
   {
     path: '',
     canActivate: [platformGuard],
-    loadChildren: () => import('./events/events.routes').then((m) => m.routes),
+    loadChildren: () => import('./events/events.routes'),
   },
   {
     path: '**',

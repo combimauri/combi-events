@@ -2,19 +2,14 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { AppEvent } from '@core/models';
-import { BackButtonComponent } from '@shared/components';
+import { PageTitleComponent } from '@shared/components';
 
 @Component({
   selector: 'combi-event-main-info',
   standalone: true,
-  imports: [BackButtonComponent, DatePipe, MatCardModule],
+  imports: [DatePipe, MatCardModule, PageTitleComponent],
   template: `
-    <mat-card appearance="outlined">
-      <mat-card-content class="page-title">
-        <combi-back-button />
-        <h4>{{ event().name }}</h4>
-      </mat-card-content>
-    </mat-card>
+    <combi-page-title> {{ event().name }} </combi-page-title>
 
     <mat-card appearance="outlined">
       <mat-card-content>

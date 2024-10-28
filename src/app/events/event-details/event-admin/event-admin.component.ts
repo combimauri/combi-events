@@ -1,21 +1,16 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { BackButtonComponent } from '@shared/components';
 import { EventState } from '@core/states';
+import { PageTitleComponent } from '@shared/components';
 import { EventRecordsTableComponent } from './event-records-table/event-records-table.component';
 
 @Component({
   selector: 'combi-event-admin',
   standalone: true,
-  imports: [BackButtonComponent, EventRecordsTableComponent, MatCardModule],
+  imports: [EventRecordsTableComponent, MatCardModule, PageTitleComponent],
   template: `
     @if (event(); as event) {
-      <mat-card appearance="outlined">
-        <mat-card-content class="page-title">
-          <combi-back-button />
-          <h4>Gestionar {{ event.name }}</h4>
-        </mat-card-content>
-      </mat-card>
+      <combi-page-title> Gestionar {{ event.name }} </combi-page-title>
 
       <mat-card appearance="outlined">
         <mat-card-content>

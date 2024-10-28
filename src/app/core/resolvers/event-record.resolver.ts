@@ -10,6 +10,7 @@ export const eventRecordResolver: ResolveFn<EventRecord | undefined> = () => {
   const eventRecord = eventRecordState.eventRecord();
 
   if (eventRecord) {
+    // The event record was set in the registration guard, no need to fetch it again
     return eventRecord;
   }
 

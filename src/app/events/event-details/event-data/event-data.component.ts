@@ -9,6 +9,7 @@ import { AuthService } from '@core/services';
 import { EventRecordState, EventState, LoadingState } from '@core/states';
 import { EventAdminButtonComponent } from './event-admin-button/event-admin-button.component';
 import { EventClosedCardComponent } from './event-closed-card/event-closed-card.component';
+import { EventFeaturedProductsComponent } from './event-featured-products/event-featured-products.component';
 import { EventLocationComponent } from './event-location/event-location.component';
 import { EventLoginButtonComponent } from './event-login-button/event-login-button.component';
 import { EventMainInfoComponent } from './event-main-info/event-main-info.component';
@@ -31,6 +32,7 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
     MatIconModule,
     RouterLink,
     UserEventRecordComponent,
+    EventFeaturedProductsComponent,
   ],
   template: `
     @if (event(); as event) {
@@ -40,18 +42,20 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
         @if (user.email === event.owner) {
           <combi-event-admin-button />
         } @else {
+          @if (event.admins.includes(user.email!)) {
+            <combi-event-admin-button />
+          }
+
           @if (event.openRegistration) {
             @if (eventRecord(); as record) {
               <combi-user-event-record [eventRecord]="record" />
+
+              <combi-featured-products [event]="event" />
             } @else if (!loading()) {
               <combi-event-registration-button />
             }
           } @else {
             <combi-event-closed-card />
-          }
-
-          @if (event.admins.includes(user.email!)) {
-            <combi-event-admin-button />
           }
         }
       } @else {
