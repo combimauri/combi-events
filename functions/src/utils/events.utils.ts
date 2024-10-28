@@ -9,8 +9,8 @@ export async function getEventById(id: string): Promise<AppEvent | null> {
     const eventSnapshot = await eventDoc.get();
 
     return eventSnapshot.exists ? (eventSnapshot.data() as AppEvent) : null;
-  } catch {
-    logger.error('Failed to get event.');
+  } catch (error) {
+    logger.error('Failed to get event.', error);
     return null;
   }
 }

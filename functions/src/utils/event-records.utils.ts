@@ -16,8 +16,8 @@ export async function getEventRecordByOrderId(
     return !querySnapshot.empty
       ? (querySnapshot.docs[0].data() as EventRecord)
       : null;
-  } catch {
-    logger.info('Failed to get existing event record.');
+  } catch (error) {
+    logger.info('Failed to get existing event record.', error);
     return null;
   }
 }
@@ -38,8 +38,8 @@ export async function getFirstEventRecord(
     return !querySnapshot.empty
       ? (querySnapshot.docs[0].data() as EventRecord)
       : null;
-  } catch {
-    logger.info('Failed to get existing event record.');
+  } catch (error) {
+    logger.info('Failed to get existing event record.', error);
     return null;
   }
 }
@@ -82,8 +82,8 @@ async function upsertEventRecord(
     const record = await recordRef.get();
 
     return record.exists ? (record.data() as EventRecord) : null;
-  } catch {
-    logger.error('Failed to add event record.');
+  } catch (error) {
+    logger.error('Failed to add event record.', error);
     return null;
   }
 }

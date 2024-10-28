@@ -12,8 +12,8 @@ export async function upsertPayment(payment: Payment) {
     const newPayment = await paymentRef.get();
 
     return newPayment.exists ? (newPayment.data() as Payment) : null;
-  } catch {
-    logger.error('Failed to register payment.');
+  } catch (error) {
+    logger.error('Failed to register payment.', error);
     return false;
   }
 }

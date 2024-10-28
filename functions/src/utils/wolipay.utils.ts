@@ -88,7 +88,7 @@ export async function getWolipayIFrame(
       paymentId,
     };
   } catch (error) {
-    logger.error('Failed to get Billing Data.');
+    logger.error('Failed to get Billing Data.', error);
     return null;
   }
 }
@@ -124,8 +124,8 @@ export async function getPaymentById(
     const data: WolipayPayment = await response.json();
 
     return data.body.order;
-  } catch {
-    logger.error('Failed to get payment.');
+  } catch (error) {
+    logger.error('Failed to get payment.', error);
     return null;
   }
 }
@@ -147,8 +147,8 @@ async function generateToken(
     const data: WolipayToken = await response.json();
 
     return data.body.token;
-  } catch {
-    logger.error('Failed to generate token.');
+  } catch (error) {
+    logger.error('Failed to generate token.', error);
     return null;
   }
 }
