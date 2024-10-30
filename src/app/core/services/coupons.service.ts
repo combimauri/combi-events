@@ -25,6 +25,7 @@ export class CouponsService {
     id: string,
     eventId: string,
   ): Observable<Coupon | undefined> {
+    console.log('couponss');
     const couponsCollection = collection(this.#firestore, this.#collectionName);
     const couponsQuery = query(
       couponsCollection,
@@ -46,6 +47,7 @@ export class CouponsService {
     id: string,
     productId: string,
   ): Observable<Coupon | undefined> {
+    console.log('coupons');
     const couponsCollection = collection(this.#firestore, this.#collectionName);
     const couponsQuery = query(
       couponsCollection,

@@ -5,30 +5,21 @@ import {
   inject,
   input,
   model,
-  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Coupon, Price } from '@core/models';
-import { CouponsService, LoggerService } from '@core/services';
 import { Subject, switchMap, tap } from 'rxjs';
+import { CouponFormComponent } from './coupon-form/coupon-form.component';
 
 @Component({
   selector: 'combi-price-details',
   standalone: true,
-  imports: [
-    FormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-  ],
+  imports: [MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule],
   template: `
     @if (price(); as price) {
       <mat-card appearance="outlined">
@@ -71,41 +62,12 @@ import { Subject, switchMap, tap } from 'rxjs';
           </p>
         </mat-card-content>
         <mat-card-actions>
-          @if (!showCouponInput()) {
-            @if (appliedCoupon()) {
-              <button mat-button (click)="removeCoupon()">Quitar Cupón</button>
-            } @else {
-              <button mat-button (click)="toggleCouponInputVisibility()">
-                Agregar Cupón
-              </button>
-            }
+          @if (appliedCoupon()) {
+            <button mat-button (click)="removeCoupon()">Quitar Cupón</button>
           } @else {
-            <form #couponForm="ngForm" (submit)="triggerCouponSearch()">
-              <mat-form-field appearance="outline">
-                <mat-label>Agregar Cupón</mat-label>
-                <input
-                  matInput
-                  id="couponCode"
-                  name="couponCode"
-                  type="text"
-                  [(ngModel)]="couponCode"
-                />
-                <button mat-icon-button matSuffix type="submit">
-                  <mat-icon fontIcon="redeem" />
-                </button>
-              </mat-form-field>
-              <button mat-button class="action-button" type="submit">
-                Agregar
-              </button>
-              <button
-                mat-button
-                class="action-button"
-                type="button"
-                (click)="toggleCouponInputVisibility()"
-              >
-                Cancelar
-              </button>
-            </form>
+            <button mat-button (click)="openCouponDialog$.next()">
+              Agregar Cupón
+            </button>
           }
         </mat-card-actions>
       </mat-card>
@@ -160,31 +122,13 @@ import { Subject, switchMap, tap } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PriceDetailsComponent {
-  couponCode = '';
+  readonly appliedCoupon = model<Coupon | null>(null);
+  readonly dialog = inject(MatDialog);
+  readonly eventId = input.required<string>();
+  readonly openCouponDialog$ = new Subject<void>();
+  readonly price = input.required<Price>();
+  readonly productId = input<string>();
 
-  readonly #couponService = inject(CouponsService);
-  readonly #getCoupon$ = new Subject<{
-    couponId: string;
-    eventId: string;
-    productId?: string;
-  }>();
-  readonly #logger = inject(LoggerService);
-
-  readonly coupon = toSignal(
-    this.#getCoupon$.pipe(
-      switchMap(({ couponId, eventId, productId }) => {
-        if (!productId) {
-          return this.#couponService.getCouponByIdAndEventId(couponId, eventId);
-        }
-
-        return this.#couponService.getCouponByIdAndProductId(
-          couponId,
-          productId,
-        );
-      }),
-      tap((coupon) => this.handleCouponResponse(coupon)),
-    ),
-  );
   readonly amountToPay = computed(() => {
     const total =
       (this.price()?.amount || 0) -
@@ -193,42 +137,29 @@ export class PriceDetailsComponent {
 
     return total > 0 ? total : 0;
   });
-
-  readonly appliedCoupon = model<Coupon | null>(null);
-  readonly eventId = input.required<string>();
-  readonly price = input.required<Price>();
-  readonly productId = input<string>();
-  readonly showCouponInput = signal<boolean>(false);
-
-  toggleCouponInputVisibility(): void {
-    this.showCouponInput.update((show) => !show);
-  }
+  readonly afterDialogClosed = toSignal(
+    this.openCouponDialog$.pipe(
+      switchMap(() =>
+        this.dialog
+          .open(CouponFormComponent, {
+            data: {
+              eventId: this.eventId(),
+              productId: this.productId(),
+              price: this.price(),
+            },
+            width: '400px',
+          })
+          .afterClosed(),
+      ),
+      tap(({ coupon }) => {
+        if (coupon) {
+          this.appliedCoupon.set(coupon);
+        }
+      }),
+    ),
+  );
 
   removeCoupon(): void {
     this.appliedCoupon.set(null);
-  }
-
-  triggerCouponSearch(): void {
-    const couponId = this.couponCode.trim();
-    const eventId = this.eventId();
-    const productId = this.productId();
-
-    if (!couponId) {
-      return;
-    }
-
-    this.#getCoupon$.next({ couponId, eventId, productId });
-  }
-
-  private handleCouponResponse(coupon: Coupon | undefined): void {
-    if (!coupon) {
-      return;
-    }
-
-    this.couponCode = '';
-
-    this.appliedCoupon.set(coupon);
-    this.toggleCouponInputVisibility();
-    this.#logger.handleSuccess('Cupón válido');
   }
 }

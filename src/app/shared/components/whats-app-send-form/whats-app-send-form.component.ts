@@ -73,6 +73,7 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class WhatsappSendFormComponent {
   readonly #platformId = inject(PLATFORM_ID);
+
   readonly data: { phoneNumber: string; message: string } =
     inject(MAT_DIALOG_DATA);
   readonly waForm = viewChild.required(NgForm);
@@ -84,10 +85,10 @@ export class WhatsappSendFormComponent {
 
     const { phoneNumber, message } = this.waForm().value;
 
-    const whatsappLink = `https://api.whatsapp.com/send?phone=${
+    const whatsAppLink = `https://api.whatsapp.com/send?phone=${
       phoneNumber
     }&text=${encodeURI(message)}`;
 
-    window.open(whatsappLink, '_blank');
+    window.open(whatsAppLink, '_blank');
   }
 }
