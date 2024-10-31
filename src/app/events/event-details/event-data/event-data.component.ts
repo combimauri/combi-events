@@ -46,16 +46,16 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
             <combi-event-admin-button />
           }
 
-          @if (event.openRegistration) {
-            @if (eventRecord(); as record) {
-              <combi-user-event-record [eventRecord]="record" />
+          @if (eventRecord(); as record) {
+            <combi-user-event-record [eventRecord]="record" />
 
-              <combi-featured-products [event]="event" />
-            } @else if (!loading()) {
-              <combi-event-registration-button />
-            }
+            <combi-featured-products [event]="event" />
           } @else {
-            <combi-event-closed-card />
+            @if (event.openRegistration) {
+              <combi-event-registration-button />
+            } @else {
+              <combi-event-closed-card />
+            }
           }
         }
       } @else {
