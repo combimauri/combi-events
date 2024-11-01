@@ -8,6 +8,11 @@ import { switchMap, map } from 'rxjs';
 export const marketplaceGuard: CanActivateFn = (route, state) => {
   const event = inject(EventState).event()!;
   const router = inject(Router);
+
+  if (!event.openMarketplace) {
+    return router.createUrlTree([event.id]);
+  }
+
   const eventRecordState = inject(EventRecordState);
   const eventRecordsService = inject(EventRecordsService);
   const user$ = inject(AuthService).user$;

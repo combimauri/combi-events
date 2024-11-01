@@ -39,6 +39,7 @@ import { Autoplay, Pagination } from 'swiper/modules';
                 <div class="swiper-slide">
                   <combi-product-card
                     [eventId]="event.id"
+                    [openMarketplace]="event.openMarketplace"
                     [product]="product"
                   />
                 </div>
