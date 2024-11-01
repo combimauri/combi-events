@@ -23,7 +23,11 @@ import { Subject, switchMap } from 'rxjs';
       <mat-card appearance="outlined">
         <mat-card-content class="event-marketplace__products">
           @for (product of products(); track product.id) {
-            <combi-product-card [eventId]="event.id" [product]="product" />
+            <combi-product-card
+              [eventId]="event.id"
+              [openMarketplace]="event.openMarketplace"
+              [product]="product"
+            />
           }
         </mat-card-content>
       </mat-card>

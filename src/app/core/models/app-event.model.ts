@@ -13,6 +13,7 @@ export interface AppEvent {
   image: string;
   location: { name: string; geolocation: GeoPoint };
   name: string;
+  openMarketplace: boolean;
   openRegistration: boolean;
   owner: string;
   price: Price;
