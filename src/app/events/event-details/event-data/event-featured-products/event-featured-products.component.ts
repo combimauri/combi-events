@@ -30,7 +30,9 @@ import { Autoplay, Pagination } from 'swiper/modules';
           <mat-card-title>
             <h4>Productos Destacados</h4>
           </mat-card-title>
-          <a mat-button routerLink="marketplace">Ver Todos los Productos</a>
+          @if (event.openMarketplace) {
+            <a mat-button routerLink="marketplace">Ver Todos los Productos</a>
+          }
         </mat-card-header>
         <mat-card-content>
           <div class="swiper">
