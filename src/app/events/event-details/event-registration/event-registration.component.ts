@@ -46,9 +46,7 @@ import { EventRegistrationFormComponent } from './event-registration-form/event-
       @case (RegistrationStep.form) {
         <div class="event-registration__small-width">
           <combi-event-registration-form
-            [additionalQuestions]="
-              event()?.registrationAdditionalQuestions || []
-            "
+            [additionalQuestions]="event()?.additionalQuestions || []"
             [billingRecord]="billingRecord"
             [price]="event()?.price"
             (submitForm)="setBillingRecord($event)"
@@ -58,9 +56,7 @@ import { EventRegistrationFormComponent } from './event-registration-form/event-
       @case (RegistrationStep.details) {
         <div class="event-registration__small-width">
           <combi-event-registration-details
-            [additionalQuestions]="
-              event()?.registrationAdditionalQuestions || []
-            "
+            [additionalQuestions]="event()?.additionalQuestions || []"
             [billingRecord]="billingRecord"
             [eventId]="event()?.id!"
             [price]="event()?.price"

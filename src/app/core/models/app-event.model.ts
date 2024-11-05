@@ -3,6 +3,7 @@ import { AdditionalQuestion } from './additional-question.model';
 import { Price } from './price.model';
 
 export interface AppEvent {
+  additionalQuestions: AdditionalQuestion[];
   admins: string[];
   bannerImage: string;
   capacity: number;
@@ -17,7 +18,6 @@ export interface AppEvent {
   openRegistration: boolean;
   owner: string;
   price: Price;
-  registrationAdditionalQuestions: AdditionalQuestion[];
   shortDescription: string;
   updatedAt: Timestamp;
 }
