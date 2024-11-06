@@ -32,12 +32,16 @@ import { map, Subject, switchMap, tap } from 'rxjs';
   ],
   template: `
     <mat-card appearance="outlined">
-      <mat-card-header>
+      <mat-card-header class="user-event-record__header">
         <mat-card-title>
           <h4>Registro</h4>
         </mat-card-title>
         @if (validationLoadingState.loading()) {
           <combi-title-spinner />
+        } @else if (eventRecord().validated || validatedRecordResult()) {
+          <a mat-button class="tertiary-button" routerLink="sessions">
+            Registro a Talleres
+          </a>
         }
       </mat-card-header>
       <mat-card-content>
@@ -81,17 +85,19 @@ import { map, Subject, switchMap, tap } from 'rxjs';
     </mat-card>
   `,
   styles: `
+    .user-event-record__header {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
     .user-event-record {
-      background-color: #388e3c;
+      background-color: #f0f0f0;
+      border-left: 4px solid #4caf50;
+      color: #4caf50;
       padding-bottom: 1rem;
 
       mat-card-header {
         align-items: center;
-      }
-
-      mat-card-title,
-      mat-card-subtitle {
-        color: #fff;
       }
 
       .user-event-record__avatar {

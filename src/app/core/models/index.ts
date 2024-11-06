@@ -10,3 +10,5 @@ export * from './product-record.model';
 export * from './product.model';
 export * from './record-role.enum';
 export * from './registration-step.enum';
+export * from './session-record.model';
+export * from './session.model';

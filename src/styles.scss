@@ -82,3 +82,7 @@ body {
 .dense-2 {
   @include mat.all-component-densities(-2);
 }
+
+.tertiary-button {
+  @include mat.button-color($combi-events-theme, $color-variant: tertiary);
+}

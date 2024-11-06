@@ -8,7 +8,7 @@ import {
   platformGuard,
   registrationGuard,
 } from '@core/guards';
-import { eventRecordResolver } from '@core/resolvers';
+import { eventRecordResolver, sessionRecordsResolver } from '@core/resolvers';
 
 const routes: Routes = [
   {
@@ -48,6 +48,15 @@ const routes: Routes = [
         canActivate: [authGuard, marketplaceGuard],
         loadChildren: () =>
           import('./event-details/event-marketplace/event-marketplace.routes'),
+      },
+      {
+        path: 'sessions',
+        canActivate: [authGuard],
+        resolve: {
+          sessionRecords: sessionRecordsResolver,
+        },
+        loadComponent: () =>
+          import('./event-details/event-sessions/event-sessions.component'),
       },
     ],
   },
