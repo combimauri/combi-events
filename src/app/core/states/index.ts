@@ -4,3 +4,4 @@ export * from './loading.state';
 export * from './product-record.state';
 export * from './product.state';
 export * from './registration-step.state';
+export * from './session-records.state';

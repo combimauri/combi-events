@@ -33,6 +33,21 @@ import {
   ProductRecord,
 } from './models/product-record.model';
 import { getProductById } from './utils/products.utils';
+import {
+  decrementSessionCount,
+  getSessionById,
+  incrementSessionCount,
+} from './utils/sessions.utils';
+import {
+  addSessionRecord,
+  deleteSessionRecord,
+  getFirstSessionRecord,
+  getUserSessionRecordsCount,
+} from './utils/session-records.utils';
+import {
+  PartialSessionRecord,
+  SessionRecord,
+} from './models/session-record.model';
 
 initializeApp();
 
@@ -43,6 +58,146 @@ const secrets = [
   'WOLIPAY_EVENT_NOTIFY_URL',
   'WOLIPAY_PRODUCT_NOTIFY_URL',
 ];
+
+export const createSessionOrder = onCall(
+  async (request: CallableRequest<any>) => {
+    const auth = getAuth(request);
+
+    const { sessionId } = request.data;
+
+    if (!sessionId) {
+      throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
+    }
+
+    const session = await getSessionById(sessionId);
+
+    if (!session) {
+      throw new HttpsError('internal', 'El taller no existe.');
+    }
+
+    const { count, limit, name: sessionName } = session;
+
+    if (count >= limit) {
+      throw new HttpsError('resource-exhausted', 'El taller está lleno.');
+    }
+
+    const email = auth.token.email!;
+    const eventRecord = await getFirstEventRecord(session.eventId, email);
+
+    if (!eventRecord || !eventRecord.validated) {
+      throw new HttpsError(
+        'internal',
+        'Primero debes estar registrado al evento.',
+      );
+    }
+
+    const existingRecord = await getFirstSessionRecord(sessionId, email);
+
+    if (existingRecord && (existingRecord as SessionRecord).id) {
+      throw new HttpsError(
+        'already-exists',
+        'Ya estás registrado en este taller.',
+      );
+    }
+
+    for (const collapsedSessionId of session.overlapsWith) {
+      const collapsedSessionRecord = await getFirstSessionRecord(
+        collapsedSessionId,
+        email,
+      );
+
+      if (
+        collapsedSessionRecord &&
+        (collapsedSessionRecord as SessionRecord).id
+      ) {
+        throw new HttpsError(
+          'already-exists',
+          'Ya tienes un taller agendado para este horario.',
+        );
+      }
+    }
+
+    const { eventId, fullName, phoneNumber, searchTerm } = eventRecord;
+
+    const event = await getEventById(eventId);
+
+    if (!event) {
+      throw new HttpsError('internal', 'El evento no existe.');
+    }
+
+    const maxSessionsPerUser = event.maxSessionsPerUser;
+    const userSessionRecordsCount = await getUserSessionRecordsCount(
+      eventId,
+      email,
+    );
+
+    if (userSessionRecordsCount === null) {
+      throw new HttpsError(
+        'internal',
+        'Error al obtener el conteo de registros a talleres del usuario.',
+      );
+    }
+
+    if (userSessionRecordsCount >= maxSessionsPerUser) {
+      throw new HttpsError(
+        'resource-exhausted',
+        'Ya te encuentras registrado en el máximo de talleres permitidos.',
+      );
+    }
+
+    const sessionRecord: PartialSessionRecord = {
+      email,
+      eventId,
+      fullName,
+      phoneNumber,
+      sessionId,
+      sessionName,
+      searchTerm,
+    };
+
+    const addedRecord = await addSessionRecord(sessionRecord);
+
+    if (!addedRecord) {
+      throw new HttpsError('internal', 'Error al crear la orden.');
+    }
+
+    await incrementSessionCount(sessionId);
+
+    return addedRecord;
+  },
+);
+
+export const deleteSessionOrder = onCall(
+  async (request: CallableRequest<any>) => {
+    const auth = getAuth(request);
+
+    const { sessionId } = request.data;
+
+    if (!sessionId) {
+      throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
+    }
+
+    const email = auth.token.email!;
+    const existingRecord = await getFirstSessionRecord(sessionId, email);
+
+    if (!existingRecord || !(existingRecord as SessionRecord).id) {
+      throw new HttpsError(
+        'not-found',
+        'No te encuentras registrado en este taller.',
+      );
+    }
+
+    const deleteResult = await deleteSessionRecord(sessionId, email);
+
+    if (!deleteResult) {
+      throw new HttpsError('internal', 'Error al eliminar el registro.');
+    }
+
+    await decrementSessionCount(sessionId);
+
+    return existingRecord;
+  },
+);
 
 export const createEventOrder = onCall(
   { secrets },
@@ -59,7 +214,7 @@ export const createEventOrder = onCall(
     const event = await getEventById(eventId);
 
     if (!event) {
-      throw new HttpsError('internal', 'Event does not exist.');
+      throw new HttpsError('internal', 'El evento no existe.');
     }
 
     const email = auth.token.email!;
@@ -86,7 +241,10 @@ export const createEventOrder = onCall(
     );
 
     if (!billingData) {
-      throw new HttpsError('internal', 'Failed to generate billing data.');
+      throw new HttpsError(
+        'internal',
+        'Error al generar los datos de facturación.',
+      );
     }
 
     const { orderId, paymentId, url } = billingData;
@@ -131,7 +289,7 @@ export const createEventOrder = onCall(
       : await addEventRecord(eventRecord);
 
     if (!upsertedRecord) {
-      throw new HttpsError('internal', 'Failed to create order.');
+      throw new HttpsError('internal', 'Error al crear la orden.');
     }
 
     const { id: recordId, couponId: usedCouponId, validated } = upsertedRecord;
@@ -170,7 +328,7 @@ export const createProductOrder = onCall(
     const product = await getProductById(productId);
 
     if (!product) {
-      throw new HttpsError('internal', 'Product does not exist.');
+      throw new HttpsError('internal', 'El producto no existe.');
     }
 
     const email = auth.token.email!;
@@ -197,7 +355,10 @@ export const createProductOrder = onCall(
     );
 
     if (!billingData) {
-      throw new HttpsError('internal', 'Failed to generate billing data.');
+      throw new HttpsError(
+        'internal',
+        'Error al generar los datos de facturación.',
+      );
     }
 
     const { orderId, paymentId, url } = billingData;
@@ -243,7 +404,7 @@ export const createProductOrder = onCall(
       : await addProductRecord(productRecord);
 
     if (!upsertedRecord) {
-      throw new HttpsError('internal', 'Failed to create order.');
+      throw new HttpsError('internal', 'Error al crear la orden.');
     }
 
     const { id: recordId, couponId: usedCouponId, validated } = upsertedRecord;
@@ -270,14 +431,14 @@ export const validateEventPayment = onRequest(
     const orderId = request.body.orderId || request.body.data.orderId;
 
     if (!orderId) {
-      response.status(400).send('Missing required fields.');
+      response.status(400).send('Faltan campos requeridos.');
       return;
     }
 
     const eventRecord = await getEventRecordByOrderId(orderId);
 
     if (!eventRecord) {
-      response.status(404).send('Event record not found.');
+      response.status(404).send('Registro al evento no encontrado.');
       return;
     }
 
@@ -293,7 +454,7 @@ export const validateEventPayment = onRequest(
       );
 
       if (!payment) {
-        response.status(404).send('Payment not found.');
+        response.status(404).send('No se encontró el pago.');
         return;
       }
 
@@ -317,7 +478,7 @@ export const validateEventPayment = onRequest(
     );
 
     if (!updatedEventRecord) {
-      response.status(500).send('Failed to update event record.');
+      response.status(500).send('Error al actualizar el registro al evento.');
       return;
     }
 
@@ -340,14 +501,14 @@ export const validateProductPayment = onRequest(
     const orderId = request.body.orderId || request.body.data.orderId;
 
     if (!orderId) {
-      response.status(400).send('Missing required fields.');
+      response.status(400).send('Faltan campos requeridos.');
       return;
     }
 
     const productRecord = await getProductRecordByOrderId(orderId);
 
     if (!productRecord) {
-      response.status(404).send('Product record not found.');
+      response.status(404).send('No se encontró el registro al evento.');
       return;
     }
 
@@ -363,7 +524,7 @@ export const validateProductPayment = onRequest(
       );
 
       if (!payment) {
-        response.status(404).send('Payment not found.');
+        response.status(404).send('No se encontró el pago.');
         return;
       }
 
@@ -387,7 +548,7 @@ export const validateProductPayment = onRequest(
     );
 
     if (!updatedProductRecord) {
-      response.status(500).send('Failed to update product record.');
+      response.status(500).send('Error al actualizar el registro al evento.');
       return;
     }
 
@@ -403,10 +564,7 @@ export const validateProductPayment = onRequest(
 
 function getAuth(request: CallableRequest<any>): AuthData {
   if (!request.auth) {
-    throw new HttpsError(
-      'unauthenticated',
-      'The function must be called while authenticated.',
-    );
+    throw new HttpsError('unauthenticated', 'Debes estar autenticado.');
   }
 
   return request.auth;
@@ -432,7 +590,7 @@ function getEnvironmentVariables(): {
     !wolipayEventNotifyUrl ||
     !wolipayProductNotifyUrl
   ) {
-    throw new HttpsError('internal', 'Missing required environment variables.');
+    throw new HttpsError('internal', 'Faltan variables de entorno requeridas.');
   }
 
   return {
@@ -465,11 +623,11 @@ function getRequestOrderData(
   } = request.data;
 
   if (!eventId || !fullName || !phoneNumber || !additionalAnswers) {
-    throw new HttpsError('invalid-argument', 'Missing required fields.');
+    throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
   }
 
   if (requireProductId && !productId) {
-    throw new HttpsError('invalid-argument', 'Missing required fields.');
+    throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
   }
 
   return {
@@ -495,12 +653,12 @@ async function getExistingEventRecord(
     if (existingRecord.validated) {
       throw new HttpsError(
         'already-exists',
-        'You have already registered for this event.',
+        'Ya estás registrado en este evento.',
       );
     } else if (existingRecord.paymentId === existingRecord.orderId) {
       throw new HttpsError(
         'already-exists',
-        'You have already registered for this free event.',
+        'Ya estás registrado en este evento gratuito.',
       );
     } else {
       const existingPayment = await getPaymentById(
@@ -513,7 +671,7 @@ async function getExistingEventRecord(
       if (existingPayment && existingPayment.payment.status === 'success') {
         throw new HttpsError(
           'already-exists',
-          'You have already paid for this event.',
+          'Ya pagaste por el registro a este evento.',
         );
       }
     }
@@ -533,14 +691,11 @@ async function getExistingProductRecord(
 
   if (existingRecord) {
     if (existingRecord.validated) {
-      throw new HttpsError(
-        'already-exists',
-        'You have already acquired this product.',
-      );
+      throw new HttpsError('already-exists', 'Ya adquiriste este producto.');
     } else if (existingRecord.paymentId === existingRecord.orderId) {
       throw new HttpsError(
         'already-exists',
-        'You have already acquired this free product.',
+        'Ya adquiriste este producto gratuito.',
       );
     } else {
       const existingPayment = await getPaymentById(
@@ -551,10 +706,7 @@ async function getExistingProductRecord(
       );
 
       if (existingPayment && existingPayment.payment.status === 'success') {
-        throw new HttpsError(
-          'already-exists',
-          'You have already paid for this product.',
-        );
+        throw new HttpsError('already-exists', 'Ya pagaste por este producto.');
       }
     }
   }

@@ -2,58 +2,19 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { EventsService } from '@core/services';
+import { TimelineItemComponent } from '@shared/components';
 import { EventCardComponent } from './event-card/event-card.component';
 
 @Component({
   selector: 'combi-events',
   standalone: true,
-  imports: [DatePipe, EventCardComponent],
+  imports: [DatePipe, EventCardComponent, TimelineItemComponent],
   template: `
     <h1>Eventos</h1>
     @for (event of events(); track event.id) {
-      <div class="events__item">
-        <div class="events__date">
-          <b>{{ event.date.start.toDate() | date: 'd MMM' }}</b>
-          <span>{{ event.date.start.toDate() | date: 'HH:mm' }}</span>
-        </div>
-        <span class="events__line"></span>
-        <combi-event-card [event]="event"></combi-event-card>
-      </div>
-    }
-  `,
-  styles: `
-    .events__item {
-      display: flex;
-
-      .events__date {
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-        width: 54px;
-      }
-
-      .events__line {
-        border-left: 2px dashed #9119ff;
-        margin: 1rem 1rem 0;
-
-        @media (min-width: 960px) {
-          margin: 1rem 2rem 0;
-        }
-
-        &::before {
-          background-color: #9119ff;
-          border-radius: 50%;
-          content: '';
-          display: block;
-          height: 10px;
-          margin-left: -6px;
-          width: 10px;
-        }
-      }
-
-      combi-event-card {
-        flex-grow: 1;
-      }
+      <combi-timeline-item [date]="event.date.start.toDate()">
+        <combi-event-card [event]="event" />
+      </combi-timeline-item>
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
