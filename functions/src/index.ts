@@ -78,7 +78,7 @@ export const createSessionOrder = onCall(
     const { count, limit, name: sessionName } = session;
 
     if (count >= limit) {
-      throw new HttpsError('resource-exhausted', 'El taller está llena.');
+      throw new HttpsError('resource-exhausted', 'El taller está lleno.');
     }
 
     const email = auth.token.email!;
@@ -112,7 +112,7 @@ export const createSessionOrder = onCall(
       ) {
         throw new HttpsError(
           'already-exists',
-          'Ya estás registrado en un taller que se superpone con este taller.',
+          'Ya tienes un taller agendado para este horario.',
         );
       }
     }
