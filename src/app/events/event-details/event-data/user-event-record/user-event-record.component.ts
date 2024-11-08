@@ -17,13 +17,14 @@ import {
   PaymentsService,
 } from '@core/services';
 import { LoadingState } from '@core/states';
-import { TitleSpinnerComponent } from '@shared/components';
+import { CredentialComponent, TitleSpinnerComponent } from '@shared/components';
 import { map, Subject, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'combi-user-event-record',
   standalone: true,
   imports: [
+    CredentialComponent,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -64,6 +65,18 @@ import { map, Subject, switchMap, tap } from 'rxjs';
                 {{ currentUser?.displayName || '' }}
               </mat-card-subtitle>
             </mat-card-header>
+            <mat-card-content>
+              <combi-credential #credential [recordCode]="eventRecord().id" />
+            </mat-card-content>
+            <mat-card-actions>
+              <button
+                mat-button
+                class="tertiary-button"
+                (click)="credential.download()"
+              >
+                Descargar Credencial
+              </button>
+            </mat-card-actions>
           </mat-card>
         } @else {
           <p>
@@ -94,7 +107,6 @@ import { map, Subject, switchMap, tap } from 'rxjs';
       background-color: #f0f0f0;
       border-left: 4px solid #4caf50;
       color: #4caf50;
-      padding-bottom: 1rem;
 
       mat-card-header {
         align-items: center;
@@ -102,6 +114,12 @@ import { map, Subject, switchMap, tap } from 'rxjs';
 
       .user-event-record__avatar {
         margin: 0;
+      }
+
+      mat-card-content {
+        display: flex;
+        justify-content: center;
+        padding-top: 2rem;
       }
     }
   `,

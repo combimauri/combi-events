@@ -4,6 +4,7 @@ export * from './billing-data.model';
 export * from './billing-record.model';
 export * from './coupon.model';
 export * from './event-record.model';
+export * from './listing.model';
 export * from './page-event-records.model';
 export * from './price.model';
 export * from './product-record.model';
