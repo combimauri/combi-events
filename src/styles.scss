@@ -86,3 +86,7 @@ body {
 .tertiary-button {
   @include mat.button-color($combi-events-theme, $color-variant: tertiary);
 }
+
+.qrcode img {
+  max-width: 100%;
+}

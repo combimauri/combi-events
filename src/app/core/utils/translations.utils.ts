@@ -5,6 +5,7 @@ export const translations: Record<string, string> = {
   fullName: 'Nombre',
   mentor: 'Mentor',
   role: 'Rol',
+  sessionName: 'Taller',
   speaker: 'Speaker',
   sponsor: 'Patrocinador',
   staff: 'Staff',

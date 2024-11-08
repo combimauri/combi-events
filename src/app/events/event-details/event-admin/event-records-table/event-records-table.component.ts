@@ -25,7 +25,7 @@ import { MatTableModule } from '@angular/material/table';
 import {
   AdditionalQuestion,
   EventRecord,
-  EventRecordListing,
+  Listing,
   PageEventRecords,
   RecordRole,
 } from '@core/models';
@@ -205,6 +205,7 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
       flex-wrap: wrap;
       gap: 0.25rem;
       justify-content: flex-end;
+      margin-top: 1rem;
     }
 
     th,
@@ -328,7 +329,7 @@ export class EventRecordsTableComponent {
     this.resetTable();
   }
 
-  handleSortChange(sortState: Sort) {
+  handleSortChange(sortState: Sort): void {
     this.sortState = sortState;
 
     if (this.sortState.active === 'fullName') {
@@ -422,43 +423,21 @@ export class EventRecordsTableComponent {
     firstRecord,
     lastRecord,
   }: PageEventRecords): Observable<EventRecord[]> {
-    if (lastRecord) {
-      return this.#eventRecordsService
-        .getNextPageOfRecordsByEventId(
-          eventId,
-          lastRecord.id,
-          this.pageSize,
-          this.sortState,
-          this.searchTerm,
-          this.#filters,
-        )
-        .pipe(map((listing) => this.handleLoadRecordListing(listing)));
-    } else if (firstRecord) {
-      return this.#eventRecordsService
-        .getPreviousPageOfRecordsByEventId(
-          eventId,
-          firstRecord.id,
-          this.pageSize,
-          this.sortState,
-          this.searchTerm,
-          this.#filters,
-        )
-        .pipe(map((listing) => this.handleLoadRecordListing(listing)));
-    }
-
     return this.#eventRecordsService
-      .getFirstPageOfRecordsByEventId(
+      .getRecords(
         eventId,
         this.pageSize,
         this.sortState,
         this.searchTerm,
         this.#filters,
+        firstRecord?.id,
+        lastRecord?.id,
       )
       .pipe(map((listing) => this.handleLoadRecordListing(listing)));
   }
 
   private handleLoadRecordListing(
-    listing: EventRecordListing | undefined,
+    listing: Listing<EventRecord> | undefined,
   ): EventRecord[] {
     this.recordsTotal = listing?.total ?? 0;
 

@@ -8,3 +8,4 @@ export * from './product-records.service';
 export * from './products.service';
 export * from './session-records.service';
 export * from './sessions.service';
+export * from './table-records.service';
