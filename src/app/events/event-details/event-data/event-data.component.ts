@@ -1,10 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services';
 import { EventRecordState, EventState, LoadingState } from '@core/states';
 import { EventAdminButtonComponent } from './event-admin-button/event-admin-button.component';
@@ -14,25 +12,25 @@ import { EventLocationComponent } from './event-location/event-location.componen
 import { EventLoginButtonComponent } from './event-login-button/event-login-button.component';
 import { EventMainInfoComponent } from './event-main-info/event-main-info.component';
 import { EventRegistrationButtonComponent } from './event-registration-button/event-registration-button.component';
+import { EventScannerButtonComponent } from './event-scanner-button/event-scanner-button.component';
 import { UserEventRecordComponent } from './user-event-record/user-event-record.component';
 
 @Component({
   selector: 'combi-event-data',
   standalone: true,
   imports: [
-    DatePipe,
     EventAdminButtonComponent,
     EventClosedCardComponent,
+    EventFeaturedProductsComponent,
     EventLocationComponent,
     EventLoginButtonComponent,
     EventMainInfoComponent,
     EventRegistrationButtonComponent,
+    EventScannerButtonComponent,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    RouterLink,
     UserEventRecordComponent,
-    EventFeaturedProductsComponent,
   ],
   template: `
     @if (event(); as event) {
@@ -41,9 +39,11 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
       @if (user(); as user) {
         @if (user.email === event.owner) {
           <combi-event-admin-button />
+          <combi-event-scanner-button />
         } @else {
           @if (event.admins.includes(user.email!)) {
             <combi-event-admin-button />
+            <combi-event-scanner-button />
           }
 
           @if (eventRecord(); as record) {

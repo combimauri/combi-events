@@ -7,6 +7,7 @@ export interface PartialEventRecord extends BillingRecord {
   notes?: string;
   orderId: string;
   paymentId: string;
+  registeredAt?: Timestamp;
   role: RecordRole;
   searchTerm: string;
 }

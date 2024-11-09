@@ -83,6 +83,10 @@ body {
   @include mat.all-component-densities(-2);
 }
 
+.secondary-button {
+  @include mat.button-color($combi-events-theme, $color-variant: secondary);
+}
+
 .tertiary-button {
   @include mat.button-color($combi-events-theme, $color-variant: tertiary);
 }

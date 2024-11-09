@@ -7,6 +7,7 @@ export interface SessionRecord {
   fullName: string;
   id: string;
   phoneNumber: string;
+  registeredAt?: Timestamp;
   searchTerm: string;
   sessionId: string;
   sessionName: string;

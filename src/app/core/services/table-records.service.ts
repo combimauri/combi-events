@@ -170,12 +170,9 @@ export abstract class TableRecordsService<T> {
       }),
       take(1),
       switchMap((items) =>
-        this.getRecordsCount(
-          id,
-
-          searchTerm,
-          filters,
-        ).pipe(map((total) => ({ items, total }))),
+        this.getRecordsCount(id, searchTerm, filters).pipe(
+          map((total) => ({ items, total })),
+        ),
       ),
       catchError((error) => handleError(error, this.logger)),
     );
