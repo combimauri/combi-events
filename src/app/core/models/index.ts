@@ -10,6 +10,8 @@ export * from './price.model';
 export * from './product-record.model';
 export * from './product.model';
 export * from './record-role.enum';
+export * from './register-record-error.enum';
 export * from './registration-step.enum';
+export * from './registry.enum';
 export * from './session-record.model';
 export * from './session.model';

@@ -7,12 +7,28 @@ import {
   limit,
   query,
   setDoc,
+  Timestamp,
+  updateDoc,
   where,
 } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { BillingData, BillingRecord, EventRecord } from '@core/models';
+import {
+  BillingData,
+  BillingRecord,
+  EventRecord,
+  RegisterRecordError,
+} from '@core/models';
 import { handleError } from '@core/utils';
-import { catchError, from, map, Observable, take, tap } from 'rxjs';
+import {
+  catchError,
+  from,
+  map,
+  Observable,
+  of,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs';
 import { TableRecordsService } from './table-records.service';
 
 @Injectable({
@@ -82,5 +98,35 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
       tap(this.loadEffectObserver),
       catchError((error) => handleError(error, this.logger)),
     );
+  }
+
+  registerRecordEntry(
+    id: string,
+  ): Observable<EventRecord | RegisterRecordError | undefined> {
+    return this.getRealtimeRecordById(id).pipe(
+      tap(this.loadEffectObserver),
+      take(1),
+      switchMap((record) => {
+        if (!record) {
+          return of(RegisterRecordError.NoRecord);
+        } else if (record.registeredAt) {
+          return of(RegisterRecordError.AlreadyRegistered);
+        }
+
+        record.registeredAt = Timestamp.now();
+
+        return this.updateRecord(id, record).pipe(map(() => record));
+      }),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
+  private updateRecord(
+    id: string,
+    data: Partial<EventRecord>,
+  ): Observable<void> {
+    const docRef = doc(this.firestore, this.collectionName, id);
+
+    return from(updateDoc(docRef, { ...data }));
   }
 }

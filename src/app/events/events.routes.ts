@@ -44,6 +44,12 @@ const routes: Routes = [
           import('./event-details/event-admin/event-admin.component'),
       },
       {
+        path: 'scanner',
+        canActivate: [authGuard, adminGuard],
+        loadComponent: () =>
+          import('./event-details/event-scanner/event-scanner.component'),
+      },
+      {
         path: 'marketplace',
         canActivate: [authGuard, marketplaceGuard],
         loadChildren: () =>
