@@ -20,7 +20,7 @@ import { QRCodeModule } from 'angularx-qrcode';
     <qrcode
       elementType="img"
       errorCorrectionLevel="M"
-      [margin]="0"
+      [margin]="1"
       [qrdata]="recordCode()"
       [width]="width()"
       (qrCodeURL)="downloadLink.set($event)"
