@@ -9,7 +9,7 @@ export const registrationGuard: CanActivateFn = () => {
   const event = inject(EventState).event()!;
   const router = inject(Router);
 
-  if (!event.openRegistration) {
+  if (!event.openRegistration || event.count >= event.capacity) {
     return router.createUrlTree([event.id]);
   }
 

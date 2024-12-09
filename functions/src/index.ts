@@ -12,7 +12,7 @@ import {
   getCouponByIdAndProductId,
   incrementCouponCount,
 } from './utils/coupons.utils';
-import { getEventById } from './utils/events.utils';
+import { getEventById, incrementEventCount } from './utils/events.utils';
 import {
   addEventRecord,
   getEventRecordByOrderId,
@@ -217,6 +217,10 @@ export const createEventOrder = onCall(
       throw new HttpsError('internal', 'El evento no existe.');
     }
 
+    if (event.count >= event.capacity) {
+      throw new HttpsError('resource-exhausted', 'El evento está lleno.');
+    }
+
     const email = auth.token.email!;
     const existingRecord = await getExistingEventRecord(
       email,
@@ -294,8 +298,12 @@ export const createEventOrder = onCall(
 
     const { id: recordId, couponId: usedCouponId, validated } = upsertedRecord;
 
-    if (usedCouponId && validated) {
-      await incrementCouponCount(usedCouponId);
+    if (validated) {
+      await incrementEventCount(eventId);
+
+      if (usedCouponId) {
+        await incrementCouponCount(usedCouponId);
+      }
     }
 
     return {
