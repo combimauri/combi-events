@@ -41,12 +41,16 @@ import { LoadingState, EventRecordState } from '@core/states';
         <mat-card appearance="outlined">
           <mat-card-content class="event-registration-form__price">
             <p>
-              Una vez completes el formulario, deberás pagar
-              <b>
-                {{ price.amount - price.discount }}
-                {{ price.currency }}
-              </b>
-              para confirmar tu registro.
+              @if (price.amount) {
+                Una vez completes el formulario, deberás pagar
+                <b>
+                  {{ price.amount - price.discount }}
+                  {{ price.currency }}
+                </b>
+                para confirmar tu registro.
+              } @else {
+                Completa tus datos.
+              }
             </p>
           </mat-card-content>
         </mat-card>

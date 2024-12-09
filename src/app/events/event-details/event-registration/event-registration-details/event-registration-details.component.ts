@@ -58,15 +58,21 @@ import { QuestionLabelPipe } from '@shared/pipes';
       </mat-card>
     }
 
-    @if (price(); as price) {
+    @if (price()?.amount) {
       <combi-price-details
         [eventId]="this.eventId()"
-        [price]="price"
+        [price]="price()!"
         [(appliedCoupon)]="appliedCoupon"
       />
     }
 
-    <button mat-fab extended (click)="confirmRegistration()">Pagar</button>
+    <button mat-fab extended (click)="confirmRegistration()">
+      @if (price()?.amount) {
+        Pagar
+      } @else {
+        Confirmar Registro
+      }
+    </button>
   `,
   styles: `
     :host {

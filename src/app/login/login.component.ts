@@ -48,7 +48,7 @@ import { Subject, switchMap, tap } from 'rxjs';
             />
           </mat-form-field>
           <button
-            mat-flat-button
+            mat-raised-button
             class="login__button"
             type="submit"
             [disabled]="loading() || loginForm.invalid"
@@ -63,7 +63,7 @@ import { Subject, switchMap, tap } from 'rxjs';
       @if (!isAppBuiltInBrowser) {
         <mat-card-actions>
           <button
-            mat-raised-button
+            mat-flat-button
             class="login__button"
             [disabled]="loading()"
             (click)="signInWithGoogle$.next()"
