@@ -41,7 +41,7 @@ import { map, Subject, switchMap, tap } from 'rxjs';
           <combi-title-spinner />
         } @else if (
           (eventRecord().validated || validatedRecordResult()) &&
-          event()?.hasMarketplace
+          event()?.hasSessions
         ) {
           <a mat-button class="tertiary-button" routerLink="sessions">
             Registro a Talleres
