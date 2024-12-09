@@ -16,7 +16,7 @@ import {
   EventRecordsService,
   PaymentsService,
 } from '@core/services';
-import { LoadingState } from '@core/states';
+import { EventState, LoadingState } from '@core/states';
 import { CredentialComponent, TitleSpinnerComponent } from '@shared/components';
 import { map, Subject, switchMap, tap } from 'rxjs';
 
@@ -39,7 +39,10 @@ import { map, Subject, switchMap, tap } from 'rxjs';
         </mat-card-title>
         @if (validationLoadingState.loading()) {
           <combi-title-spinner />
-        } @else if (eventRecord().validated || validatedRecordResult()) {
+        } @else if (
+          (eventRecord().validated || validatedRecordResult()) &&
+          event()?.hasMarketplace
+        ) {
           <a mat-button class="tertiary-button" routerLink="sessions">
             Registro a Talleres
           </a>
@@ -128,8 +131,10 @@ import { map, Subject, switchMap, tap } from 'rxjs';
 export class UserEventRecordComponent {
   readonly #authService = inject(AuthService);
   readonly #eventRecordsService = inject(EventRecordsService);
+  readonly #eventState = inject(EventState);
   readonly #paymentsService = inject(PaymentsService);
 
+  readonly event = this.#eventState.event;
   readonly eventRecord = input.required<EventRecord>();
   readonly user = toSignal(this.#authService.user$);
   readonly validatePayment$ = new Subject<EventRecord>();
