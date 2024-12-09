@@ -49,7 +49,9 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
           @if (eventRecord(); as record) {
             <combi-user-event-record [eventRecord]="record" />
 
-            <combi-featured-products [event]="event" />
+            @if (event.hasMarketplace) {
+              <combi-featured-products [event]="event" />
+            }
           } @else {
             @if (event.openRegistration) {
               <combi-event-registration-button />

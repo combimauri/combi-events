@@ -10,6 +10,8 @@ export interface AppEvent {
   createdAt: Timestamp;
   date: { end: Timestamp; start: Timestamp };
   description: string;
+  hasMarketplace: boolean;
+  hasSessions: boolean;
   id: string;
   image: string;
   location: { name: string; geolocation: GeoPoint };
