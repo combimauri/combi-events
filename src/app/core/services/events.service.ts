@@ -5,6 +5,8 @@ import {
   doc,
   docData,
   Firestore,
+  orderBy,
+  query,
 } from '@angular/fire/firestore';
 import { AppEvent } from '@core/models';
 import { loadEffect, handleError } from '@core/utils';
@@ -22,9 +24,10 @@ export class EventsService {
 
   getEvents(): Observable<AppEvent[] | undefined> {
     const eventsCollection = collection(this.#firestore, this.#collectionName);
+    const eventsQuery = query(eventsCollection, orderBy('date.start', 'desc'));
 
     return (
-      collectionData<AppEvent>(eventsCollection) as Observable<AppEvent[]>
+      collectionData<AppEvent>(eventsQuery) as Observable<AppEvent[]>
     ).pipe(
       tap(this.#loadEffectObserver),
       take(1),
