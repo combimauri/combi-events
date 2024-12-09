@@ -53,7 +53,7 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
               <combi-featured-products [event]="event" />
             }
           } @else {
-            @if (event.openRegistration) {
+            @if (event.openRegistration && event.count < event.capacity) {
               <combi-event-registration-button />
             } @else {
               <combi-event-closed-card />

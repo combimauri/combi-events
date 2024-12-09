@@ -7,6 +7,7 @@ export interface AppEvent {
   admins: string[];
   bannerImage: string;
   capacity: number;
+  count: number;
   createdAt: Timestamp;
   date: { end: Timestamp; start: Timestamp };
   description: string;
