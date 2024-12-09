@@ -31,7 +31,7 @@ export class EventLoginButtonComponent {
   readonly #router = inject(Router);
 
   navigateToLogin(): void {
-    const eventId = this.eventId;
+    const eventId = this.eventId();
     const returnUrl = `/${eventId}/register`;
 
     this.#router.navigate(['/login'], {
