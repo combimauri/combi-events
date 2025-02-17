@@ -39,7 +39,6 @@ import { QuestionLabelPipe } from '@shared/pipes';
           </p>
           <p><b>Correo Electrónico:</b> {{ billingRecord.email }}</p>
           <p><b>Nombre Completo:</b> {{ billingRecord.fullName }}</p>
-          <p><b>Número de Teléfono:</b> {{ billingRecord.phoneNumber }}</p>
           @for (
             item of billingRecord.additionalAnswers | keyvalue;
             track item.key

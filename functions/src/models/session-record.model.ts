@@ -4,7 +4,6 @@ export interface PartialSessionRecord {
   email: string;
   eventId: string;
   fullName: string;
-  phoneNumber: string;
   sessionId: string;
   sessionName: string;
   searchTerm: string;

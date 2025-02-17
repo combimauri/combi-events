@@ -136,14 +136,6 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
                 <dd>{{ element.email }}</dd>
               }
 
-              <dt>Número de Teléfono</dt>
-              <dd>
-                {{ element.phoneNumber }}
-                <button mat-icon-button (click)="openWhatsAppDialog(element)">
-                  <mat-icon>sms</mat-icon>
-                </button>
-              </dd>
-
               @for (
                 item of element.additionalAnswers | keyvalue;
                 track item.key
@@ -373,7 +365,8 @@ export class EventRecordsTableComponent {
     this.resetTable();
   }
 
-  openWhatsAppDialog({ fullName, phoneNumber, validated }: EventRecord): void {
+  // TODO: Add logic to recognize the phoneNumber field from additionalAnswers and use this function
+  openWhatsAppDialog({ fullName, validated }: EventRecord, phoneNumber: string): void {
     const countryCode = '591'; // Hardcoded country code for Bolivia
     phoneNumber = `${countryCode}${phoneNumber.replace(/\s/g, '')}`;
     let message = `¡Hola ${fullName}! Espero te encuentres bien. Mi nombre es ${this.#user()?.displayName}.`;

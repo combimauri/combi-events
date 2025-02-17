@@ -3,5 +3,4 @@ export interface BillingRecord {
   couponId?: string;
   email: string;
   fullName: string;
-  phoneNumber: string;
 }

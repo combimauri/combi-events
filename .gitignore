@@ -7,7 +7,7 @@
 /bazel-out
 
 # Node
-/node_modules
+node_modules
 npm-debug.log
 yarn-error.log
 
@@ -48,6 +48,10 @@ Thumbs.db
 .runtimeconfig.json
 
 # Keys
+keys.js
 keys.ts
 keys.*.ts
 serviceAccount.json
+
+# create-events items
+events.js

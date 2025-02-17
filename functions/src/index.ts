@@ -20,7 +20,7 @@ import {
   updateEventRecord,
 } from './utils/event-records.utils';
 import { upsertPayment } from './utils/payments.utils';
-import { getWolipayIFrame, getPaymentById } from './utils/wolipay.utils';
+import { getWolipayIFrame, getPaymentByExternalId } from './utils/wolipay.utils';
 import { AuthData } from 'firebase-functions/tasks';
 import {
   addProductRecord,
@@ -117,7 +117,7 @@ export const createSessionOrder = onCall(
       }
     }
 
-    const { eventId, fullName, phoneNumber, searchTerm } = eventRecord;
+    const { eventId, fullName, searchTerm } = eventRecord;
 
     const event = await getEventById(eventId);
 
@@ -149,7 +149,6 @@ export const createSessionOrder = onCall(
       email,
       eventId,
       fullName,
-      phoneNumber,
       sessionId,
       sessionName,
       searchTerm,
@@ -209,7 +208,7 @@ export const createEventOrder = onCall(
       wolipayBasePath,
       wolipayEventNotifyUrl,
     } = getEnvironmentVariables();
-    const { eventId, fullName, phoneNumber, additionalAnswers, couponId } =
+    const { eventId, fullName, additionalAnswers, couponId } =
       getRequestOrderData(request);
     const event = await getEventById(eventId);
 
@@ -234,7 +233,6 @@ export const createEventOrder = onCall(
     const billingData = await getWolipayIFrame(
       email,
       fullName,
-      phoneNumber,
       event.name,
       event.price,
       coupon,
@@ -261,7 +259,6 @@ export const createEventOrder = onCall(
       fullName,
       orderId,
       paymentId,
-      phoneNumber,
       role: RecordRole.Attendee,
       searchTerm: fullName.replace(/\s/g, '').toLowerCase(),
       validated: false,
@@ -328,7 +325,6 @@ export const createProductOrder = onCall(
     const {
       eventId,
       fullName,
-      phoneNumber,
       additionalAnswers,
       productId,
       couponId,
@@ -352,7 +348,6 @@ export const createProductOrder = onCall(
     const billingData = await getWolipayIFrame(
       email,
       fullName,
-      phoneNumber,
       product.name,
       product.price,
       coupon,
@@ -381,7 +376,6 @@ export const createProductOrder = onCall(
       fullName,
       orderId,
       paymentId,
-      phoneNumber,
       searchTerm: fullName.replace(/\s/g, '').toLowerCase(),
       validated: false,
     };
@@ -454,7 +448,7 @@ export const validateEventPayment = onRequest(
     let status = '';
 
     if (orderId !== paymentId) {
-      const payment = await getPaymentById(
+      const payment = await getPaymentByExternalId(
         paymentId,
         wolipayEmail,
         wolipayPassword,
@@ -524,7 +518,7 @@ export const validateProductPayment = onRequest(
     let status = '';
 
     if (orderId !== paymentId) {
-      const payment = await getPaymentById(
+      const payment = await getPaymentByExternalId(
         paymentId,
         wolipayEmail,
         wolipayPassword,
@@ -616,7 +610,6 @@ function getRequestOrderData(
 ): {
   eventId: string;
   fullName: string;
-  phoneNumber: string;
   additionalAnswers: Record<string, string>;
   productId: string;
   couponId: string;
@@ -624,13 +617,12 @@ function getRequestOrderData(
   const {
     eventId,
     fullName,
-    phoneNumber,
     additionalAnswers,
     productId,
     couponId,
   } = request.data;
 
-  if (!eventId || !fullName || !phoneNumber || !additionalAnswers) {
+  if (!eventId || !fullName || !additionalAnswers) {
     throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
   }
 
@@ -641,7 +633,6 @@ function getRequestOrderData(
   return {
     eventId,
     fullName,
-    phoneNumber,
     additionalAnswers,
     productId,
     couponId,
@@ -669,7 +660,7 @@ async function getExistingEventRecord(
         'Ya estás registrado en este evento gratuito.',
       );
     } else {
-      const existingPayment = await getPaymentById(
+      const existingPayment = await getPaymentByExternalId(
         existingRecord.paymentId,
         wolipayEmail,
         wolipayPassword,
@@ -706,7 +697,7 @@ async function getExistingProductRecord(
         'Ya adquiriste este producto gratuito.',
       );
     } else {
-      const existingPayment = await getPaymentById(
+      const existingPayment = await getPaymentByExternalId(
         existingRecord.paymentId,
         wolipayEmail,
         wolipayPassword,

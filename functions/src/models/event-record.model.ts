@@ -9,7 +9,6 @@ export interface PartialEventRecord {
   fullName: string;
   orderId: string;
   paymentId: string;
-  phoneNumber: string;
   role: RecordRole;
   searchTerm: string;
   validated: boolean;

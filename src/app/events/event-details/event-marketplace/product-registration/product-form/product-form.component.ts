@@ -184,12 +184,11 @@ export class ProductFormComponent {
     }
 
     const formValue = this.productForm().value;
-    const { email, fullName, phoneNumber } = this.eventRecord();
+    const { email, fullName } = this.eventRecord();
 
     const billingRecord: BillingRecord = {
       email,
       fullName,
-      phoneNumber,
       additionalAnswers: { ...formValue },
     };
 

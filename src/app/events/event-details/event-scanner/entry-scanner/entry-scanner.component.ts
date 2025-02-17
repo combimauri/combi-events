@@ -50,7 +50,6 @@ import { filter, skipWhile, Subject, switchMap, tap } from 'rxjs';
               </p>
               <p><b>Correo Electrónico:</b> {{ eventRecord.email }}</p>
               <p><b>Nombre Completo:</b> {{ eventRecord.fullName }}</p>
-              <p><b>Número de Teléfono:</b> {{ eventRecord.phoneNumber }}</p>
               @for (
                 item of eventRecord.additionalAnswers | keyvalue;
                 track item.key

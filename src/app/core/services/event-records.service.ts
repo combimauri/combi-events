@@ -77,12 +77,12 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
 
   registerRecord(
     eventId: string,
-    { additionalAnswers, fullName, phoneNumber, couponId }: BillingRecord,
+    { additionalAnswers, fullName, couponId }: BillingRecord,
   ): Observable<BillingData | undefined> {
     const response = httpsCallable(
       this.#functions,
       'createEventOrder',
-    )({ eventId, fullName, phoneNumber, additionalAnswers, couponId });
+    )({ eventId, fullName, additionalAnswers, couponId });
 
     return from(response).pipe(
       tap(this.loadEffectObserver),

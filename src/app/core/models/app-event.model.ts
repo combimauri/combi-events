@@ -15,6 +15,7 @@ export interface AppEvent {
   hasSessions: boolean;
   id: string;
   image: string;
+  listEvent: boolean;
   location: { name: string; geolocation: GeoPoint };
   maxSessionsPerUser: number;
   name: string;

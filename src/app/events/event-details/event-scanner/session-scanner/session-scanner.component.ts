@@ -55,9 +55,6 @@ import { switchMap, of, Subject, skipWhile, filter, tap } from 'rxjs';
                   </p>
                   <p><b>Correo Electrónico:</b> {{ sessionRecord.email }}</p>
                   <p><b>Nombre Completo:</b> {{ sessionRecord.fullName }}</p>
-                  <p>
-                    <b>Número de Teléfono:</b> {{ sessionRecord.phoneNumber }}
-                  </p>
                 }
               </mat-card-content>
             </mat-card>

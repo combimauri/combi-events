@@ -1,0 +1,15 @@
+{
+  "name": "create-event",
+  "version": "1.0.0",
+  "main": "create-event.js",
+  "type": "module",
+  "scripts": {
+    "start": "node create-event.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "firebase": "^11.3.1"
+  }
+}
