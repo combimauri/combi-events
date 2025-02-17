@@ -7,6 +7,7 @@ import {
   Firestore,
   orderBy,
   query,
+  where,
 } from '@angular/fire/firestore';
 import { AppEvent } from '@core/models';
 import { loadEffect, handleError } from '@core/utils';
@@ -24,7 +25,11 @@ export class EventsService {
 
   getEvents(): Observable<AppEvent[] | undefined> {
     const eventsCollection = collection(this.#firestore, this.#collectionName);
-    const eventsQuery = query(eventsCollection, orderBy('date.start', 'desc'));
+    const eventsQuery = query(
+      eventsCollection,
+      where('listEvent', '==', true),
+      orderBy('date.start', 'desc'),
+    );
 
     return (
       collectionData<AppEvent>(eventsQuery) as Observable<AppEvent[]>

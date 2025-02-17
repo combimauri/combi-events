@@ -21,6 +21,10 @@ import { EventCardComponent } from './event-card/event-card.component';
       display: flex;
       flex-direction: column;
       gap: 1rem;
+
+      combi-event-card {
+        flex-grow: 1;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

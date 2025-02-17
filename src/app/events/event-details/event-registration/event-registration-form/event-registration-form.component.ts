@@ -79,28 +79,6 @@ import { LoadingState, EventRecordState } from '@core/states';
         </mat-card-content>
       </mat-card>
 
-      <mat-card appearance="outlined">
-        <mat-card-header>
-          <mat-card-title>
-            <p>Número de Teléfono</p>
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-form-field>
-            <mat-label>Tu respuesta</mat-label>
-            <input
-              matInput
-              required
-              type="text"
-              id="phoneNumber"
-              name="phoneNumber"
-              [disabled]="loading()"
-              [ngModel]="phoneNumber()"
-            />
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
-
       @for (question of answeredQuestions(); track question.key) {
         <mat-card appearance="outlined">
           <mat-card-header>
@@ -188,13 +166,6 @@ export class EventRegistrationFormComponent {
   fullName = computed(() =>
     this.mapFullName(this.billingRecord(), this.#eventRecord(), this.#user()),
   );
-  phoneNumber = computed(() =>
-    this.mapPhoneNumber(
-      this.billingRecord(),
-      this.#eventRecord(),
-      this.#user(),
-    ),
-  );
   answeredQuestions = computed(() =>
     this.mapQuestions(
       this.billingRecord(),
@@ -212,15 +183,13 @@ export class EventRegistrationFormComponent {
 
     const formValue = this.eventForm().value;
     const email = this.#user()?.email!;
-    const { fullName, phoneNumber } = formValue;
+    const { fullName } = formValue;
 
     delete formValue.fullName;
-    delete formValue.phoneNumber;
 
     const billingRecord: BillingRecord = {
       email,
       fullName,
-      phoneNumber,
       additionalAnswers: { ...formValue },
     };
 
@@ -236,19 +205,6 @@ export class EventRegistrationFormComponent {
       billingRecord?.fullName ||
       eventRecord?.fullName ||
       user?.displayName ||
-      ''
-    );
-  }
-
-  private mapPhoneNumber(
-    billingRecord: BillingRecord | undefined,
-    eventRecord: EventRecord | null,
-    user: User | null,
-  ): string {
-    return (
-      billingRecord?.phoneNumber ||
-      eventRecord?.phoneNumber ||
-      user?.phoneNumber ||
       ''
     );
   }

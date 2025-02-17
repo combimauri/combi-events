@@ -9,7 +9,6 @@ export interface PartialProductRecord {
   fullName: string;
   orderId: string;
   paymentId: string;
-  phoneNumber: string;
   productId: string;
   productName: string;
   searchTerm: string;

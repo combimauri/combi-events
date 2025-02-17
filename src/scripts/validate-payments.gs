@@ -30,7 +30,7 @@ function doPost(e) {
   const token = tokenContent.body.token;
 
   const paymentResponse = UrlFetchApp.fetch(
-    wolipayEndpoint + '/getPaymentById?id=' + paymentId,
+    wolipayEndpoint + '/getPaymentByExternalId?externalId=' + paymentId,
     {
       headers: {
         Authorization: 'Bearer ' + token,

@@ -10,7 +10,6 @@ import { WolipayToken } from '../models/wolipay-token.model';
 export async function getWolipayIFrame(
   email: string,
   fullName: string,
-  phoneNumber: string,
   title: string,
   { description, amount, currency, discount }: Price,
   coupon: Coupon | null,
@@ -20,7 +19,7 @@ export async function getWolipayIFrame(
   wolipayNotifyUrl: string,
 ): Promise<BillingData | null> {
   try {
-    const id = crypto.randomUUID();
+    const externalId = crypto.randomUUID();
     const splitName = fullName.split(' ');
     const lastName = splitName.pop();
     const firstName = splitName.join(' ') || lastName;
@@ -50,24 +49,26 @@ export async function getWolipayIFrame(
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          id,
+          externalId,
           title,
-          description: description,
+          description,
           notifyUrl: wolipayNotifyUrl,
           payment: {
-            amount: amount,
-            currency: currency,
+            amount,
+            currency,
             totalAmount: amount - totalDiscount,
             discount: {
               amount: totalDiscount,
               type: 'amount',
             },
           },
-          billing: {
+          client: {
             firstName,
             lastName,
             email,
-            phoneNumber,
+          },
+          billing: {
+            shouldInvoice: false,
           },
         }),
       });
@@ -76,11 +77,11 @@ export async function getWolipayIFrame(
     }
 
     const url = data?.body.iFrameUrl || '';
-    const paymentId = id;
+    const paymentId = externalId;
     const lastSlashIndex = url.lastIndexOf('/');
     // Extract orderId from the URL. If it's not present, use the generated ID.
     // If paymentId and orderId are the same, it's a free event.
-    const orderId = url.substring(lastSlashIndex + 1) || id;
+    const orderId = url.substring(lastSlashIndex + 1) || externalId;
 
     return {
       url,
@@ -93,7 +94,7 @@ export async function getWolipayIFrame(
   }
 }
 
-export async function getPaymentById(
+export async function getPaymentByExternalId(
   paymentId: string,
   wolipayEmail: string,
   wolipayPassword: string,
@@ -111,15 +112,13 @@ export async function getPaymentById(
   }
 
   try {
-    const response = await fetch(
-      `${wolipayBasePath}/getPaymentById?id=${paymentId}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+    const url = `${wolipayBasePath}/getPaymentByExternalId?externalId=${paymentId}`;
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     const data: WolipayPayment = await response.json();
 

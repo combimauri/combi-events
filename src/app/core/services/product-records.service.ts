@@ -56,7 +56,7 @@ export class ProductRecordsService {
   registerRecord(
     eventId: string,
     productId: string,
-    { additionalAnswers, fullName, phoneNumber, couponId }: BillingRecord,
+    { additionalAnswers, fullName, couponId }: BillingRecord,
   ): Observable<BillingData | undefined> {
     const response = httpsCallable(
       this.#functions,
@@ -65,7 +65,6 @@ export class ProductRecordsService {
       eventId,
       productId,
       fullName,
-      phoneNumber,
       additionalAnswers,
       couponId,
     });
