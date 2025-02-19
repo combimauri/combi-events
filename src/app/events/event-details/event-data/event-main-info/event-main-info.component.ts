@@ -14,7 +14,7 @@ import { PageTitleComponent } from '@shared/components';
     <mat-card appearance="outlined">
       <mat-card-content>
         <div>
-          <p>{{ event().description }}</p>
+          <p [innerHTML]="event().description"></p>
           <p>
             <b>Fecha:</b>
             {{ event().date.start.toDate() | date: 'd MMM, HH:mm' }}
