@@ -4,6 +4,7 @@ import { Price } from './price.model';
 
 export interface AppEvent {
   additionalQuestions: AdditionalQuestion[];
+  additionalRegistrationInfo?: string;
   admins: string[];
   bannerImage: string;
   capacity: number;
