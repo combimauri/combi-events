@@ -65,7 +65,10 @@ import { map, Subject, switchMap, tap } from 'rxjs';
               <mat-card-title> ¡Ya eres parte! </mat-card-title>
               <mat-card-subtitle>
                 Nos vemos en el evento
-                {{ currentUser?.displayName || '' }}
+                {{ currentUser?.displayName || '' }}.
+                @if (event()?.additionalRegistrationInfo; as additionalInfo) {
+                  <p [innerHTML]="additionalInfo"></p>
+                }
               </mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>

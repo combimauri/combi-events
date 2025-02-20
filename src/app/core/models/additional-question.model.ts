@@ -1,8 +1,9 @@
 export interface AdditionalQuestion {
-  answer: string;
+  answer?: string | string[];
   key: string;
   label: string;
+  multiple?: boolean;
   options?: string[];
   required: boolean;
-  type: 'text' | 'select';
+  type: 'text' | 'select' | 'info';
 }

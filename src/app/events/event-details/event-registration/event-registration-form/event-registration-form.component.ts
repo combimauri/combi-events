@@ -83,45 +83,48 @@ import { LoadingState, EventRecordState } from '@core/states';
         <mat-card appearance="outlined">
           <mat-card-header>
             <mat-card-title>
-              <p>
-                {{ question.label }}
-              </p>
+              <p [innerHTML]="question.label"></p>
             </mat-card-title>
           </mat-card-header>
-          <mat-card-content>
-            <mat-form-field>
-              <mat-label>Tu respuesta</mat-label>
-              @switch (question.type) {
-                @case ('text') {
-                  <input
-                    matInput
-                    type="text"
-                    [id]="question.key"
-                    [name]="question.key"
-                    [disabled]="loading()"
-                    [required]="question.required"
-                    [ngModel]="question.answer"
-                  />
+          @if (question.type !== 'info') {
+            <mat-card-content>
+              <mat-form-field>
+                <mat-label>Tu respuesta</mat-label>
+                @switch (question.type) {
+                  @case ('text') {
+                    <input
+                      matInput
+                      type="text"
+                      [id]="question.key"
+                      [name]="question.key"
+                      [disabled]="loading()"
+                      [required]="question.required"
+                      [ngModel]="question.answer"
+                    />
+                  }
+                  @case ('select') {
+                    <mat-select
+                      [id]="question.key"
+                      [name]="question.key"
+                      [disabled]="loading()"
+                      [required]="question.required"
+                      [ngModel]="question.answer"
+                      [multiple]="question.multiple"
+                    >
+                      @if (!question.multiple && !question.required) {
+                        <mat-option value=""></mat-option>
+                      }
+                      @for (option of question.options; track option) {
+                        <mat-option [value]="option">
+                          {{ option }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  }
                 }
-                @case ('select') {
-                  <mat-select
-                    [id]="question.key"
-                    [name]="question.key"
-                    [disabled]="loading()"
-                    [required]="question.required"
-                    [ngModel]="question.answer"
-                  >
-                    <mat-option value=""></mat-option>
-                    @for (option of question.options; track option) {
-                      <mat-option [value]="option">
-                        {{ option }}
-                      </mat-option>
-                    }
-                  </mat-select>
-                }
-              }
-            </mat-form-field>
-          </mat-card-content>
+              </mat-form-field>
+            </mat-card-content>
+          }
         </mat-card>
       }
 
@@ -235,6 +238,8 @@ export class EventRegistrationFormComponent {
       if (typeof formValue[key] === 'string') {
         formValue[key] = formValue[key].trim();
       }
+
+      formValue[key] = formValue[key] ?? '';
     }
 
     this.eventForm().setValue(formValue);
