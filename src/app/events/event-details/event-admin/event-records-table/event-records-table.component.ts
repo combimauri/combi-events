@@ -32,6 +32,7 @@ import {
 import { AuthService, EventRecordsService } from '@core/services';
 import { translations } from '@core/utils';
 import {
+  CredentialComponent,
   RoleSelectorComponent,
   SearchBoxComponent,
   ValidatedSelectorComponent,
@@ -45,6 +46,7 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
   selector: 'combi-event-records-table',
   standalone: true,
   imports: [
+    CredentialComponent,
     DatePipe,
     EventRecordNotesComponent,
     KeyValuePipe,
@@ -145,6 +147,21 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
                   {{ item.value || 'N/A' }}
                 </dd>
               }
+
+              <dd>
+                <combi-credential
+                  #credential
+                  hidden
+                  [recordCode]="element.id"
+                />
+                <button
+                  mat-button
+                  class="tertiary-button"
+                  (click)="credential.download()"
+                >
+                  Descargar Credencial
+                </button>
+              </dd>
             </dl>
             <combi-event-record-notes
               [notes]="element.notes"
@@ -366,7 +383,10 @@ export class EventRecordsTableComponent {
   }
 
   // TODO: Add logic to recognize the phoneNumber field from additionalAnswers and use this function
-  openWhatsAppDialog({ fullName, validated }: EventRecord, phoneNumber: string): void {
+  openWhatsAppDialog(
+    { fullName, validated }: EventRecord,
+    phoneNumber: string,
+  ): void {
     const countryCode = '591'; // Hardcoded country code for Bolivia
     phoneNumber = `${countryCode}${phoneNumber.replace(/\s/g, '')}`;
     let message = `¡Hola ${fullName}! Espero te encuentres bien. Mi nombre es ${this.#user()?.displayName}.`;
