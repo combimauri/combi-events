@@ -1,3 +1,4 @@
+import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -14,6 +15,7 @@ import { AppEvent } from '@core/models';
     MatCardModule,
     MatIconModule,
     MatRippleModule,
+    NgStyle,
     RouterLink,
   ],
   template: `
@@ -55,7 +57,14 @@ import { AppEvent } from '@core/models';
             </p>
           </div>
           <div>
-            <img mat-card-lg-image [alt]="event().name" [src]="event().image" />
+            <img
+              mat-card-lg-image
+              [alt]="event().name"
+              [src]="event().image"
+              [ngStyle]="{
+                filter: event().openRegistration ? 'none' : 'grayscale(100%)',
+              }"
+            />
           </div>
         </mat-card-content>
       </mat-card>

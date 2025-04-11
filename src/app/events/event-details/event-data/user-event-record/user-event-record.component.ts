@@ -94,7 +94,7 @@ import { map, Subject, switchMap, tap } from 'rxjs';
               click aquí: <a mat-button routerLink="register">Completar Pago</a>
               <br />
               Si consideras que es un error, por favor, contacta a soporte:
-              <a mat-button href="https://wa.me/59177996059" target="_blank">
+              <a mat-button href="https://wa.me/34645215128" target="_blank">
                 Soporte
               </a>
             }

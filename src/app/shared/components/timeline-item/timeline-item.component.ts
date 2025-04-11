@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="timeline-item">
       <div class="timeline-item__date">
-        <b>{{ date() | date: 'd MMM' }}</b>
+        <b>{{ date() | date: 'd MMM yyyy' }}</b>
         <span>{{ date() | date: 'HH:mm' }}</span>
       </div>
       <span class="timeline-item__line"></span>
