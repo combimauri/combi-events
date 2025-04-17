@@ -30,6 +30,7 @@ import {
   RecordRole,
 } from '@core/models';
 import { AuthService, EventRecordsService } from '@core/services';
+import { LoadingState } from '@core/states';
 import { translations } from '@core/utils';
 import {
   CredentialComponent,
@@ -39,7 +40,8 @@ import {
   WhatsappSendFormComponent,
 } from '@shared/components';
 import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
-import { map, Observable, Subject, switchMap } from 'rxjs';
+import { mkConfig, generateCsv, download } from 'export-to-csv';
+import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { EventRecordNotesComponent } from './event-record-notes/event-record-notes.component';
 
 @Component({
@@ -62,12 +64,22 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
     ValidatedSelectorComponent,
   ],
   template: `
-    <div class="event-records-table__filters">
-      <combi-search-box (search)="searchRecord($event)" />
-      <combi-role-selector (selectRoleValue)="filterByRoleValue($event)" />
-      <combi-validated-selector
-        (selectValidatedValue)="filterByValidatedValue($event)"
-      />
+    <div class="event-records-table__header">
+      <div class="event-records-table__filters">
+        <combi-search-box (search)="searchRecord($event)" />
+        <combi-role-selector (selectRoleValue)="filterByRoleValue($event)" />
+        <combi-validated-selector
+          (selectValidatedValue)="filterByValidatedValue($event)"
+        />
+      </div>
+      <button
+        mat-flat-button
+        class="event-records-table__export-button"
+        [disabled]="loading()"
+        (click)="exportRecords()"
+      >
+        Exportar
+      </button>
     </div>
 
     <table
@@ -209,12 +221,24 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
     ]),
   ],
   styles: `
-    .event-records-table__filters {
+    .event-records-table__header {
+      align-items: center;
       display: flex;
       flex-wrap: wrap;
       gap: 0.25rem;
-      justify-content: flex-end;
+      justify-content: space-between;
       margin-top: 1rem;
+
+      .event-records-table__filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        justify-content: flex-end;
+      }
+
+      .event-records-table__export-button {
+        margin-left: auto;
+      }
     }
 
     th,
@@ -275,6 +299,7 @@ export class EventRecordsTableComponent {
     notes: string;
   }>();
   readonly #user = toSignal(inject(AuthService).user$);
+  readonly #exportCSV = new Subject<PageEventRecords>();
 
   readonly #filters: Record<string, unknown> = {
     role: null,
@@ -295,6 +320,7 @@ export class EventRecordsTableComponent {
   readonly eventId = input.required<string>();
   readonly eventName = input.required<string>();
   readonly isHandset = toSignal(this.#isHandset$);
+  readonly loading = inject(LoadingState).loading;
   readonly translations = translations;
 
   readonly displayedColumns = toSignal(
@@ -319,6 +345,19 @@ export class EventRecordsTableComponent {
       ),
     ),
   );
+  readonly exportCSV = toSignal(
+    this.#exportCSV.pipe(
+      switchMap(({ eventId }) =>
+        this.#eventRecordsService.getAllRecordsForExport(
+          eventId,
+          this.sortState,
+          this.searchTerm,
+          this.#filters,
+        ),
+      ),
+      tap((records) => this.buildAndDownloadCSV(records)),
+    ),
+  );
 
   constructor() {
     effect(() => this.loadFirstEventRecords(this.eventId()));
@@ -336,6 +375,12 @@ export class EventRecordsTableComponent {
     this.searchTerm = term.replace(/\s/g, '').toLowerCase();
 
     this.resetTable();
+  }
+
+  exportRecords(): void {
+    const eventId = this.eventId();
+
+    this.#exportCSV.next({ eventId });
   }
 
   handleSortChange(sortState: Sort): void {
@@ -455,5 +500,30 @@ export class EventRecordsTableComponent {
     this.recordsTotal = listing?.total ?? 0;
 
     return listing?.items ? [...listing.items] : [];
+  }
+
+  private buildAndDownloadCSV(records: EventRecord[] | undefined): void {
+    if (!records) {
+      return;
+    }
+
+    const csvConfig = mkConfig({ useKeysAsHeaders: true });
+    const data = records.map((record) => {
+      return {
+        name: record.fullName,
+        email: record.email,
+        role: record.role,
+        validated: record.validated,
+        notes: record.notes,
+        couponId: record.couponId,
+        createdAt: record.createdAt?.toDate().toLocaleString(),
+        updatedAt: record.updatedAt?.toDate().toLocaleString(),
+        registeredAt: record.registeredAt?.toDate().toLocaleString(),
+        ...record.additionalAnswers,
+      };
+    });
+    const csv = generateCsv(csvConfig)(data);
+
+    download(csvConfig)(csv);
   }
 }

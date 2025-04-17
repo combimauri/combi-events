@@ -29,6 +29,32 @@ export abstract class TableRecordsService<T> {
   protected readonly loadEffectObserver = loadEffect();
   protected readonly logger = inject(LoggerService);
 
+  getAllRecordsForExport(
+    id: string,
+    { active, direction }: Sort,
+    searchTerm: string,
+    filters: Record<string, unknown>,
+  ): Observable<T[] | undefined> {
+    const directionToSort = direction === 'asc' ? 'asc' : 'desc';
+    const recordsCollection = query(
+      collection(this.firestore, this.collectionName),
+    );
+    let recordsQuery = query(recordsCollection);
+    recordsQuery = this.addFiltersToQuery(recordsQuery, filters);
+    recordsQuery = this.addSearchTermToQuery(recordsQuery, searchTerm);
+    recordsQuery = query(
+      recordsQuery,
+      where(this.idColumn, '==', id),
+      orderBy(active, directionToSort),
+    );
+
+    return (collectionData(recordsQuery) as Observable<T[]>).pipe(
+      tap(this.loadEffectObserver),
+      take(1),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
   getRecords(
     id: string,
     pageSize: number,
