@@ -90,10 +90,16 @@ import { map, Subject, switchMap, tap } from 'rxjs';
               Encontramos tu registro, pero el pago aún no fue validado. Espera
               unos segundos mientras lo verificamos.
             } @else if (!validatedRecordResult()) {
-              No pudimos validar tu pago. Por favor, completa el mismo haciendo
-              click aquí: <a mat-button routerLink="register">Completar Pago</a>
+              @if (eventRecord().orderId || !eventRecord().paymentReceipts?.length) {
+                No pudimos validar tu pago. Por favor, completa el mismo
+                haciendo click aquí:
+                <a mat-button routerLink="register">Completar Pago</a>
+              } @else {
+                Validaremos tu pago y aquí aparecerá tu entrada hasta 1 día
+                previo al evento. ¡Nos vemos ahí!
+              }
               <br />
-              Si consideras que es un error, por favor, contacta a soporte:
+              Si consideras que hay un error, por favor, contacta a soporte:
               <a mat-button href="https://wa.me/34645215128" target="_blank">
                 Soporte
               </a>
@@ -165,7 +171,7 @@ export class UserEventRecordComponent {
   }
 
   private triggerPaymentValidation(eventRecord: EventRecord): void {
-    if (!eventRecord || eventRecord?.validated) {
+    if (!eventRecord || eventRecord?.validated || !eventRecord?.orderId) {
       return;
     }
 

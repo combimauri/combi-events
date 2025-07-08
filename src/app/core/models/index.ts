@@ -15,3 +15,4 @@ export * from './registration-step.enum';
 export * from './registry.enum';
 export * from './session-record.model';
 export * from './session.model';
+export * from './simple-qr.model';

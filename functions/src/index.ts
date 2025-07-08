@@ -20,7 +20,10 @@ import {
   updateEventRecord,
 } from './utils/event-records.utils';
 import { upsertPayment } from './utils/payments.utils';
-import { getWolipayIFrame, getPaymentByExternalId } from './utils/wolipay.utils';
+import {
+  getWolipayIFrame,
+  getPaymentByExternalId,
+} from './utils/wolipay.utils';
 import { AuthData } from 'firebase-functions/tasks';
 import {
   addProductRecord,
@@ -198,6 +201,70 @@ export const deleteSessionOrder = onCall(
   },
 );
 
+export const createSimpleEventOrder = onCall(
+  { secrets },
+  async (request: CallableRequest<any>) => {
+    const auth = getAuth(request);
+    const { eventId, fullName, additionalAnswers, couponId } =
+      getRequestOrderData(request);
+    const event = await getEventById(eventId);
+
+    if (!event) {
+      throw new HttpsError('internal', 'El evento no existe.');
+    }
+
+    if (event.count >= event.capacity) {
+      throw new HttpsError('resource-exhausted', 'El evento está lleno.');
+    }
+
+    const email = auth.token.email!;
+    const existingRecord = await getExistingEventRecord(email, eventId);
+    const coupon = await getCouponByIdAndEventId(couponId, eventId);
+
+    const eventRecord: PartialEventRecord = {
+      additionalAnswers,
+      email,
+      eventId,
+      fullName,
+      role: RecordRole.Attendee,
+      searchTerm: fullName.replace(/\s/g, '').toLowerCase(),
+      validated: false,
+    };
+
+    if (coupon) {
+      eventRecord.couponId = coupon.id;
+
+      if (coupon.recordLabel) {
+        eventRecord.role = coupon.recordLabel;
+      }
+    } else {
+      delete existingRecord?.couponId;
+    }
+
+    const upsertedRecord = existingRecord
+      ? await updateEventRecord(eventRecord, existingRecord)
+      : await addEventRecord(eventRecord);
+
+    if (!upsertedRecord) {
+      throw new HttpsError('internal', 'Error al crear la orden.');
+    }
+
+    const { id: recordId, couponId: usedCouponId, validated } = upsertedRecord;
+
+    if (validated) {
+      await incrementEventCount(eventId);
+
+      if (usedCouponId) {
+        await incrementCouponCount(usedCouponId);
+      }
+    }
+
+    return {
+      recordId,
+    };
+  },
+);
+
 export const createEventOrder = onCall(
   { secrets },
   async (request: CallableRequest<any>) => {
@@ -322,13 +389,8 @@ export const createProductOrder = onCall(
       wolipayBasePath,
       wolipayProductNotifyUrl,
     } = getEnvironmentVariables();
-    const {
-      eventId,
-      fullName,
-      additionalAnswers,
-      productId,
-      couponId,
-    } = getRequestOrderData(request, true);
+    const { eventId, fullName, additionalAnswers, productId, couponId } =
+      getRequestOrderData(request, true);
     const product = await getProductById(productId);
 
     if (!product) {
@@ -444,7 +506,7 @@ export const validateEventPayment = onRequest(
       return;
     }
 
-    const { paymentId } = eventRecord;
+    const paymentId = eventRecord.paymentId!;
     let status = '';
 
     if (orderId !== paymentId) {
@@ -614,13 +676,8 @@ function getRequestOrderData(
   productId: string;
   couponId: string;
 } {
-  const {
-    eventId,
-    fullName,
-    additionalAnswers,
-    productId,
-    couponId,
-  } = request.data;
+  const { eventId, fullName, additionalAnswers, productId, couponId } =
+    request.data;
 
   if (!eventId || !fullName || !additionalAnswers) {
     throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
@@ -642,9 +699,9 @@ function getRequestOrderData(
 async function getExistingEventRecord(
   email: string,
   eventId: string,
-  wolipayEmail: string,
-  wolipayPassword: string,
-  wolipayBasePath: string,
+  wolipayEmail?: string,
+  wolipayPassword?: string,
+  wolipayBasePath?: string,
 ): Promise<EventRecord | null> {
   const existingRecord = await getFirstEventRecord(eventId, email);
 
@@ -654,14 +711,18 @@ async function getExistingEventRecord(
         'already-exists',
         'Ya estás registrado en este evento.',
       );
-    } else if (existingRecord.paymentId === existingRecord.orderId) {
+    } else if (
+      existingRecord.paymentId &&
+      existingRecord.orderId &&
+      existingRecord.paymentId === existingRecord.orderId
+    ) {
       throw new HttpsError(
         'already-exists',
         'Ya estás registrado en este evento gratuito.',
       );
-    } else {
+    } else if (wolipayEmail && wolipayPassword && wolipayBasePath) {
       const existingPayment = await getPaymentByExternalId(
-        existingRecord.paymentId,
+        existingRecord.paymentId!,
         wolipayEmail,
         wolipayPassword,
         wolipayBasePath,
