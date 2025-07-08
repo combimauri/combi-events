@@ -117,9 +117,13 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   }>();
   readonly #billingData = toSignal(
     this.#getBillingData$.pipe(
-      switchMap(({ eventId, billing }) =>
-        this.#eventRecordsService.registerRecord(eventId, billing),
-      ),
+      switchMap(({ eventId, billing }) => {
+        if (this.event()?.price.amount === 0) {
+          return this.#eventRecordsService.registerRecord(eventId, billing);
+        }
+
+        return this.#eventRecordsService.registerSimpleRecord(eventId, billing);
+      }),
     ),
   );
   readonly #paymentValidated = computed(
