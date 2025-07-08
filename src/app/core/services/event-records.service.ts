@@ -83,13 +83,22 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     const response = httpsCallable(
       this.#functions,
       // Use createEventOrder when automatic payments are back
-      // 'createEventOrder',
-      'createSimpleEventOrder',
+      'createEventOrder',
+      // 'createSimpleEventOrder',
     )({ eventId, fullName, additionalAnswers, couponId });
 
     return from(response).pipe(
       tap(this.loadEffectObserver),
       map((result) => result.data as BillingData),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
+  setEventRecordValidation(id: string, validated: boolean): Observable<void> {
+    const recordRef = doc(this.firestore, this.collectionName, id);
+
+    return from(setDoc(recordRef, { validated }, { merge: true })).pipe(
+      tap(this.loadEffectObserver),
       catchError((error) => handleError(error, this.logger)),
     );
   }
