@@ -16,7 +16,7 @@ export const exitRegistrationGuard: CanDeactivateFn<{
       break;
     case RegistrationStep.payment:
       message =
-        'Tu pago se está procesando, ¿estás seguro de querer salir? Si Wolipay indica que tu pago fue exitoso, no te preocupes, tu registro se completó correctamente.';
+        'Tu pago se está procesando, ¿estás seguro de querer salir? Si ya subiste tu comprobante o la pasarela indica que tu pago fue exitoso, no te preocupes, tu registro se completó correctamente.';
       break;
   }
 

@@ -2,6 +2,7 @@ export * from './back-button/back-button.component';
 export * from './credential/credential.component';
 export * from './page-title/page-title.component';
 export * from './payment-card/payment-card.component';
+export * from './payment-card/upload-box/upload-box.component';
 export * from './price-details/price-details.component';
 export * from './product-card/product-card.component';
 export * from './role-selector/role-selector.component';

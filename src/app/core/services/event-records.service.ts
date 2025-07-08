@@ -17,6 +17,7 @@ import {
   BillingRecord,
   EventRecord,
   RegisterRecordError,
+  SimpleQR,
 } from '@core/models';
 import { handleError } from '@core/utils';
 import {
@@ -81,7 +82,9 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
   ): Observable<BillingData | undefined> {
     const response = httpsCallable(
       this.#functions,
-      'createEventOrder',
+      // Use createEventOrder when automatic payments are back
+      // 'createEventOrder',
+      'createSimpleEventOrder',
     )({ eventId, fullName, additionalAnswers, couponId });
 
     return from(response).pipe(
@@ -96,6 +99,17 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
 
     return from(setDoc(recordRef, { notes }, { merge: true })).pipe(
       tap(this.loadEffectObserver),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
+  associateMainPaymentReceipt(id: string, link: string): Observable<void> {
+    const recordRef = doc(this.firestore, this.collectionName, id);
+    const paymentReceipts: SimpleQR[] = [{ id: 'main', link }];
+
+    return from(setDoc(recordRef, { paymentReceipts }, { merge: true })).pipe(
+      tap(this.loadEffectObserver),
+      take(1),
       catchError((error) => handleError(error, this.logger)),
     );
   }

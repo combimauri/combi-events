@@ -7,8 +7,8 @@ export interface PartialEventRecord {
   email: string;
   eventId: string;
   fullName: string;
-  orderId: string;
-  paymentId: string;
+  orderId?: string;
+  paymentId?: string;
   role: RecordRole;
   searchTerm: string;
   validated: boolean;

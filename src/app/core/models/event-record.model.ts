@@ -1,6 +1,7 @@
 import { Timestamp } from '@angular/fire/firestore';
 import { BillingRecord } from './billing-record.model';
 import { RecordRole } from './record-role.enum';
+import { SimpleQR } from './simple-qr.model';
 
 export interface PartialEventRecord extends BillingRecord {
   eventId: string;
@@ -17,4 +18,5 @@ export interface EventRecord extends PartialEventRecord {
   id: string;
   updatedAt: Timestamp;
   validated: boolean;
+  paymentReceipts?: SimpleQR[];
 }
