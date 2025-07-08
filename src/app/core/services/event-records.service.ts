@@ -110,7 +110,7 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     );
   }
 
-  setEventRecordValidation(id: string, validated: boolean): Observable<void> {
+  updateRecordValidation(id: string, validated: boolean): Observable<void> {
     const recordRef = doc(this.firestore, this.collectionName, id);
 
     return from(setDoc(recordRef, { validated }, { merge: true })).pipe(
