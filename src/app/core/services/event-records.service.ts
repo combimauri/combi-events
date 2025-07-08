@@ -76,15 +76,14 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     );
   }
 
+  // This should be used only for free events until the payment service is restored
   registerRecord(
     eventId: string,
     { additionalAnswers, fullName, couponId }: BillingRecord,
   ): Observable<BillingData | undefined> {
     const response = httpsCallable(
       this.#functions,
-      // Use createEventOrder when automatic payments are back
       'createEventOrder',
-      // 'createSimpleEventOrder',
     )({ eventId, fullName, additionalAnswers, couponId });
 
     return from(response).pipe(
@@ -94,7 +93,24 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     );
   }
 
-  setEventRecordValidation(id: string, validated: boolean): Observable<void> {
+  // Temporary replacement for paid events
+  registerSimpleRecord(
+    eventId: string,
+    { additionalAnswers, fullName, couponId }: BillingRecord,
+  ): Observable<BillingData | undefined> {
+    const response = httpsCallable(
+      this.#functions,
+      'createSimpleEventOrder',
+    )({ eventId, fullName, additionalAnswers, couponId });
+
+    return from(response).pipe(
+      tap(this.loadEffectObserver),
+      map((result) => result.data as BillingData),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
+  updateRecordValidation(id: string, validated: boolean): Observable<void> {
     const recordRef = doc(this.firestore, this.collectionName, id);
 
     return from(setDoc(recordRef, { validated }, { merge: true })).pipe(

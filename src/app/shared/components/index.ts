@@ -1,4 +1,5 @@
 export * from './back-button/back-button.component';
+export * from './confirmation-dialog/confirmation-dialog.component';
 export * from './credential/credential.component';
 export * from './page-title/page-title.component';
 export * from './payment-card/payment-card.component';

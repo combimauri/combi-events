@@ -43,6 +43,7 @@ import { QuestionLabelPipe, TranslateBooleanPipe } from '@shared/pipes';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { EventRecordNotesComponent } from './event-record-notes/event-record-notes.component';
+import { EventRecordReceiptsComponent } from './event-record-receipts/event-record-receipts.component';
 
 @Component({
   selector: 'combi-event-records-table',
@@ -51,6 +52,7 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
     CredentialComponent,
     DatePipe,
     EventRecordNotesComponent,
+    EventRecordReceiptsComponent,
     KeyValuePipe,
     MatButtonModule,
     MatIconModule,
@@ -160,7 +162,7 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
                 </dd>
               }
 
-              <dd>
+              <dt>
                 <combi-credential
                   #credential
                   hidden
@@ -173,12 +175,19 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
                 >
                   Descargar Credencial
                 </button>
-              </dd>
+              </dt>
             </dl>
-            <combi-event-record-notes
-              [notes]="element.notes"
-              (notesChange)="saveNotes(element, $event)"
-            />
+            <div class="event-records-table__expansion-actions">
+              <combi-event-record-receipts
+                [paymentReceipts]="element.paymentReceipts"
+                [validated]="element.validated"
+                (toggleValidation)="toggleValidation(element)"
+              />
+              <combi-event-record-notes
+                [notes]="element.notes"
+                (notesChange)="saveNotes(element, $event)"
+              />
+            </div>
           </div>
         </td>
       </ng-container>
@@ -283,7 +292,7 @@ import { EventRecordNotesComponent } from './event-record-notes/event-record-not
         }
       }
 
-      combi-event-record-notes {
+      .event-records-table__expansion-actions {
         flex-grow: 1;
       }
     }
@@ -294,8 +303,12 @@ export class EventRecordsTableComponent {
   readonly #dialog = inject(MatDialog);
   readonly #eventRecordsService = inject(EventRecordsService);
   readonly #pageEventRecords$ = new Subject<PageEventRecords>();
+  readonly #updateValidation$ = new Subject<{
+    recordId: string;
+    validated: boolean;
+  }>();
   readonly #updateNotes$ = new Subject<{
-    record: EventRecord;
+    recordId: string;
     notes: string;
   }>();
   readonly #user = toSignal(inject(AuthService).user$);
@@ -338,10 +351,17 @@ export class EventRecordsTableComponent {
     ),
     { initialValue: [] },
   );
+  readonly updateValidation = toSignal(
+    this.#updateValidation$.pipe(
+      switchMap(({ recordId, validated }) =>
+        this.#eventRecordsService.updateRecordValidation(recordId, validated),
+      ),
+    ),
+  );
   readonly updateNotes = toSignal(
     this.#updateNotes$.pipe(
-      switchMap(({ record, notes }) =>
-        this.#eventRecordsService.updateRecordNotes(record.id, notes),
+      switchMap(({ recordId, notes }) =>
+        this.#eventRecordsService.updateRecordNotes(recordId, notes),
       ),
     ),
   );
@@ -445,12 +465,21 @@ export class EventRecordsTableComponent {
     });
   }
 
+  toggleValidation(record: EventRecord): void {
+    record.validated = !record.validated;
+    const { id: recordId, validated } = record;
+
+    this.#updateValidation$.next({ recordId, validated });
+  }
+
   saveNotes(record: EventRecord, notes: string): void {
     if (record.notes === notes) {
       return;
     }
 
-    this.#updateNotes$.next({ record, notes });
+    const { id: recordId } = record;
+
+    this.#updateNotes$.next({ recordId, notes });
   }
 
   private resetTable(): void {
