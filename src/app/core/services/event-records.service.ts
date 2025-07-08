@@ -16,8 +16,8 @@ import {
   BillingData,
   BillingRecord,
   EventRecord,
+  PaymentReceipts,
   RegisterRecordError,
-  SimpleQR,
 } from '@core/models';
 import { handleError } from '@core/utils';
 import {
@@ -128,9 +128,9 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     );
   }
 
-  associateMainPaymentReceipt(id: string, link: string): Observable<void> {
+  associateMainPaymentReceipt(id: string, links: string[]): Observable<void> {
     const recordRef = doc(this.firestore, this.collectionName, id);
-    const paymentReceipts: SimpleQR[] = [{ id: 'main', link }];
+    const paymentReceipts: PaymentReceipts[] = [{ id: 'main', links }];
 
     return from(setDoc(recordRef, { paymentReceipts }, { merge: true })).pipe(
       tap(this.loadEffectObserver),
