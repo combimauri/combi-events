@@ -8,26 +8,29 @@ import { SanitizeUrlPipe } from '@shared/pipes';
   standalone: true,
   imports: [MatCardModule, SanitizeUrlPipe],
   template: `
-    <mat-card appearance="outlined">
-      <mat-card-header>
-        <mat-card-title>
-          <h4>Ubicación</h4>
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <iframe
-          class="event-location"
-          [src]="
-            'https://maps.google.com/maps?q=' +
-              event().location.geolocation.latitude +
-              ',' +
-              event().location.geolocation.longitude +
-              '&hl=es&z=14&amp;output=embed' | sanitizeUrl
-          "
-        >
-        </iframe>
-      </mat-card-content>
-    </mat-card>
+    @let geolocation = event().location.geolocation;
+    @if (geolocation) {
+      <mat-card appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>
+            <h4>Ubicación</h4>
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <iframe
+            class="event-location"
+            [src]="
+              'https://maps.google.com/maps?q=' +
+                geolocation.latitude +
+                ',' +
+                geolocation.longitude +
+                '&hl=es&z=14&amp;output=embed' | sanitizeUrl
+            "
+          >
+          </iframe>
+        </mat-card-content>
+      </mat-card>
+    }
   `,
   styles: `
     .event-location {

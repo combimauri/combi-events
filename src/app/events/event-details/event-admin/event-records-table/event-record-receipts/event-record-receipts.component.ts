@@ -35,9 +35,9 @@ import { Subject, switchMap, tap } from 'rxjs';
         [disabled]="loading()"
       >
         @if (validated()) {
-          Invalidar Pago
+          Invalidar Registro
         } @else {
-          Validar Pago
+          Validar Registro
         }
       </button>
     </div>
@@ -64,8 +64,11 @@ export class EventRecordReceiptsComponent {
   readonly afterDialogClosed = toSignal(
     this.openConfirmationDialog$.pipe(
       switchMap(() => {
-        const title = this.validated() ? 'Invalidar Pago' : 'Validar Pago';
-        const content = `Estás a punto de ${this.validated() ? 'invalidar' : 'validar'} el pago, ¿quieres proceder?`;
+        const title = this.validated()
+          ? 'Invalidar Registro'
+          : 'Validar Registro';
+        const content = `Estás a punto de ${this.validated() ? 'invalidar' : 'validar'} este registro, ¿quieres proceder?`;
+
         return this.dialog
           .open(ConfirmationDialogComponent, {
             data: { title, content },

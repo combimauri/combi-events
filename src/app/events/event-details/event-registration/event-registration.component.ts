@@ -7,6 +7,8 @@ import {
   inject,
   OnDestroy,
   OnInit,
+  signal,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { getDownloadURL, UploadTask } from '@angular/fire/storage';
@@ -74,7 +76,7 @@ import { EventRegistrationFormComponent } from './event-registration-form/event-
         <combi-payment-card
           [iFrameUrl]="iFrameUrl()"
           [qrs]="event()?.price?.qrs"
-          (uploadReceipt)="uploadPaymentReceipt($event)"
+          (uploadReceipts)="uploadPaymentReceipts($event)"
         />
       }
     }
@@ -110,6 +112,8 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #registrationStepState = inject(RegistrationStepState);
   readonly #route = inject(ActivatedRoute);
   readonly #router = inject(Router);
+  readonly #selectedFiles = signal<File[]>([]);
+  readonly #uploadedFilesLinks = signal<string[]>([]);
 
   readonly #getBillingData$ = new Subject<{
     eventId: string;
@@ -129,22 +133,26 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #paymentValidated = computed(
     () => !!this.realtimeEventRecord()?.validated,
   );
-  readonly #hasPaymentReceipt = computed(
+  readonly #hasPaymentReceipts = computed(
     () => !!this.realtimeEventRecord()?.paymentReceipts?.length,
   );
 
-  readonly #triggerAssociateReceipt = new Subject<{
+  readonly #triggerAssociateReceipt$ = new Subject<{
     eventRecordId: string;
-    link: string;
+    links: string[];
   }>();
   readonly handleAssociateReceipt = toSignal(
-    this.#triggerAssociateReceipt.pipe(
-      switchMap(({ eventRecordId, link }) =>
-        this.#eventRecordsService.associateMainPaymentReceipt(
+    this.#triggerAssociateReceipt$.pipe(
+      switchMap(({ eventRecordId, links }) => {
+        this.#logger.handleSuccess(
+          'Pronto serás redirigido a la página principal del evento.',
+        );
+
+        return this.#eventRecordsService.associateMainPaymentReceipt(
           eventRecordId,
-          link,
-        ),
-      ),
+          links,
+        );
+      }),
     ),
   );
 
@@ -163,6 +171,29 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     ),
   );
 
+  registerReceiptsLinksIntoEventRecord = effect(() => {
+    const selectedFiles = [...this.#selectedFiles()];
+    const links = [...this.#uploadedFilesLinks()];
+
+    if (!selectedFiles.length) {
+      return;
+    }
+
+    if (selectedFiles.length === links.length) {
+      untracked(() => {
+        const eventRecord = this.#eventRecord();
+
+        if (!eventRecord) {
+          return;
+        }
+
+        const { id: eventRecordId } = eventRecord;
+
+        this.#triggerAssociateReceipt$.next({ eventRecordId, links });
+      });
+    }
+  });
+
   constructor() {
     effect(() => {
       const eventRecordId =
@@ -179,8 +210,10 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
       }
     });
     effect(() => {
-      if (this.#hasPaymentReceipt()) {
-        this.#logger.handleSuccess('¡Tu comprobante de pago fue registrado!');
+      if (this.#hasPaymentReceipts()) {
+        this.#logger.handleSuccess(
+          '¡Tu(s) comprobante(s) de pago fue(ron) registrado(s)!',
+        );
         this.#router.navigate(['..'], { relativeTo: this.#route });
       }
     });
@@ -188,7 +221,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
 
   @HostListener('window:beforeunload')
   canDeactivate(): boolean {
-    return this.#paymentValidated() || this.#hasPaymentReceipt();
+    return this.#paymentValidated() || this.#hasPaymentReceipts();
   }
 
   ngOnInit(): void {
@@ -220,23 +253,25 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     this.#registrationStepState.setRegistrationStep(RegistrationStep.payment);
   }
 
-  uploadPaymentReceipt(file: File | null): void {
+  uploadPaymentReceipts(files: File[] | null): void {
     const eventRecord = this.#eventRecord();
 
-    if (!eventRecord || !file) {
+    if (!eventRecord || !files || !files.length) {
       return;
     }
 
     const { id } = eventRecord;
-    const uploadTask = this.#paymentsService.uploadPaymentReceipt(id, file);
 
-    this.handleReceiptUpload(id, uploadTask);
+    this.#uploadedFilesLinks.set([]);
+    this.#selectedFiles.set(files);
+    this.#selectedFiles().forEach((file) => {
+      const uploadTask = this.#paymentsService.uploadPaymentReceipt(id, file);
+
+      this.handleReceiptUpload(uploadTask);
+    });
   }
 
-  private handleReceiptUpload(
-    eventRecordId: string,
-    uploadTask: UploadTask,
-  ): void {
+  private handleReceiptUpload(uploadTask: UploadTask): void {
     this.#loadingState.startLoading();
     uploadTask.on(
       'state_changed',
@@ -251,12 +286,9 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((link) =>
-          this.#triggerAssociateReceipt.next({ eventRecordId, link }),
+          this.#uploadedFilesLinks.set([...this.#uploadedFilesLinks(), link]),
         );
         this.#loadingState.stopLoading();
-        this.#logger.handleSuccess(
-          'Pronto serás redirigido a la página principal del evento.',
-        );
       },
     );
   }
