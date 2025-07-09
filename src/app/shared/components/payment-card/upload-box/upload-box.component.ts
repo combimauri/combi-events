@@ -26,27 +26,30 @@ import { DragAndDropDirective } from '@shared/directives';
     <div
       combiDragAndDrop
       class="upload-box"
-      [class.upload-box--enabled]="!loading() && !selectedFile()"
-      [enabled]="!loading() && !selectedFile()"
+      [class.upload-box--enabled]="!loading() && !selectedFiles()"
+      [enabled]="!loading() && !selectedFiles()"
       (click)="fileInput.click()"
       (selectFiles)="handleSelectFiles($event)"
     >
-      @if (selectedFile(); as file) {
-        <span class="upload-box__file-data">
-          {{ file.name }}
-          @if (!loading()) {
-            <button
-              mat-icon-button
-              aria-label="Delete file icon"
-              (click)="selectedFile.set(null)"
-              [disabled]="loading()"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-          } @else {
-            <mat-spinner [diameter]="24"></mat-spinner>
-          }
-        </span>
+      @if (selectedFiles()?.length) {
+        @for (file of selectedFiles(); track file) {
+          <span class="upload-box__file-data">
+            {{ file.name }}
+          </span>
+        }
+
+        @if (!loading()) {
+          <button
+            mat-icon-button
+            aria-label="Delete file icon"
+            (click)="selectedFiles.set(null)"
+            [disabled]="loading()"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        } @else {
+          <mat-spinner [diameter]="24"></mat-spinner>
+        }
       } @else {
         <mat-icon
           aria-hidden="false"
@@ -54,7 +57,7 @@ import { DragAndDropDirective } from '@shared/directives';
           fontIcon="cloud_upload"
           class="upload-box__upload-icon"
         ></mat-icon>
-        <p>Haz click, o arrastra y suelta tu comprobante de pago aquí.</p>
+        <p>Haz click, o arrastra y suelta tu(s) comprobante(s) de pago aquí.</p>
       }
     </div>
     <input
@@ -62,7 +65,8 @@ import { DragAndDropDirective } from '@shared/directives';
       type="file"
       accept="image/*,.pdf"
       hidden
-      [disabled]="loading() || selectedFile()"
+      multiple
+      [disabled]="loading() || selectedFiles()"
       (change)="handleInputChange($event)"
     />
   `,
@@ -101,9 +105,7 @@ import { DragAndDropDirective } from '@shared/directives';
       }
 
       .upload-box__file-data {
-        align-items: center;
-        display: flex;
-        justify-content: center;
+        margin-bottom: 8px;
       }
 
       .upload-box__upload-icon {
@@ -118,10 +120,10 @@ import { DragAndDropDirective } from '@shared/directives';
 export class UploadBoxComponent {
   loading = inject(LoadingState).loading;
 
-  selectFile = output<File | null>();
-  protected selectedFile = signal<File | null>(null);
+  selectFile = output<File[] | null>();
+  protected selectedFiles = signal<File[] | null>(null);
   protected selectFileEffect = effect(() =>
-    this.selectFile.emit(this.selectedFile()),
+    this.selectFile.emit(this.selectedFiles()),
   );
 
   #logger = inject(LoggerService);
@@ -134,18 +136,21 @@ export class UploadBoxComponent {
     }
   }
 
-  handleSelectFiles(files: FileList | null): void {
-    if (this.loading() || !files || !files.length) {
+  handleSelectFiles(fileList: FileList | null): void {
+    if (this.loading() || !fileList || !fileList.length) {
       return;
     }
 
-    const file = files[0];
+    const files = Array.from(fileList || []).filter(
+      (file) =>
+        file.type.startsWith('image/') || file.type === 'application/pdf',
+    );
 
-    if (file.type.startsWith('image/') || file.type === 'application/pdf') {
-      this.selectedFile.set(file);
+    if (files.length) {
+      this.selectedFiles.set(files);
     } else {
       this.#logger.handleError(
-        'El comprobante de pago debe ser una imagen o un pdf.',
+        'El/los comprobante(s) de pago debe(n) ser de formato imagen o pdf.',
       );
     }
   }

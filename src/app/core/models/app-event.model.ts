@@ -17,7 +17,7 @@ export interface AppEvent {
   id: string;
   image: string;
   listEvent: boolean;
-  location: { name: string; geolocation: GeoPoint };
+  location: { name: string; geolocation?: GeoPoint };
   maxSessionsPerUser: number;
   name: string;
   openMarketplace: boolean;

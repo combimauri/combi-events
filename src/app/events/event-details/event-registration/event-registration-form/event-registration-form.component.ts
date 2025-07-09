@@ -1,10 +1,14 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   output,
+  signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -23,6 +27,7 @@ import {
 } from '@core/models';
 import { AuthService } from '@core/services';
 import { LoadingState, EventRecordState } from '@core/states';
+import { map, of, Subject, switchMap } from 'rxjs';
 
 @Component({
   selector: 'combi-event-registration-form',
@@ -80,52 +85,59 @@ import { LoadingState, EventRecordState } from '@core/states';
       </mat-card>
 
       @for (question of answeredQuestions(); track question.key) {
-        <mat-card appearance="outlined">
-          <mat-card-header>
-            <mat-card-title>
-              <p [innerHTML]="question.label"></p>
-            </mat-card-title>
-          </mat-card-header>
-          @if (question.type !== 'info') {
-            <mat-card-content>
-              <mat-form-field>
-                <mat-label>Tu respuesta</mat-label>
-                @switch (question.type) {
-                  @case ('text') {
-                    <input
-                      matInput
-                      type="text"
-                      [id]="question.key"
-                      [name]="question.key"
-                      [disabled]="loading()"
-                      [required]="question.required"
-                      [ngModel]="question.answer"
-                    />
+        @if (question.visible) {
+          <mat-card appearance="outlined">
+            <mat-card-header>
+              <mat-card-title>
+                <p [innerHTML]="question.label"></p>
+              </mat-card-title>
+              @if (question.description) {
+                <mat-card-subtitle>
+                  <p [innerHTML]="question.description"></p>
+                </mat-card-subtitle>
+              }
+            </mat-card-header>
+            @if (question.type !== 'info') {
+              <mat-card-content>
+                <mat-form-field>
+                  <mat-label>Tu respuesta</mat-label>
+                  @switch (question.type) {
+                    @case ('text') {
+                      <input
+                        matInput
+                        type="text"
+                        [id]="question.key"
+                        [name]="question.key"
+                        [disabled]="loading()"
+                        [required]="question.required"
+                        [ngModel]="question.answer"
+                      />
+                    }
+                    @case ('select') {
+                      <mat-select
+                        [id]="question.key"
+                        [name]="question.key"
+                        [disabled]="loading()"
+                        [required]="question.required"
+                        [ngModel]="question.answer"
+                        [multiple]="question.multiple"
+                      >
+                        @if (!question.multiple && !question.required) {
+                          <mat-option value=""></mat-option>
+                        }
+                        @for (option of question.options; track option) {
+                          <mat-option [value]="option">
+                            {{ option }}
+                          </mat-option>
+                        }
+                      </mat-select>
+                    }
                   }
-                  @case ('select') {
-                    <mat-select
-                      [id]="question.key"
-                      [name]="question.key"
-                      [disabled]="loading()"
-                      [required]="question.required"
-                      [ngModel]="question.answer"
-                      [multiple]="question.multiple"
-                    >
-                      @if (!question.multiple && !question.required) {
-                        <mat-option value=""></mat-option>
-                      }
-                      @for (option of question.options; track option) {
-                        <mat-option [value]="option">
-                          {{ option }}
-                        </mat-option>
-                      }
-                    </mat-select>
-                  }
-                }
-              </mat-form-field>
-            </mat-card-content>
-          }
-        </mat-card>
+                </mat-form-field>
+              </mat-card-content>
+            }
+          </mat-card>
+        }
       }
 
       <button
@@ -148,6 +160,10 @@ import { LoadingState, EventRecordState } from '@core/states';
         font-size: 1rem;
       }
 
+      mat-card-subtitle p {
+        font-size: 0.875rem;
+      }
+
       mat-form-field {
         width: 100%;
       }
@@ -155,27 +171,61 @@ import { LoadingState, EventRecordState } from '@core/states';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventRegistrationFormComponent {
+export class EventRegistrationFormComponent implements AfterViewInit {
   readonly #eventRecord = inject(EventRecordState).eventRecord;
   readonly #user = toSignal(inject(AuthService).user$, { initialValue: null });
-
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
+  readonly finalAdditionalQuestions = signal<AdditionalQuestion[]>([]);
   readonly billingRecord = input<BillingRecord>();
   readonly eventForm = viewChild.required(NgForm);
   readonly loading = inject(LoadingState).loading;
   readonly price = input<Price>();
   readonly submitForm = output<BillingRecord>();
 
-  fullName = computed(() =>
+  readonly fullName = computed(() =>
     this.mapFullName(this.billingRecord(), this.#eventRecord(), this.#user()),
   );
-  answeredQuestions = computed(() =>
+  readonly answeredQuestions = computed(() =>
     this.mapQuestions(
       this.billingRecord(),
-      this.additionalQuestions(),
       this.#eventRecord(),
+      this.finalAdditionalQuestions(),
     ),
   );
+  readonly #afterViewInit$ = new Subject<void>();
+  readonly #eventFormValueChanges = toSignal(
+    this.#afterViewInit$.pipe(
+      switchMap(() => this.eventForm().valueChanges || of(null)),
+    ),
+  );
+
+  readonly mapVisibleAdditionalQuestions = effect(() => {
+    // TODO: Watch only fields with dependencies changes.
+    // Right now this is watching the whole form changes,
+    // which is inefficient.
+    const eventFormValues = this.#eventFormValueChanges();
+
+    untracked(() => {
+      const additionalQuestions = this.additionalQuestions();
+
+      this.finalAdditionalQuestions.set(
+        additionalQuestions.map((additionalQuestion) => {
+          if (additionalQuestion.dependsOn) {
+            const { question, answer } = additionalQuestion.dependsOn;
+            additionalQuestion.visible = eventFormValues[question] === answer;
+          } else {
+            additionalQuestion.visible = true;
+          }
+
+          return additionalQuestion;
+        }),
+      );
+    });
+  });
+
+  ngAfterViewInit(): void {
+    this.#afterViewInit$.next();
+  }
 
   register(): void {
     this.trimValues();
@@ -214,9 +264,13 @@ export class EventRegistrationFormComponent {
 
   private mapQuestions(
     billingRecord: BillingRecord | undefined,
-    questions: AdditionalQuestion[],
     eventRecord: EventRecord | null,
+    questions?: AdditionalQuestion[],
   ): AdditionalQuestion[] {
+    if (!questions) {
+      return [];
+    }
+
     const answers =
       billingRecord?.additionalAnswers || eventRecord?.additionalAnswers;
 

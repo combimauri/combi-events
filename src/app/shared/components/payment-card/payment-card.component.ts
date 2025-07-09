@@ -67,15 +67,15 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
             </div>
             <div class="payment-card__qr-upload-box">
               <p>
-                <b> Realiza el pago y sube tu comprobante. </b>
+                <b> Realiza el pago y sube tu(s) comprobante(s). </b>
               </p>
-              <combi-upload-box (selectFile)="selectedReceipt.set($event)" />
+              <combi-upload-box (selectFile)="selectedReceipts.set($event)" />
               <button
                 mat-flat-button
-                [disabled]="loading() || !selectedReceipt()"
-                (click)="uploadReceipt.emit(selectedReceipt())"
+                [disabled]="loading() || !selectedReceipts()"
+                (click)="uploadReceipts.emit(selectedReceipts())"
               >
-                Subir Comprobante
+                Subir Comprobante(s)
               </button>
             </div>
           </div>
@@ -168,9 +168,9 @@ export class PaymentCardComponent {
   readonly mainQr = computed(() => this.qrs()?.find((qr) => qr.id === 'main'));
   readonly qrLoaded = signal(false);
 
-  readonly selectedReceipt = signal<File | null>(null);
+  readonly selectedReceipts = signal<File[] | null>(null);
 
-  readonly uploadReceipt = output<File | null>();
+  readonly uploadReceipts = output<File[] | null>();
 
   readonly loading = inject(LoadingState).loading;
 }
