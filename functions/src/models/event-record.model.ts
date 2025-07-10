@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { RecordRole } from './record-role.enum';
 
 export interface PartialEventRecord {
-  additionalAnswers: Record<string, string>;
+  additionalAnswers: Record<string, string | string[]>;
   couponId?: string;
   email: string;
   eventId: string;
