@@ -10,7 +10,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { SimpleQR } from '@core/models';
+import { PaymentReceipts } from '@core/models';
 import { LoadingState } from '@core/states';
 import { ConfirmationDialogComponent } from '@shared/components';
 import { Subject, switchMap, tap } from 'rxjs';
@@ -20,14 +20,16 @@ import { Subject, switchMap, tap } from 'rxjs';
   standalone: true,
   imports: [MatButtonModule, MatIconModule],
   template: `
-    @let receipt = mainReceipt();
+    @let receipts = mainReceipt();
 
     <div class="event-record-receipts">
-      @if (receipt) {
-        <a mat-button target="_blank" rel="noreferrer" [href]="receipt.link">
-          Ver Comprobante De Pago
-          <mat-icon>open_in_new</mat-icon>
-        </a>
+      @if (receipts) {
+        @for (link of receipts.links; track link; let i = $index) {
+          <a mat-button target="_blank" rel="noreferrer" [href]="link">
+            Ver Comprobante De Pago {{ i + 1 }}
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+        }
       }
       <button
         mat-flat-button
@@ -54,7 +56,7 @@ import { Subject, switchMap, tap } from 'rxjs';
 export class EventRecordReceiptsComponent {
   readonly loading = inject(LoadingState).loading;
   readonly validated = input<boolean>();
-  readonly paymentReceipts = input<SimpleQR[]>();
+  readonly paymentReceipts = input<PaymentReceipts[]>();
   protected readonly mainReceipt = computed(() =>
     this.paymentReceipts()?.find((receipt) => receipt.id === 'main'),
   );
