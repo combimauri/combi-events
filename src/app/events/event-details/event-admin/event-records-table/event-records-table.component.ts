@@ -538,6 +538,16 @@ export class EventRecordsTableComponent {
 
     const csvConfig = mkConfig({ useKeysAsHeaders: true });
     const data = records.map((record) => {
+      const answers = structuredClone(record.additionalAnswers);
+
+      Object.keys(record.additionalAnswers).forEach((key) => {
+        const value = answers[key];
+
+        if (Array.isArray(value)) {
+          answers[key] = value.join(';');
+        }
+      });
+
       return {
         name: record.fullName,
         email: record.email,
@@ -548,7 +558,7 @@ export class EventRecordsTableComponent {
         createdAt: record.createdAt?.toDate().toLocaleString(),
         updatedAt: record.updatedAt?.toDate().toLocaleString(),
         registeredAt: record.registeredAt?.toDate().toLocaleString(),
-        ...record.additionalAnswers,
+        ...answers,
       };
     });
     const csv = generateCsv(csvConfig)(data);

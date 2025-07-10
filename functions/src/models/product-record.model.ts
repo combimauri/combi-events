@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
 export interface PartialProductRecord {
-  additionalAnswers: Record<string, string>;
+  additionalAnswers: Record<string, string | string[]>;
   couponId?: string;
   label?: string;
   email: string;
