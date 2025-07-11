@@ -18,4 +18,8 @@ export interface EventRecord extends PartialEventRecord {
   createdAt: Timestamp;
   id: string;
   updatedAt: Timestamp;
+  paymentReceipts?: {
+    id: 'main' | string;
+    links: string[];
+  }[];
 }

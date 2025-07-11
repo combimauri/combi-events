@@ -51,6 +51,7 @@ import {
   PartialSessionRecord,
   SessionRecord,
 } from './models/session-record.model';
+import { sendReceiptRegistrationEmail } from './utils/mail.utils';
 
 initializeApp();
 
@@ -198,6 +199,36 @@ export const deleteSessionOrder = onCall(
     await decrementSessionCount(sessionId);
 
     return existingRecord;
+  },
+);
+
+export const sendPaymentReceiptEmail = onCall(
+  async (request: CallableRequest<any>) => {
+    const auth = getAuth(request);
+
+    const { eventId } = request.data;
+
+    if (!eventId) {
+      throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
+    }
+
+    const email = auth.token.email!;
+    const existingRecord = await getFirstEventRecord(eventId, email);
+
+    if (!existingRecord || !(existingRecord as EventRecord).id) {
+      throw new HttpsError(
+        'not-found',
+        'No te encuentras registrado en este evento.',
+      );
+    }
+
+    const event = await getEventById(eventId);
+
+    if (!event) {
+      throw new HttpsError('not-found', 'No se encontró el evento.');
+    }
+
+    await sendReceiptRegistrationEmail(event, existingRecord);
   },
 );
 

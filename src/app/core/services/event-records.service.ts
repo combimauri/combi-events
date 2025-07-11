@@ -11,7 +11,11 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
-import { Functions, httpsCallable } from '@angular/fire/functions';
+import {
+  Functions,
+  httpsCallable,
+  HttpsCallableResult,
+} from '@angular/fire/functions';
 import {
   BillingData,
   BillingRecord,
@@ -134,7 +138,6 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
 
     return from(setDoc(recordRef, { paymentReceipts }, { merge: true })).pipe(
       tap(this.loadEffectObserver),
-      take(1),
       catchError((error) => handleError(error, this.logger)),
     );
   }
@@ -158,6 +161,19 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
       }),
       catchError((error) => handleError(error, this.logger)),
     );
+  }
+
+  sendPaymentReceiptEmail(
+    eventId?: string,
+  ): Promise<HttpsCallableResult<unknown>> | void {
+    if (!eventId) {
+      return;
+    }
+
+    return httpsCallable(
+      this.#functions,
+      'sendPaymentReceiptEmail',
+    )({ eventId });
   }
 
   private updateRecord(
