@@ -63,6 +63,10 @@ import { Autoplay, Pagination } from 'swiper/modules';
       }
     }
 
+    .swiper-wrapper {
+      height: fit-content !important;
+    }
+
     .swiper-pagination {
       bottom: 0;
     }

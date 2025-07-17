@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   OnDestroy,
+  signal,
 } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { EventRecordState, EventState } from '@core/states';
@@ -17,7 +18,13 @@ import { EventRecordState, EventState } from '@core/states';
         class="event-details__banner"
         [alt]="event.name"
         [src]="event.bannerImage"
+        [hidden]="!bannerLoaded()"
+        (load)="bannerLoaded.set(true)"
       />
+
+      @if (!bannerLoaded()) {
+        <div class="event-details__banner-skeleton"></div>
+      }
 
       <router-outlet />
     }
@@ -31,7 +38,16 @@ import { EventRecordState, EventState } from '@core/states';
 
     .event-details__banner {
       border-radius: 0.75rem;
-      height: auto;
+      max-height: 360px;
+      object-fit: cover;
+      width: 100%;
+    }
+
+    .event-details__banner-skeleton {
+      animation: skeleton-loading 1s linear infinite alternate;
+      aspect-ratio: 3 / 1;
+      background-color: #636363;
+      border-radius: 0.75rem;
       width: 100%;
     }
   `,
@@ -41,7 +57,8 @@ export default class EventDetailsComponent implements OnDestroy {
   readonly #eventState = inject(EventState);
   readonly #eventRecordState = inject(EventRecordState);
 
-  readonly event = this.#eventState.event;
+  protected readonly event = this.#eventState.event;
+  protected readonly bannerLoaded = signal(false);
 
   ngOnDestroy(): void {
     this.#eventState.clearEvent();

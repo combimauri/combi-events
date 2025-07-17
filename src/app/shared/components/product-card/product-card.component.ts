@@ -1,5 +1,10 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatRippleModule } from '@angular/material/core';
@@ -27,7 +32,16 @@ import { Product } from '@core/models';
 
     <ng-template #productCard>
       <mat-card appearance="outlined">
-        <img mat-card-image [alt]="product().name" [src]="product().image" />
+        <img
+          mat-card-image
+          [alt]="product().name"
+          [src]="product().image"
+          [hidden]="!imageLoaded()"
+          (load)="imageLoaded.set(true)"
+        />
+        @if (!imageLoaded()) {
+          <div class="product-card__skeleton"></div>
+        }
         <mat-card-content>
           <h6 [class.line-through]="!openMarketplace()">
             {{ product().name }}
@@ -59,6 +73,14 @@ import { Product } from '@core/models';
       .line-through {
         text-decoration: line-through;
       }
+
+      .product-card__skeleton {
+        animation: skeleton-loading 1s linear infinite alternate;
+        background-color: #636363;
+        border-radius: 10px 10px 0 0;
+        height: 300px;
+        width: 100%;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,4 +89,5 @@ export class ProductCardComponent {
   eventId = input.required<string>();
   openMarketplace = input.required<boolean>();
   product = input.required<Product>();
+  imageLoaded = signal(false);
 }

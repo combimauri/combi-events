@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SimpleQR } from '@core/models';
 import { LoadingState } from '@core/states';
 import { SanitizeUrlPipe } from '@shared/pipes';
@@ -21,7 +20,6 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
   imports: [
     MatButtonModule,
     MatProgressBarModule,
-    MatProgressSpinnerModule,
     SanitizeUrlPipe,
     UploadBoxComponent,
   ],
@@ -57,9 +55,7 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
                 (load)="qrLoaded.set(true)"
               />
               @if (!qrLoaded()) {
-                <div class="payment-card__qr-placeholder">
-                  <mat-spinner [diameter]="50"></mat-spinner>
-                </div>
+                <div class="payment-card__qr-skeleton"></div>
               }
               <a mat-button target="_blank" rel="noreferrer" [href]="qrLink">
                 Descargar QR
@@ -146,12 +142,10 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
             width: 400px;
           }
 
-          .payment-card__qr-placeholder {
-            align-items: center;
-            background-color: #f1f1f1;
-            display: flex;
-            height: 400px;
-            justify-content: center;
+          .payment-card__qr-skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+            aspect-ratio: 1 / 1;
+            background-color: #636363;
             max-width: 100%;
             width: 400px;
           }

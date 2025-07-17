@@ -6,6 +6,7 @@ import {
   inject,
   input,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -39,7 +40,15 @@ import { QuestionLabelPipe } from '@shared/pipes';
   template: `
     <mat-card appearance="outlined" class="product-form">
       <div class="product-form__image">
-        <img [src]="product().image" [alt]="product().name" />
+        <img
+          [src]="product().image"
+          [alt]="product().name"
+          [hidden]="!imageLoaded()"
+          (load)="imageLoaded.set(true)"
+        />
+        @if (!imageLoaded()) {
+          <div class="product-form__image-skeleton"></div>
+        }
       </div>
       <div class="product-form__data">
         <h4>{{ product().name }}</h4>
@@ -151,8 +160,16 @@ import { QuestionLabelPipe } from '@shared/pipes';
         width: 100%;
 
         img {
-          height: 100%;
+          border-radius: 10px;
           object-fit: cover;
+          width: 100%;
+        }
+
+        .product-form__image-skeleton {
+          animation: skeleton-loading 1s linear infinite alternate;
+          aspect-ratio: 1 / 1;
+          background-color: #636363;
+          border-radius: 10px;
           width: 100%;
         }
 
@@ -199,14 +216,17 @@ import { QuestionLabelPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductFormComponent {
-  readonly eventRecord = input.required<EventRecord>();
-  readonly loading = inject(LoadingState).loading;
-  readonly product = input.required<Product>();
-  readonly productForm = viewChild.required(NgForm);
-  readonly productRecord = input<ProductRecord | null>(null);
-  readonly submitForm = output<BillingRecord>();
-  readonly validated = computed(() => this.productRecord()?.validated || false);
-  readonly hasPaymentReceipt = computed(
+  protected readonly eventRecord = input.required<EventRecord>();
+  protected readonly loading = inject(LoadingState).loading;
+  protected readonly product = input.required<Product>();
+  protected readonly productForm = viewChild.required(NgForm);
+  protected readonly productRecord = input<ProductRecord | null>(null);
+  protected readonly submitForm = output<BillingRecord>();
+  protected readonly imageLoaded = signal(false);
+  protected readonly validated = computed(
+    () => this.productRecord()?.validated || false,
+  );
+  protected readonly hasPaymentReceipt = computed(
     () => this.productRecord()?.paymentReceipts || false,
   );
 
