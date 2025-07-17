@@ -35,7 +35,7 @@ export const marketplaceGuard: CanActivateFn = (route, state) => {
 
       eventRecordState.clearEventRecord();
 
-      return false;
+      return router.createUrlTree([event.id]);
     }),
   );
 };
