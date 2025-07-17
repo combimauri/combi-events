@@ -28,6 +28,15 @@ export class PaymentsService {
     return uploadBytesResumable(storageRef, file);
   }
 
+  uploadProductPaymentReceipt(productRecordId: string, file: File): UploadTask {
+    const storageRef = ref(
+      this.#storage,
+      `payments/receipts/products/${productRecordId}-${file.name}`,
+    );
+
+    return uploadBytesResumable(storageRef, file);
+  }
+
   validateEventPayment(orderId: string): Observable<unknown> {
     const response = httpsCallable(
       this.#functions,

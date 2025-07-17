@@ -2,6 +2,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions/v2';
 import { AppEvent } from '../models/app-event.model';
 import { EventRecord } from '../models/event-record.model';
+import { ProductRecord } from '../models/product-record.model';
 
 export async function sendReceiptRegistrationEmail(
   event: AppEvent,
@@ -34,6 +35,43 @@ export async function sendReceiptRegistrationEmail(
     await firestore.collection('mail').add({
       to: [event.owner],
       message: { subject: '¡Nuevo registro en tu evento!', html },
+    });
+  } catch (error) {
+    logger.error('Failed to add mail.', error);
+  }
+}
+
+export async function sendReceiptProductEmail(
+  event: AppEvent,
+  productRecord: ProductRecord,
+): Promise<void> {
+  try {
+    const { paymentReceipts } = productRecord;
+
+    if (!paymentReceipts) {
+      return;
+    }
+
+    const mainReceipt = paymentReceipts.find(
+      (receipt) => receipt.id === 'main',
+    );
+
+    if (!mainReceipt) {
+      return;
+    }
+
+    let receiptsHtml = '';
+
+    mainReceipt.links.forEach((link, index) => {
+      receiptsHtml =
+        receiptsHtml +
+        `<a href="${link}" target="_blank" rel="noreferrer">Comprobante de Pago ${index + 1}</a><br>`;
+    });
+    const html = `¡Hola organizador!<br><br><b>${productRecord.fullName}</b> compró en Marketplace el producto <b>${productRecord.productName}</b><br><br>Aquí puedes revisar sus comprobantes de pago:<br>${receiptsHtml}<br>No olvides verificarlos y validar su compra en el <a href="https://events.combimauri.com/${event.id}/admin" target="_blank" rel="noreferrer">administrador</a>.<br><br>¡Éxitos con tu evento!`;
+    const firestore = getFirestore();
+    await firestore.collection('mail').add({
+      to: [event.owner],
+      message: { subject: '¡Nueva compra en tu evento!', html },
     });
   } catch (error) {
     logger.error('Failed to add mail.', error);

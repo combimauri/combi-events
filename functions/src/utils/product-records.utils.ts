@@ -47,6 +47,26 @@ export async function getFirstProductRecord(
   }
 }
 
+export async function getProductRecordById(
+  productRecordId: string,
+): Promise<ProductRecord | null> {
+  try {
+    const firestore = getFirestore();
+    const productRecordsRef = firestore.collection('product-records');
+    const querySnapshot = await productRecordsRef
+      .where('id', '==', productRecordId)
+      .limit(1)
+      .get();
+
+    return !querySnapshot.empty
+      ? (querySnapshot.docs[0].data() as ProductRecord)
+      : null;
+  } catch (error) {
+    logger.info('Failed to get existing product record.', error);
+    return null;
+  }
+}
+
 export async function updateProductRecord(
   productRecord: Partial<ProductRecord>,
   existingRecord: ProductRecord,

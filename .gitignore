@@ -53,5 +53,6 @@ keys.ts
 keys.*.ts
 serviceAccount.json
 
-# create-events items
-events.js
+# create scripts items
+src/scripts/create/events.js
+src/scripts/create/products.js

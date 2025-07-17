@@ -7,10 +7,20 @@ import {
   Firestore,
   limit,
   query,
+  setDoc,
   where,
 } from '@angular/fire/firestore';
-import { Functions, httpsCallable } from '@angular/fire/functions';
-import { BillingData, BillingRecord, ProductRecord } from '@core/models';
+import {
+  Functions,
+  httpsCallable,
+  HttpsCallableResult,
+} from '@angular/fire/functions';
+import {
+  BillingData,
+  BillingRecord,
+  PaymentReceipts,
+  ProductRecord,
+} from '@core/models';
 import { handleError, loadEffect } from '@core/utils';
 import { catchError, from, map, Observable, take, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
@@ -53,6 +63,7 @@ export class ProductRecordsService {
     );
   }
 
+  // This should be used only for free products until the payment service is restored
   registerRecord(
     eventId: string,
     productId: string,
@@ -74,5 +85,46 @@ export class ProductRecordsService {
       map((result) => result.data as BillingData),
       catchError((error) => handleError(error, this.#logger)),
     );
+  }
+
+  // Temporary replacement for paid products
+  registerSimpleRecord(
+    eventId: string,
+    productId: string,
+    { additionalAnswers, fullName, couponId }: BillingRecord,
+  ): Observable<BillingData | undefined> {
+    const response = httpsCallable(
+      this.#functions,
+      'createSimpleProductOrder',
+    )({ eventId, productId, fullName, additionalAnswers, couponId });
+
+    return from(response).pipe(
+      tap(this.#loadEffectObserver),
+      map((result) => result.data as BillingData),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  associateMainPaymentReceipt(id: string, links: string[]): Observable<void> {
+    const recordRef = doc(this.#firestore, this.#collectionName, id);
+    const paymentReceipts: PaymentReceipts[] = [{ id: 'main', links }];
+
+    return from(setDoc(recordRef, { paymentReceipts }, { merge: true })).pipe(
+      tap(this.#loadEffectObserver),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
+  sendPaymentReceiptEmail(
+    productRecordId?: string,
+  ): Promise<HttpsCallableResult<unknown>> | void {
+    if (!productRecordId) {
+      return;
+    }
+
+    return httpsCallable(
+      this.#functions,
+      'sendProductPaymentReceiptEmail',
+    )({ productRecordId });
   }
 }

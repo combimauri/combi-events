@@ -171,7 +171,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     ),
   );
 
-  readonly registerReceiptsLinksIntoEventRecord = effect(() => {
+  protected readonly registerReceiptsLinksIntoEventRecord = effect(() => {
     const selectedFiles = [...this.#selectedFiles()];
     const links = [...this.#uploadedFilesLinks()];
 
@@ -214,6 +214,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
         this.#logger.handleSuccess(
           '¡Tu(s) comprobante(s) de pago fue(ron) registrado(s)!',
         );
+
         untracked(() => {
           const eventId = this.event()?.id;
           this.#eventRecordsService.sendPaymentReceiptEmail(eventId);
