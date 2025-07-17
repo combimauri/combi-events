@@ -1,7 +1,11 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { EventRecord } from '@core/models';
-import { EventRecordsService, AuthService } from '@core/services';
+import {
+  AuthService,
+  EventRecordsService,
+  LoggerService,
+} from '@core/services';
 import { EventState, EventRecordState } from '@core/states';
 import { switchMap, map } from 'rxjs';
 
@@ -17,9 +21,10 @@ export const marketplaceGuard: CanActivateFn = (route, state) => {
   const eventRecordsService = inject(EventRecordsService);
   const user$ = inject(AuthService).user$;
   const eventRecord = eventRecordState.eventRecord();
+  const logger = inject(LoggerService);
 
   if (eventRecord) {
-    return validateExistingRecord(eventRecord, router);
+    return validateExistingRecord(eventRecord, router, logger);
   }
 
   return user$.pipe(
@@ -30,7 +35,7 @@ export const marketplaceGuard: CanActivateFn = (route, state) => {
       if (eventRecord) {
         eventRecordState.setEventRecord(eventRecord);
 
-        return validateExistingRecord(eventRecord, router);
+        return validateExistingRecord(eventRecord, router, logger);
       }
 
       eventRecordState.clearEventRecord();
@@ -43,10 +48,15 @@ export const marketplaceGuard: CanActivateFn = (route, state) => {
 const validateExistingRecord = (
   eventRecord: EventRecord,
   router: Router,
+  logger: LoggerService,
 ): UrlTree | boolean => {
   if (eventRecord.validated || eventRecord.paymentReceipts) {
     return true;
   }
+
+  logger.handleError(
+    'Debes completar tu registro para acceder al Marketplace.',
+  );
 
   return router.createUrlTree([eventRecord.eventId]);
 };
