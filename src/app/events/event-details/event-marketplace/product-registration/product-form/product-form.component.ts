@@ -216,12 +216,13 @@ import { QuestionLabelPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductFormComponent {
-  protected readonly eventRecord = input.required<EventRecord>();
+  readonly eventRecord = input.required<EventRecord>();
+  readonly product = input.required<Product>();
+  readonly productRecord = input<ProductRecord | null>(null);
+  readonly submitForm = output<BillingRecord>();
+
   protected readonly loading = inject(LoadingState).loading;
-  protected readonly product = input.required<Product>();
   protected readonly productForm = viewChild.required(NgForm);
-  protected readonly productRecord = input<ProductRecord | null>(null);
-  protected readonly submitForm = output<BillingRecord>();
   protected readonly imageLoaded = signal(false);
   protected readonly validated = computed(
     () => this.productRecord()?.validated || false,

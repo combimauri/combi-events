@@ -1,5 +1,10 @@
 import { NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatRippleModule } from '@angular/material/core';
@@ -59,12 +64,18 @@ import { AppEvent } from '@core/models';
           <div>
             <img
               mat-card-lg-image
+              class="event-card__image"
               [alt]="event().name"
               [src]="event().image"
               [ngStyle]="{
                 filter: event().openRegistration ? 'none' : 'grayscale(100%)',
               }"
+              [hidden]="!imageLoaded()"
+              (load)="imageLoaded.set(true)"
             />
+            @if (!imageLoaded()) {
+              <div class="event-card__image-skeleton"></div>
+            }
           </div>
         </mat-card-content>
       </mat-card>
@@ -86,6 +97,17 @@ import { AppEvent } from '@core/models';
           display: flex;
           flex-wrap: wrap;
           gap: 1rem;
+
+          .event-card__image {
+            aspect-ratio: 1 / 1;
+          }
+
+          .event-card__image-skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+            aspect-ratio: 1 / 1;
+            background-color: #636363;
+            width: 152px;
+          }
 
           .event-card__data {
             display: flex;
@@ -122,4 +144,6 @@ import { AppEvent } from '@core/models';
 })
 export class EventCardComponent {
   readonly event = input.required<AppEvent>();
+
+  protected imageLoaded = signal(false);
 }
