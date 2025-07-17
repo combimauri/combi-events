@@ -28,6 +28,7 @@ import { AuthData } from 'firebase-functions/tasks';
 import {
   addProductRecord,
   getFirstProductRecord,
+  getProductRecordById,
   getProductRecordByOrderId,
   updateProductRecord,
 } from './utils/product-records.utils';
@@ -51,7 +52,10 @@ import {
   PartialSessionRecord,
   SessionRecord,
 } from './models/session-record.model';
-import { sendReceiptRegistrationEmail } from './utils/mail.utils';
+import {
+  sendReceiptProductEmail,
+  sendReceiptRegistrationEmail,
+} from './utils/mail.utils';
 
 initializeApp();
 
@@ -232,6 +236,35 @@ export const sendPaymentReceiptEmail = onCall(
   },
 );
 
+export const sendProductPaymentReceiptEmail = onCall(
+  async (request: CallableRequest<any>) => {
+    getAuth(request);
+
+    const { productRecordId } = request.data;
+
+    if (!productRecordId) {
+      throw new HttpsError('invalid-argument', 'Faltan campos requeridos.');
+    }
+
+    const existingRecord = await getProductRecordById(productRecordId);
+
+    if (!existingRecord || !(existingRecord as ProductRecord).id) {
+      throw new HttpsError(
+        'not-found',
+        'No se encuentra tu registro a este producto.',
+      );
+    }
+
+    const event = await getEventById(existingRecord.eventId);
+
+    if (!event) {
+      throw new HttpsError('not-found', 'No se encontró el evento.');
+    }
+
+    await sendReceiptProductEmail(event, existingRecord);
+  },
+);
+
 export const createSimpleEventOrder = onCall(
   { secrets },
   async (request: CallableRequest<any>) => {
@@ -288,6 +321,63 @@ export const createSimpleEventOrder = onCall(
       if (usedCouponId) {
         await incrementCouponCount(usedCouponId);
       }
+    }
+
+    return {
+      recordId,
+    };
+  },
+);
+
+export const createSimpleProductOrder = onCall(
+  { secrets },
+  async (request: CallableRequest<any>) => {
+    const auth = getAuth(request);
+    const { eventId, fullName, additionalAnswers, productId, couponId } =
+      getRequestOrderData(request);
+    const product = await getProductById(productId);
+
+    if (!product) {
+      throw new HttpsError('internal', 'El producto no existe.');
+    }
+
+    const email = auth.token.email!;
+    const existingRecord = await getExistingProductRecord(email, productId);
+    const coupon = await getCouponByIdAndProductId(couponId, productId);
+
+    const productRecord: PartialProductRecord = {
+      additionalAnswers,
+      email,
+      eventId,
+      productId,
+      productName: product.name,
+      fullName,
+      searchTerm: fullName.replace(/\s/g, '').toLowerCase(),
+      validated: false,
+    };
+
+    if (coupon) {
+      productRecord.couponId = coupon.id;
+
+      if (coupon.recordLabel) {
+        productRecord.label = coupon.recordLabel;
+      }
+    } else {
+      delete existingRecord?.couponId;
+    }
+
+    const upsertedRecord = existingRecord
+      ? await updateProductRecord(productRecord, existingRecord)
+      : await addProductRecord(productRecord);
+
+    if (!upsertedRecord) {
+      throw new HttpsError('internal', 'Error al crear la orden.');
+    }
+
+    const { id: recordId, couponId: usedCouponId, validated } = upsertedRecord;
+
+    if (usedCouponId && validated) {
+      await incrementCouponCount(usedCouponId);
     }
 
     return {
@@ -436,7 +526,6 @@ export const createProductOrder = onCall(
       wolipayPassword,
       wolipayBasePath,
     );
-
     const coupon = await getCouponByIdAndProductId(couponId, productId);
     const billingData = await getWolipayIFrame(
       email,
@@ -610,6 +699,13 @@ export const validateProductPayment = onRequest(
     const { paymentId } = productRecord;
     let status = '';
 
+    if (!paymentId) {
+      response
+        .status(400)
+        .send('El producto no tiene un identificador de pago.');
+      return;
+    }
+
     if (orderId !== paymentId) {
       const payment = await getPaymentByExternalId(
         paymentId,
@@ -774,23 +870,27 @@ async function getExistingEventRecord(
 async function getExistingProductRecord(
   email: string,
   productId: string,
-  wolipayEmail: string,
-  wolipayPassword: string,
-  wolipayBasePath: string,
+  wolipayEmail?: string,
+  wolipayPassword?: string,
+  wolipayBasePath?: string,
 ): Promise<ProductRecord | null> {
   const existingRecord = await getFirstProductRecord(productId, email);
 
   if (existingRecord) {
     if (existingRecord.validated) {
       throw new HttpsError('already-exists', 'Ya adquiriste este producto.');
-    } else if (existingRecord.paymentId === existingRecord.orderId) {
+    } else if (
+      existingRecord.paymentId &&
+      existingRecord.orderId &&
+      existingRecord.paymentId === existingRecord.orderId
+    ) {
       throw new HttpsError(
         'already-exists',
         'Ya adquiriste este producto gratuito.',
       );
-    } else {
+    } else if (wolipayEmail && wolipayPassword && wolipayBasePath) {
       const existingPayment = await getPaymentByExternalId(
-        existingRecord.paymentId,
+        existingRecord.paymentId!,
         wolipayEmail,
         wolipayPassword,
         wolipayBasePath,

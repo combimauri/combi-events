@@ -7,14 +7,22 @@ import {
   inject,
   OnDestroy,
   OnInit,
+  signal,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { getDownloadURL, UploadTask } from '@angular/fire/storage';
 import { MatCardModule } from '@angular/material/card';
 import { BillingRecord, RegistrationStep } from '@core/models';
-import { LoggerService, ProductRecordsService } from '@core/services';
+import {
+  LoggerService,
+  PaymentsService,
+  ProductRecordsService,
+} from '@core/services';
 import {
   EventRecordState,
   EventState,
+  LoadingState,
   ProductRecordState,
   ProductState,
   RegistrationStepState,
@@ -58,7 +66,11 @@ import { ProductFormComponent } from './product-form/product-form.component';
           />
         }
         @case (RegistrationStep.payment) {
-          <combi-payment-card [iFrameUrl]="iFrameUrl()" />
+          <combi-payment-card
+            [iFrameUrl]="iFrameUrl()"
+            [qrs]="product.price.qrs"
+            (uploadReceipts)="uploadPaymentReceipts($event)"
+          />
         }
       }
     }
@@ -76,13 +88,18 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
   billingRecord?: BillingRecord;
 
   readonly #event = inject(EventState).event;
+  readonly #loadingState = inject(LoadingState);
   readonly #logger = inject(LoggerService);
+  readonly #paymentsService = inject(PaymentsService);
   readonly #productRecordsService = inject(ProductRecordsService);
   readonly #productRecordState = inject(ProductRecordState);
   readonly #registrationStepState = inject(RegistrationStepState);
 
   readonly #getProductRecord$ = new Subject<string>();
   readonly #triggerPaymentSuccess$ = new Subject<void>();
+
+  readonly #selectedFiles = signal<File[]>([]);
+  readonly #uploadedFilesLinks = signal<string[]>([]);
 
   readonly #productRecord = this.#productRecordState.productRecord;
   readonly #validatedInitialValue = this.#productRecord()?.validated || false;
@@ -95,12 +112,20 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
   readonly #billingData = toSignal(
     this.#getBillingData$.pipe(
       switchMap(({ eventId, productId, billing }) =>
-        this.#productRecordsService.registerRecord(eventId, productId, billing),
+        // This is only for paid products
+        this.#productRecordsService.registerSimpleRecord(
+          eventId,
+          productId,
+          billing,
+        ),
       ),
     ),
   );
   readonly #paymentValidated = computed(
     () => !!this.realtimeProductRecord()?.validated,
+  );
+  readonly #hasPaymentReceipts = computed(
+    () => !!this.realtimeProductRecord()?.paymentReceipts?.length,
   );
 
   readonly RegistrationStep = RegistrationStep;
@@ -130,6 +155,48 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
     ),
   );
 
+  readonly #triggerAssociateReceipt$ = new Subject<{
+    productRecordId: string;
+    links: string[];
+  }>();
+  readonly handleAssociateReceipt = toSignal(
+    this.#triggerAssociateReceipt$.pipe(
+      switchMap(({ productRecordId, links }) => {
+        this.#logger.handleSuccess(
+          'Los comprobantes de pago se guardaron con éxito.',
+        );
+
+        return this.#productRecordsService.associateMainPaymentReceipt(
+          productRecordId,
+          links,
+        );
+      }),
+    ),
+  );
+
+  protected readonly registerReceiptsLinksIntoEventRecord = effect(() => {
+    const selectedFiles = [...this.#selectedFiles()];
+    const links = [...this.#uploadedFilesLinks()];
+
+    if (!selectedFiles.length) {
+      return;
+    }
+
+    if (selectedFiles.length === links.length) {
+      untracked(() => {
+        const productRecord = this.#productRecord();
+
+        if (!productRecord) {
+          return;
+        }
+
+        const { id: productRecordId } = productRecord;
+
+        this.#triggerAssociateReceipt$.next({ productRecordId, links });
+      });
+    }
+  });
+
   constructor() {
     effect(() => {
       const productRecordId = this.#billingData()?.recordId;
@@ -138,11 +205,26 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
         this.#getProductRecord$.next(productRecordId);
       }
     });
+    effect(() => {
+      if (this.#hasPaymentReceipts()) {
+        this.#logger.handleSuccess(
+          '¡Tu(s) comprobante(s) de pago fue(ron) registrado(s)!',
+        );
+
+        untracked(() => {
+          const productRecordId = this.#billingData()?.recordId;
+          this.#productRecordsService.sendPaymentReceiptEmail(productRecordId);
+          this.#registrationStepState.setRegistrationStep(
+            RegistrationStep.form,
+          );
+        });
+      }
+    });
   }
 
   @HostListener('window:beforeunload')
   canDeactivate(): boolean {
-    return this.#paymentValidated();
+    return this.#paymentValidated() || this.#hasPaymentReceipts();
   }
 
   ngOnInit(): void {
@@ -177,8 +259,51 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
     this.#registrationStepState.setRegistrationStep(RegistrationStep.payment);
   }
 
+  uploadPaymentReceipts(files: File[] | null): void {
+    const productRecord = this.#productRecord();
+
+    if (!productRecord || !files || !files.length) {
+      return;
+    }
+
+    const { id } = productRecord;
+
+    this.#uploadedFilesLinks.set([]);
+    this.#selectedFiles.set(files);
+    this.#selectedFiles().forEach((file) => {
+      const uploadTask = this.#paymentsService.uploadProductPaymentReceipt(
+        id,
+        file,
+      );
+
+      this.handleReceiptUpload(uploadTask);
+    });
+  }
+
   private handlePaymentSuccess(): void {
     this.#logger.handleSuccess('¡Compra validada con éxito!');
     this.#registrationStepState.setRegistrationStep(RegistrationStep.form);
+  }
+
+  private handleReceiptUpload(uploadTask: UploadTask): void {
+    this.#loadingState.startLoading();
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log('Upload is ' + progress + '% done');
+      },
+      (error) => {
+        this.#logger.handleError(error);
+        this.#loadingState.stopLoading();
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((link) =>
+          this.#uploadedFilesLinks.set([...this.#uploadedFilesLinks(), link]),
+        );
+        this.#loadingState.stopLoading();
+      },
+    );
   }
 }

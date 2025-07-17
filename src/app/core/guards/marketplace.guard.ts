@@ -44,9 +44,9 @@ const validateExistingRecord = (
   eventRecord: EventRecord,
   router: Router,
 ): UrlTree | boolean => {
-  if (!eventRecord.validated) {
-    return router.createUrlTree([eventRecord.eventId]);
+  if (eventRecord.validated || eventRecord.paymentReceipts) {
+    return true;
   }
 
-  return true;
+  return router.createUrlTree([eventRecord.eventId]);
 };

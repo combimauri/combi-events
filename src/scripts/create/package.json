@@ -4,7 +4,8 @@
   "main": "create-event.js",
   "type": "module",
   "scripts": {
-    "start": "node create-event.js"
+    "events": "node create-event.js",
+    "products": "node create-product.js"
   },
   "author": "",
   "license": "ISC",

@@ -12,6 +12,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import {
   BillingRecord,
@@ -31,6 +32,7 @@ import { QuestionLabelPipe } from '@shared/pipes';
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
+    MatInputModule,
     MatSelectModule,
     QuestionLabelPipe,
   ],
@@ -46,12 +48,20 @@ import { QuestionLabelPipe } from '@shared/pipes';
         </p>
         <p>{{ product().price.amount }} {{ product().price.currency }}</p>
 
-        @if (validated()) {
+        @if (validated() || hasPaymentReceipt()) {
           <span class="product-form__separator"></span>
-          <p class="product-form__success">
-            <b>¡Felicidades! Ya adquiriste este producto.</b>
-            Podrás recogerlo el día del evento.
-          </p>
+          @if (validated()) {
+            <p class="product-form__success">
+              <b>¡Felicidades! Ya adquiriste este producto.</b>
+              Recibirás instrucciones por parte de los organizadores del evento
+              para poder recibirlo.
+            </p>
+          } @else {
+            <p class="product-form__info">
+              <b>Tu comprobante de pago pasó a revisión.</b>
+              Tu producto fue reservado y muy pronto tu pago será validado.
+            </p>
+          }
 
           @let answers = productRecord()?.additionalAnswers || [] | keyvalue;
 
@@ -83,6 +93,17 @@ import { QuestionLabelPipe } from '@shared/pipes';
               <mat-form-field appearance="outline" class="dense-2">
                 <mat-label>{{ question.label }}</mat-label>
                 @switch (question.type) {
+                  @case ('text') {
+                    <input
+                      matInput
+                      type="text"
+                      [id]="question.key"
+                      [name]="question.key"
+                      [disabled]="loading()"
+                      [required]="question.required"
+                      [ngModel]="question.answer"
+                    />
+                  }
                   @case ('select') {
                     <mat-select
                       [id]="question.key"
@@ -90,8 +111,9 @@ import { QuestionLabelPipe } from '@shared/pipes';
                       [disabled]="loading()"
                       [required]="question.required"
                       [ngModel]="question.answer"
+                      [multiple]="question.multiple"
                     >
-                      @if (!question.required) {
+                      @if (!question.multiple && !question.required) {
                         <mat-option value=""></mat-option>
                       }
                       @for (option of question.options; track option) {
@@ -164,6 +186,13 @@ import { QuestionLabelPipe } from '@shared/pipes';
           color: #4caf50;
           padding: 1rem;
         }
+
+        .product-form__info {
+          background-color: #f0f0f0;
+          border-left: 4px solid #fded16;
+          color: #000000;
+          padding: 1rem;
+        }
       }
     }
   `,
@@ -177,6 +206,9 @@ export class ProductFormComponent {
   readonly productRecord = input<ProductRecord | null>(null);
   readonly submitForm = output<BillingRecord>();
   readonly validated = computed(() => this.productRecord()?.validated || false);
+  readonly hasPaymentReceipt = computed(
+    () => this.productRecord()?.paymentReceipts || false,
+  );
 
   submitInfo(): void {
     if (this.productForm().invalid) {

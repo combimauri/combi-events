@@ -7,8 +7,8 @@ export interface PartialProductRecord {
   email: string;
   eventId: string;
   fullName: string;
-  orderId: string;
-  paymentId: string;
+  orderId?: string;
+  paymentId?: string;
   productId: string;
   productName: string;
   searchTerm: string;
@@ -19,4 +19,8 @@ export interface ProductRecord extends PartialProductRecord {
   createdAt: Timestamp;
   id: string;
   updatedAt: Timestamp;
+  paymentReceipts?: {
+    id: 'main' | string;
+    links: string[];
+  }[];
 }
