@@ -39,6 +39,9 @@ export const marketplaceGuard: CanActivateFn = (route, state) => {
       }
 
       eventRecordState.clearEventRecord();
+      logger.handleInfo(
+        'Debes registrarte al evento para acceder al Marketplace.',
+      );
 
       return router.createUrlTree([event.id]);
     }),
@@ -54,7 +57,7 @@ const validateExistingRecord = (
     return true;
   }
 
-  logger.handleError(
+  logger.handleInfo(
     'Debes completar tu registro para acceder al Marketplace.',
   );
 

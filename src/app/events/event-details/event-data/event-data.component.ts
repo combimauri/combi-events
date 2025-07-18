@@ -37,31 +37,26 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
       <combi-event-main-info [event]="event" />
 
       @if (user(); as user) {
-        @if (user.email === event.owner) {
+        @if (user.email === event.owner || event.admins.includes(user.email!)) {
           <combi-event-admin-button />
           <combi-event-scanner-button />
+        }
+
+        @if (eventRecord(); as record) {
+          <combi-user-event-record [eventRecord]="record" />
         } @else {
-          @if (event.admins.includes(user.email!)) {
-            <combi-event-admin-button />
-            <combi-event-scanner-button />
-          }
-
-          @if (eventRecord(); as record) {
-            <combi-user-event-record [eventRecord]="record" />
-
-            @if (event.hasMarketplace) {
-              <combi-featured-products [event]="event" />
-            }
+          @if (event.openRegistration && event.count < event.capacity) {
+            <combi-event-registration-button />
           } @else {
-            @if (event.openRegistration && event.count < event.capacity) {
-              <combi-event-registration-button />
-            } @else {
-              <combi-event-closed-card />
-            }
+            <combi-event-closed-card />
           }
         }
       } @else {
         <combi-event-login-button [eventId]="event.id" />
+      }
+
+      @if (event.hasMarketplace) {
+        <combi-event-featured-products [event]="event" />
       }
 
       <combi-event-location [event]="event" />

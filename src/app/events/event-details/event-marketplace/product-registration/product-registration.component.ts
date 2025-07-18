@@ -162,7 +162,7 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
   readonly handleAssociateReceipt = toSignal(
     this.#triggerAssociateReceipt$.pipe(
       switchMap(({ productRecordId, links }) => {
-        this.#logger.handleSuccess(
+        this.#logger.handleInfo(
           'Los comprobantes de pago se guardaron con éxito.',
         );
 
@@ -207,7 +207,7 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
     });
     effect(() => {
       if (this.#hasPaymentReceipts()) {
-        this.#logger.handleSuccess(
+        this.#logger.handleInfo(
           '¡Tu(s) comprobante(s) de pago fue(ron) registrado(s)!',
         );
 
@@ -281,7 +281,7 @@ export default class ProductRegistrationComponent implements OnInit, OnDestroy {
   }
 
   private handlePaymentSuccess(): void {
-    this.#logger.handleSuccess('¡Compra validada con éxito!');
+    this.#logger.handleInfo('¡Compra validada con éxito!');
     this.#registrationStepState.setRegistrationStep(RegistrationStep.form);
   }
 

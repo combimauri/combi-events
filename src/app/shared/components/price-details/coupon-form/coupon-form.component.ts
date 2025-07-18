@@ -121,7 +121,7 @@ export class CouponFormComponent {
 
     this.couponCode = '';
 
-    this.#logger.handleSuccess('Cupón válido');
+    this.#logger.handleInfo('Cupón válido');
     this.dialogRef.close({ coupon });
   }
 }

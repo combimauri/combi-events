@@ -60,7 +60,7 @@ export class AuthService {
       tap(this.#loadEffectObserver),
       tap(() => {
         localStorage.setItem('emailForSignIn', email);
-        this.#logger.handleSuccess(
+        this.#logger.handleInfo(
           'Se ha enviado un enlace de inicio de sesión a tu correo electrónico',
         );
       }),
