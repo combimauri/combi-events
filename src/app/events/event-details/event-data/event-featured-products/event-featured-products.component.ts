@@ -20,7 +20,7 @@ import Swiper from 'swiper';
 import { Autoplay, Pagination } from 'swiper/modules';
 
 @Component({
-  selector: 'combi-featured-products',
+  selector: 'combi-event-featured-products',
   standalone: true,
   imports: [MatButtonModule, MatCardModule, ProductCardComponent, RouterLink],
   template: `

@@ -111,14 +111,14 @@ export default class EventSessionsComponent {
   private handleRegisterResponse(record: SessionRecord | undefined): void {
     if (record) {
       this.#sessionRecordsState.addUserSession(record);
-      this.#logger.handleSuccess('¡Registro exitoso!');
+      this.#logger.handleInfo('¡Registro exitoso!');
     }
   }
 
   private handleUnregisterResponse(record: SessionRecord | undefined): void {
     if (record) {
       this.#sessionRecordsState.removeUserSession(record.id);
-      this.#logger.handleSuccess('¡Se eliminó el registro con éxito!');
+      this.#logger.handleInfo('¡Se eliminó el registro con éxito!');
     }
   }
 }

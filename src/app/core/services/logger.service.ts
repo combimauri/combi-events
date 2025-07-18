@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class LoggerService {
   readonly #snackBar = inject(MatSnackBar);
 
-  handleSuccess(message: string): void {
+  handleInfo(message: string): void {
     this.#snackBar.open(message, 'cerrar', {
       panelClass: 'info-snackbar',
       horizontalPosition: 'end',

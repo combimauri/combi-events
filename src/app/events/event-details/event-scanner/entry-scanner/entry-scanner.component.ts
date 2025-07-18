@@ -172,7 +172,7 @@ export class EntryScannerComponent {
     if ((response as EventRecord).id) {
       this.scanStatus.set('SUCCESS');
       this.statusMessage.set('Entrada registrada.');
-      this.#logger.handleSuccess(this.statusMessage());
+      this.#logger.handleInfo(this.statusMessage());
     } else {
       this.scanStatus.set('ERROR');
 

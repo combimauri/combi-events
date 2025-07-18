@@ -144,7 +144,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly handleAssociateReceipt = toSignal(
     this.#triggerAssociateReceipt$.pipe(
       switchMap(({ eventRecordId, links }) => {
-        this.#logger.handleSuccess(
+        this.#logger.handleInfo(
           'Pronto serás redirigido a la página principal del evento.',
         );
 
@@ -205,13 +205,13 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     });
     effect(() => {
       if (this.#paymentValidated()) {
-        this.#logger.handleSuccess('¡Registro validado con éxito!');
+        this.#logger.handleInfo('¡Registro validado con éxito!');
         this.#router.navigate(['..'], { relativeTo: this.#route });
       }
     });
     effect(() => {
       if (this.#hasPaymentReceipts()) {
-        this.#logger.handleSuccess(
+        this.#logger.handleInfo(
           '¡Tu(s) comprobante(s) de pago fue(ron) registrado(s)!',
         );
 
