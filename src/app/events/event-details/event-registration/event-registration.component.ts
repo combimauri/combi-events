@@ -13,7 +13,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { getDownloadURL, UploadTask } from '@angular/fire/storage';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BillingRecord, RegistrationStep } from '@core/models';
+import { BillingRecord, Coupon, RegistrationStep } from '@core/models';
 import {
   EventRecordsService,
   LoggerService,
@@ -75,6 +75,7 @@ import { EventRegistrationFormComponent } from './event-registration-form/event-
       @case (RegistrationStep.payment) {
         <combi-payment-card
           [iFrameUrl]="iFrameUrl()"
+          [amountToPay]="amountToPay()"
           [qrs]="event()?.price?.qrs"
           (uploadReceipts)="uploadPaymentReceipts($event)"
         />
@@ -114,6 +115,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #router = inject(Router);
   readonly #selectedFiles = signal<File[]>([]);
   readonly #uploadedFilesLinks = signal<string[]>([]);
+  readonly #appliedCoupon = signal<Coupon | null>(null);
 
   readonly #getBillingData$ = new Subject<{
     eventId: string;
@@ -122,7 +124,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #billingData = toSignal(
     this.#getBillingData$.pipe(
       switchMap(({ eventId, billing }) => {
-        if (this.event()?.price.amount === 0) {
+        if (this.amountToPay() === 0) {
           return this.#eventRecordsService.registerRecord(eventId, billing);
         }
 
@@ -162,6 +164,14 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly iFrameUrl = computed(() => this.#billingData()?.url);
   readonly registrationStep = this.#registrationStepState.registrationStep;
   readonly title = computed(() => this.event()?.name);
+  readonly amountToPay = computed(() => {
+    const total =
+      (this.event()?.price.amount || 0) -
+      (this.event()?.price.discount || 0) -
+      (this.#appliedCoupon()?.value || 0);
+
+    return total > 0 ? total : 0;
+  });
 
   readonly realtimeEventRecord = toSignal(
     this.#getEventRecord$.pipe(
@@ -243,15 +253,19 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
     this.#registrationStepState.setRegistrationStep(RegistrationStep.details);
   }
 
-  triggerOrderGeneration(couponId: string | null): void {
+  triggerOrderGeneration(coupon: Coupon | null): void {
     const eventId = this.event()?.id;
 
     if (!this.billingRecord || !eventId) {
       return;
     }
 
-    if (couponId) {
-      this.billingRecord.couponId = couponId;
+    this.#appliedCoupon.set(coupon);
+
+    if (coupon) {
+      this.billingRecord.couponId = coupon.id;
+    } else {
+      delete this.billingRecord.couponId;
     }
 
     this.#getBillingData$.next({ eventId, billing: this.billingRecord });
