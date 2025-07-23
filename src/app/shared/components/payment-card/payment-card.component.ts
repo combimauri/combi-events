@@ -42,7 +42,7 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
             class="payment-card__iframe"
             [src]="iFrameUrl | sanitizeUrl"
           ></iframe>
-        } @else if (mainQr()) {
+        } @else if (amountToPay() > 0 && mainQr()) {
           @let qrLink = mainQr()!.link;
 
           <div class="payment-card__qr-container">
@@ -157,14 +157,14 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
 })
 export class PaymentCardComponent {
   readonly iFrameUrl = input<string>();
-
+  readonly amountToPay = input.required<number>();
   readonly qrs = input<SimpleQR[]>();
-  readonly mainQr = computed(() => this.qrs()?.find((qr) => qr.id === 'main'));
-  readonly qrLoaded = signal(false);
-
-  readonly selectedReceipts = signal<File[] | null>(null);
-
   readonly uploadReceipts = output<File[] | null>();
 
-  readonly loading = inject(LoadingState).loading;
+  protected readonly mainQr = computed(() =>
+    this.qrs()?.find((qr) => qr.id === 'main'),
+  );
+  protected readonly qrLoaded = signal(false);
+  protected readonly selectedReceipts = signal<File[] | null>(null);
+  protected readonly loading = inject(LoadingState).loading;
 }

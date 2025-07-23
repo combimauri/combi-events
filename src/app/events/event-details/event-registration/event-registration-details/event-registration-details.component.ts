@@ -88,7 +88,7 @@ export class EventRegistrationDetailsComponent {
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
   readonly appliedCoupon = signal<Coupon | null>(null);
   readonly billingRecord = input<BillingRecord>();
-  readonly confirmDetails = output<string | null>();
+  readonly confirmDetails = output<Coupon | null>();
   readonly eventId = input.required<string>();
   readonly price = input<Price>();
 
@@ -97,6 +97,6 @@ export class EventRegistrationDetailsComponent {
   }
 
   confirmRegistration(): void {
-    this.confirmDetails.emit(this.appliedCoupon()?.id || null);
+    this.confirmDetails.emit(this.appliedCoupon());
   }
 }
