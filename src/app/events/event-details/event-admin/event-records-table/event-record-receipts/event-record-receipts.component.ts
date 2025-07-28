@@ -37,9 +37,9 @@ import { Subject, switchMap, tap } from 'rxjs';
         [disabled]="loading()"
       >
         @if (validated()) {
-          Invalidar Registro
+          Invalidar Pago
         } @else {
-          Validar Registro
+          Validar Pago
         }
       </button>
     </div>
@@ -54,24 +54,26 @@ import { Subject, switchMap, tap } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRecordReceiptsComponent {
+  readonly #dialog = inject(MatDialog);
+
   readonly loading = inject(LoadingState).loading;
   readonly validated = input<boolean>();
   readonly paymentReceipts = input<PaymentReceipts[]>();
+  readonly toggleValidation = output<void>();
+
   protected readonly mainReceipt = computed(() =>
     this.paymentReceipts()?.find((receipt) => receipt.id === 'main'),
   );
-  readonly toggleValidation = output<void>();
-  readonly dialog = inject(MatDialog);
-  readonly openConfirmationDialog$ = new Subject<void>();
-  readonly afterDialogClosed = toSignal(
+  protected readonly openConfirmationDialog$ = new Subject<void>();
+  protected readonly afterDialogClosed = toSignal(
     this.openConfirmationDialog$.pipe(
       switchMap(() => {
         const title = this.validated()
-          ? 'Invalidar Registro'
-          : 'Validar Registro';
-        const content = `Estás a punto de ${this.validated() ? 'invalidar' : 'validar'} este registro, ¿quieres proceder?`;
+          ? 'Invalidar Pago'
+          : 'Validar Pago';
+        const content = `Estás a punto de ${this.validated() ? 'invalidar' : 'validar'} este pago, ¿quieres proceder?`;
 
-        return this.dialog
+        return this.#dialog
           .open(ConfirmationDialogComponent, {
             data: { title, content },
             width: '400px',

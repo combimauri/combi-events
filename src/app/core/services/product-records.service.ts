@@ -4,7 +4,6 @@ import {
   collectionData,
   doc,
   docData,
-  Firestore,
   limit,
   query,
   setDoc,
@@ -21,33 +20,32 @@ import {
   PaymentReceipts,
   ProductRecord,
 } from '@core/models';
-import { handleError, loadEffect } from '@core/utils';
+import { handleError } from '@core/utils';
 import { catchError, from, map, Observable, take, tap } from 'rxjs';
-import { LoggerService } from './logger.service';
+import { TableRecordsService } from './table-records.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ProductRecordsService {
-  readonly #collectionName = 'product-records';
-  readonly #firestore = inject(Firestore);
+export class ProductRecordsService extends TableRecordsService<ProductRecord> {
+  protected override collectionName = 'product-records';
+  protected override idColumn = 'eventId';
+
   readonly #functions = inject(Functions);
-  readonly #loadEffectObserver = loadEffect();
-  readonly #logger = inject(LoggerService);
 
   getRealtimeRecordById(id: string): Observable<ProductRecord | undefined> {
-    const recordRef = doc(this.#firestore, this.#collectionName, id);
+    const recordRef = doc(this.firestore, this.collectionName, id);
 
     return (
       docData<ProductRecord>(recordRef) as Observable<ProductRecord>
-    ).pipe(catchError((error) => handleError(error, this.#logger)));
+    ).pipe(catchError((error) => handleError(error, this.logger)));
   }
 
   getRecordByProductIdAndEmail(
     productId: string,
     email: string,
   ): Observable<ProductRecord | undefined> {
-    const recordsCollection = collection(this.#firestore, this.#collectionName);
+    const recordsCollection = collection(this.firestore, this.collectionName);
     const recordsQuery = query(
       recordsCollection,
       where('productId', '==', productId),
@@ -56,10 +54,10 @@ export class ProductRecordsService {
     );
 
     return (collectionData(recordsQuery) as Observable<ProductRecord[]>).pipe(
-      tap(this.#loadEffectObserver),
+      tap(this.loadEffectObserver),
       take(1),
       map((records) => records[0]),
-      catchError((error) => handleError(error, this.#logger)),
+      catchError((error) => handleError(error, this.logger)),
     );
   }
 
@@ -81,9 +79,9 @@ export class ProductRecordsService {
     });
 
     return from(response).pipe(
-      tap(this.#loadEffectObserver),
+      tap(this.loadEffectObserver),
       map((result) => result.data as BillingData),
-      catchError((error) => handleError(error, this.#logger)),
+      catchError((error) => handleError(error, this.logger)),
     );
   }
 
@@ -99,19 +97,19 @@ export class ProductRecordsService {
     )({ eventId, productId, fullName, additionalAnswers, couponId });
 
     return from(response).pipe(
-      tap(this.#loadEffectObserver),
+      tap(this.loadEffectObserver),
       map((result) => result.data as BillingData),
-      catchError((error) => handleError(error, this.#logger)),
+      catchError((error) => handleError(error, this.logger)),
     );
   }
 
   associateMainPaymentReceipt(id: string, links: string[]): Observable<void> {
-    const recordRef = doc(this.#firestore, this.#collectionName, id);
+    const recordRef = doc(this.firestore, this.collectionName, id);
     const paymentReceipts: PaymentReceipts[] = [{ id: 'main', links }];
 
     return from(setDoc(recordRef, { paymentReceipts }, { merge: true })).pipe(
-      tap(this.#loadEffectObserver),
-      catchError((error) => handleError(error, this.#logger)),
+      tap(this.loadEffectObserver),
+      catchError((error) => handleError(error, this.logger)),
     );
   }
 
@@ -126,5 +124,14 @@ export class ProductRecordsService {
       this.#functions,
       'sendProductPaymentReceiptEmail',
     )({ productRecordId });
+  }
+
+  updateRecordValidation(id: string, validated: boolean): Observable<void> {
+    const recordRef = doc(this.firestore, this.collectionName, id);
+
+    return from(setDoc(recordRef, { validated }, { merge: true })).pipe(
+      tap(this.loadEffectObserver),
+      catchError((error) => handleError(error, this.logger)),
+    );
   }
 }
