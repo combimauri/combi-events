@@ -3,6 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { EventState } from '@core/states';
 import { PageTitleComponent } from '@shared/components';
+import { EventProductsTableComponent } from './event-products-table/event-products-table.component';
 import { EventRecordsTableComponent } from './event-records-table/event-records-table.component';
 import { EventSessionsTableComponent } from './event-sessions-table/event-sessions-table.component';
 
@@ -10,6 +11,7 @@ import { EventSessionsTableComponent } from './event-sessions-table/event-sessio
   selector: 'combi-event-admin',
   standalone: true,
   imports: [
+    EventProductsTableComponent,
     EventRecordsTableComponent,
     EventSessionsTableComponent,
     MatCardModule,
@@ -29,6 +31,9 @@ import { EventSessionsTableComponent } from './event-sessions-table/event-sessio
                 [eventId]="event.id"
                 [eventName]="event.name"
               />
+            </mat-tab>
+            <mat-tab label="Productos">
+              <combi-event-products-table />
             </mat-tab>
             <mat-tab label="Sesiones">
               <combi-event-sessions-table />

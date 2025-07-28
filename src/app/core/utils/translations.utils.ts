@@ -4,6 +4,7 @@ export const translations: Record<string, string> = {
   email: 'Correo',
   fullName: 'Nombre',
   mentor: 'Mentor',
+  productName: 'Producto',
   role: 'Rol',
   sessionName: 'Taller',
   speaker: 'Speaker',
