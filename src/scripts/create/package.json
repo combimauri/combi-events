@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "events": "node create-event.js",
-    "products": "node create-product.js"
+    "products": "node create-product.js",
+    "sessions": "node create-session.js"
   },
   "author": "",
   "license": "ISC",
