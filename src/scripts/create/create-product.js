@@ -9,7 +9,7 @@ const firebaseConfig = keys.firebase;
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-async function validateAndInsertproducts(products) {
+async function validateAndInsertProducts(products) {
   if (!Array.isArray(products)) {
     throw new Error('products should be an array');
   }
@@ -26,6 +26,6 @@ async function validateAndInsertproducts(products) {
   }
 }
 
-validateAndInsertproducts(products)
-  .then(() => console.log('products have been successfully inserted/updated'))
+validateAndInsertProducts(products)
+  .then(() => console.log('Products have been successfully inserted/updated'))
   .catch((error) => console.error('Error inserting/updating products:', error));

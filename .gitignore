@@ -56,3 +56,4 @@ serviceAccount.json
 # create scripts items
 src/scripts/create/events.js
 src/scripts/create/products.js
+src/scripts/create/sessions.js
