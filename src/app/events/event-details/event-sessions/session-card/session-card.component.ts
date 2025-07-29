@@ -21,7 +21,7 @@ import { LoadingState } from '@core/states';
         <div
           mat-card-avatar
           class="session-card__avatar"
-          [style.background]="'url(' + session().speaker.photoUrl + '&sz=h40)'"
+          [style.background-image]="'url(' + session().speaker.photoUrl + ')'"
         ></div>
         <mat-card-title>
           {{ session().name }}
