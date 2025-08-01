@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Registry, Session } from '@core/models';
+import { AdditionalRegistry, Registry, Session } from '@core/models';
 
 @Pipe({
   name: 'registryLabel',
@@ -7,12 +7,19 @@ import { Registry, Session } from '@core/models';
 })
 export class RegistryLabelPipe implements PipeTransform {
   readonly #labels: Record<Registry, string> = {
-    [Registry.Entry]: 'Registrar Entrada',
-    [Registry.Product]: 'Registrar Producto',
-    [Registry.Session]: 'Registrar Taller',
+    [Registry.Entry]: 'Entrada',
+    [Registry.Product]: 'Producto',
+    [Registry.Session]: 'Taller',
   };
 
-  transform(value: Registry, sessionForScan: Session | null): string {
+  transform(
+    value: Registry | AdditionalRegistry,
+    sessionForScan: Session | null,
+  ): string {
+    if (this.isAdditionalRegistry(value)) {
+      return value.label;
+    }
+
     const label = this.#labels[value] || '';
 
     if (value === Registry.Session && sessionForScan) {
@@ -20,5 +27,11 @@ export class RegistryLabelPipe implements PipeTransform {
     }
 
     return label;
+  }
+
+  private isAdditionalRegistry(
+    registry: Registry | AdditionalRegistry,
+  ): registry is AdditionalRegistry {
+    return !!(registry as AdditionalRegistry).key;
   }
 }

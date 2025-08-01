@@ -6,12 +6,13 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { Registry } from '@core/models';
-import { SessionForScanState } from '@core/states';
+import { AdditionalRegistry, Registry } from '@core/models';
+import { EventState, SessionForScanState } from '@core/states';
 import { PageTitleComponent } from '@shared/components';
 import { RegistryLabelPipe } from '@shared/pipes';
 import { EntryScannerComponent } from './entry-scanner/entry-scanner.component';
 import { ProductScannerComponent } from './product-scanner/product-scanner.component';
+import { RegistriesScannerComponent } from './registries-scanner/registries-scanner.component';
 import { SessionScannerComponent } from './session-scanner/session-scanner.component';
 
 @Component({
@@ -24,6 +25,7 @@ import { SessionScannerComponent } from './session-scanner/session-scanner.compo
     PageTitleComponent,
     ProductScannerComponent,
     RegistryLabelPipe,
+    RegistriesScannerComponent,
     SessionScannerComponent,
   ],
   template: `
@@ -33,7 +35,7 @@ import { SessionScannerComponent } from './session-scanner/session-scanner.compo
           [selfHandle]="false"
           (goBack)="selectedRegistry.set(null)"
         >
-          {{ registry | registryLabel: sessionForScan() }}
+          Registrar {{ registry | registryLabel: sessionForScan() }}
         </combi-page-title>
 
         @switch (registry) {
@@ -45,6 +47,9 @@ import { SessionScannerComponent } from './session-scanner/session-scanner.compo
           }
           @case (Registry.Session) {
             <combi-session-scanner />
+          }
+          @default {
+            <combi-registries-scanner [additionalRegistry]="registry" />
           }
         }
       } @else {
@@ -73,6 +78,18 @@ import { SessionScannerComponent } from './session-scanner/session-scanner.compo
             >
               Registrar Taller
             </button>
+
+            <hr />
+
+            @for (registry of additionalRegistries; track registry.key) {
+              <button
+                mat-stroked-button
+                class="tertiary-button event-scanner__registry-btn"
+                (click)="selectedRegistry.set(registry)"
+              >
+                Registrar {{ registry.label }}
+              </button>
+            }
           </mat-card-content>
         </mat-card>
       }
@@ -105,9 +122,14 @@ import { SessionScannerComponent } from './session-scanner/session-scanner.compo
 })
 export default class EventScannerComponent {
   readonly #sessionForScanState = inject(SessionForScanState);
+  readonly #eventState = inject(EventState);
 
   readonly Registry = Registry;
 
-  readonly selectedRegistry = signal<Registry | null>(null);
-  readonly sessionForScan = this.#sessionForScanState.sessionForScan;
+  protected readonly additionalRegistries =
+    this.#eventState.event()?.registries;
+  protected readonly selectedRegistry = signal<
+    Registry | AdditionalRegistry | null
+  >(null);
+  protected readonly sessionForScan = this.#sessionForScanState.sessionForScan;
 }

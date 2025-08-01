@@ -163,6 +163,32 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     );
   }
 
+  registerAdditionalRegistry(
+    id: string,
+    registryKey: string,
+  ): Observable<EventRecord | RegisterRecordError | undefined> {
+    return this.getRealtimeRecordById(id).pipe(
+      tap(this.loadEffectObserver),
+      take(1),
+      switchMap((record) => {
+        if (!record) {
+          return of(RegisterRecordError.NoRecord);
+        } else if (record.additionalRegistries?.[registryKey]) {
+          return of(RegisterRecordError.AlreadyRegistered);
+        }
+
+        if (record.additionalRegistries) {
+          record.additionalRegistries[registryKey] = Timestamp.now();
+        } else {
+          record.additionalRegistries = { [registryKey]: Timestamp.now() };
+        }
+
+        return this.updateRecord(id, record).pipe(map(() => record));
+      }),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
   sendPaymentReceiptEmail(
     eventId?: string,
   ): Promise<HttpsCallableResult<unknown>> | void {
