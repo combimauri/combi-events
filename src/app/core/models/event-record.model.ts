@@ -14,6 +14,7 @@ export interface PartialEventRecord extends BillingRecord {
 }
 
 export interface EventRecord extends PartialEventRecord {
+  additionalRegistries?: Record<string, Timestamp>;
   createdAt: Timestamp;
   id: string;
   updatedAt: Timestamp;

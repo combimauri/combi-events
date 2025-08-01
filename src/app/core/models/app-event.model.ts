@@ -1,5 +1,6 @@
 import { GeoPoint, Timestamp } from '@angular/fire/firestore';
 import { AdditionalQuestion } from './additional-question.model';
+import { AdditionalRegistry } from './additional-registry.model';
 import { Price } from './price.model';
 
 export interface AppEvent {
@@ -24,6 +25,7 @@ export interface AppEvent {
   openRegistration: boolean;
   owner: string;
   price: Price;
+  registries?: AdditionalRegistry[];
   shortDescription: string;
   updatedAt: Timestamp;
 }

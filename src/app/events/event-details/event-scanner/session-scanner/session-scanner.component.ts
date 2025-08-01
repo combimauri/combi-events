@@ -231,9 +231,9 @@ export class SessionScannerComponent implements OnDestroy {
 
       if (response) {
         if (RegisterRecordError.NoRecord === response) {
-          this.statusMessage.set('No se encontró el registro.');
+          this.statusMessage.set('No se encontró el registro al taller.');
         } else if (RegisterRecordError.AlreadyRegistered === response) {
-          this.statusMessage.set('El registro ya fue realizado.');
+          this.statusMessage.set('El registro al taller ya fue realizado.');
         }
       } else {
         this.statusMessage.set('Error registrando la entrada.');
