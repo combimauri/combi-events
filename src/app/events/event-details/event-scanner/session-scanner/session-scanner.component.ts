@@ -186,6 +186,8 @@ export class SessionScannerComponent implements OnDestroy {
     switchMap((eventRecord) => {
       if (!eventRecord) {
         return of(RegisterRecordError.NoRecord);
+      } else if (!eventRecord.validated) {
+        return of(RegisterRecordError.NotValidated);
       }
 
       return this.#sessionRecordsService.registerRecordEntry(
@@ -232,6 +234,8 @@ export class SessionScannerComponent implements OnDestroy {
       if (response) {
         if (RegisterRecordError.NoRecord === response) {
           this.statusMessage.set('No se encontró el registro al taller.');
+        } else if (RegisterRecordError.NotValidated === response) {
+          this.statusMessage.set('El pago de este registro no fue validado.');
         } else if (RegisterRecordError.AlreadyRegistered === response) {
           this.statusMessage.set('El registro al taller ya fue realizado.');
         }

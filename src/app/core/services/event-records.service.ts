@@ -151,6 +151,8 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
       switchMap((record) => {
         if (!record) {
           return of(RegisterRecordError.NoRecord);
+        } else if (!record.validated) {
+          return of(RegisterRecordError.NotValidated)
         } else if (record.registeredAt) {
           return of(RegisterRecordError.AlreadyRegistered);
         }
@@ -173,6 +175,8 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
       switchMap((record) => {
         if (!record) {
           return of(RegisterRecordError.NoRecord);
+        } else if (!record.validated) {
+          return of(RegisterRecordError.NotValidated);
         } else if (record.additionalRegistries?.[registryKey]) {
           return of(RegisterRecordError.AlreadyRegistered);
         }
