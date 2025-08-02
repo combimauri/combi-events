@@ -185,6 +185,8 @@ export class RegistriesScannerComponent {
       if (response) {
         if (RegisterRecordError.NoRecord === response) {
           this.statusMessage.set('No se encontró el registro al evento.');
+        } else if (RegisterRecordError.NotValidated === response) {
+          this.statusMessage.set('El pago de este registro no fue validado.');
         } else if (RegisterRecordError.AlreadyRegistered === response) {
           this.statusMessage.set('El registro del ítem ya fue realizado.');
         }

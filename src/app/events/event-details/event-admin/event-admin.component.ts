@@ -28,6 +28,7 @@ import { EventSessionsTableComponent } from './event-sessions-table/event-sessio
             <mat-tab label="Registros">
               <combi-event-records-table
                 [additionalQuestions]="event.additionalQuestions"
+                [additionalRegistries]="event.registries"
                 [eventId]="event.id"
                 [eventName]="event.name"
               />

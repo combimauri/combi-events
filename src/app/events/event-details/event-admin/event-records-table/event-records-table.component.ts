@@ -24,6 +24,7 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import {
   AdditionalQuestion,
+  AdditionalRegistry,
   EventRecord,
   Listing,
   PageEventRecords,
@@ -297,6 +298,7 @@ import { EventRecordReceiptsComponent } from './event-record-receipts/event-reco
       }
     }
   `,
+  providers: [QuestionLabelPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EventRecordsTableComponent {
@@ -313,6 +315,7 @@ export class EventRecordsTableComponent {
   }>();
   readonly #user = toSignal(inject(AuthService).user$);
   readonly #exportCSV = new Subject<PageEventRecords>();
+  readonly #questionLabelPipe = inject(QuestionLabelPipe);
 
   readonly #filters: Record<string, unknown> = {
     role: null,
@@ -330,6 +333,7 @@ export class EventRecordsTableComponent {
   expandedElement: EventRecord | null = null;
 
   readonly additionalQuestions = input.required<AdditionalQuestion[]>();
+  readonly additionalRegistries = input<AdditionalRegistry[]>();
   readonly eventId = input.required<string>();
   readonly eventName = input.required<string>();
   readonly isHandset = toSignal(this.#isHandset$);
@@ -536,15 +540,24 @@ export class EventRecordsTableComponent {
       return;
     }
 
+    const additionalQuestions = this.additionalQuestions();
     const csvConfig = mkConfig({ useKeysAsHeaders: true });
     const data = records.map((record) => {
       const answers = structuredClone(record.additionalAnswers);
+      const csvAnswers: Record<string, string> = {};
+      const csvRegistries: Record<string, string> = {};
 
       Object.keys(record.additionalAnswers).forEach((key) => {
         const value = answers[key];
+        const newKey = this.#questionLabelPipe.transform(
+          key,
+          additionalQuestions,
+        ) as string;
 
         if (Array.isArray(value)) {
-          answers[key] = value.join(';');
+          csvAnswers[newKey] = value.join(';');
+        } else {
+          csvAnswers[newKey] = value;
         }
       });
 
@@ -558,7 +571,8 @@ export class EventRecordsTableComponent {
         createdAt: record.createdAt?.toDate().toLocaleString(),
         updatedAt: record.updatedAt?.toDate().toLocaleString(),
         registeredAt: record.registeredAt?.toDate().toLocaleString(),
-        ...answers,
+        ...csvRegistries,
+        ...csvAnswers,
       };
     });
     const csv = generateCsv(csvConfig)(data);

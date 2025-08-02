@@ -179,6 +179,8 @@ export class EntryScannerComponent {
       if (response) {
         if (RegisterRecordError.NoRecord === response) {
           this.statusMessage.set('No se encontró el registro.');
+        } else if (RegisterRecordError.NotValidated === response) {
+          this.statusMessage.set('El pago de este registro no fue validado.');
         } else if (RegisterRecordError.AlreadyRegistered === response) {
           this.statusMessage.set('El registro ya fue realizado.');
         }
