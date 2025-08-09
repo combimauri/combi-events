@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Coupon, Price } from '@core/models';
+import { EventRecordState } from '@core/states';
 import { Subject, switchMap, tap } from 'rxjs';
 import { CouponFormComponent } from './coupon-form/coupon-form.component';
 
@@ -39,7 +40,7 @@ import { CouponFormComponent } from './coupon-form/coupon-form.component';
           <p>
             <b>Descuento:</b> <span class="price-spacer"></span>
             <span class="price-amount">
-              {{ price.discount }} {{ price.currency }}
+              {{ discount() }} {{ price.currency }}
             </span>
           </p>
           @if (appliedCoupon(); as coupon) {
@@ -125,14 +126,30 @@ export class PriceDetailsComponent {
   readonly appliedCoupon = model<Coupon | null>(null);
   readonly dialog = inject(MatDialog);
   readonly eventId = input.required<string>();
+  readonly eventRecord = inject(EventRecordState).eventRecord;
   readonly openCouponDialog$ = new Subject<void>();
   readonly price = input.required<Price>();
   readonly productId = input<string>();
 
-  readonly amountToPay = computed(() => {
+  protected readonly discount = computed(() => {
+    const eventRecord = this.eventRecord();
+    const price = this.price();
+
+    if (price.discountCondition === 'REGISTERED') {
+      if (eventRecord?.validated) {
+        return price.discount;
+      }
+
+      return 0;
+    }
+
+    return price.discount;
+  });
+
+  protected readonly amountToPay = computed(() => {
     const total =
       (this.price()?.amount || 0) -
-      (this.price()?.discount || 0) -
+      (this.discount() || 0) -
       (this.appliedCoupon()?.value || 0);
 
     return total > 0 ? total : 0;

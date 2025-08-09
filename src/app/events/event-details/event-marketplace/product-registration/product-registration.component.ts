@@ -69,8 +69,7 @@ import { ProductFormComponent } from './product-form/product-form.component';
           <!-- TODO: Take into consideration coupon for amountToPay -->
           <combi-payment-card
             [iFrameUrl]="iFrameUrl()"
-            [amountToPay]="product.price.amount - product.price.discount"
-            [qrs]="product.price.qrs"
+            [price]="product.price"
             (uploadReceipts)="uploadPaymentReceipts($event)"
           />
         }
