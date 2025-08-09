@@ -563,19 +563,18 @@ export class EventRecordsTableComponent {
     const data = records.map((record) => {
       const answers = structuredClone(record.additionalAnswers);
       const csvAnswers: Record<string, string> = {};
-      const csvRegistries: Record<string, string> = {};
 
       Object.keys(record.additionalAnswers).forEach((key) => {
         const value = answers[key];
-        const newKey = this.#questionLabelPipe.transform(
-          key,
-          additionalQuestions,
-        ) as string;
+        // const newKey = this.#questionLabelPipe.transform(
+        //   key,
+        //   additionalQuestions,
+        // ) as string;
 
         if (Array.isArray(value)) {
-          csvAnswers[newKey] = value.join(';');
+          csvAnswers[key] = value.join(';');
         } else {
-          csvAnswers[newKey] = value;
+          csvAnswers[key] = value;
         }
       });
 
@@ -589,10 +588,10 @@ export class EventRecordsTableComponent {
         createdAt: record.createdAt?.toDate().toLocaleString(),
         updatedAt: record.updatedAt?.toDate().toLocaleString(),
         registeredAt: record.registeredAt?.toDate().toLocaleString(),
-        ...csvRegistries,
         ...csvAnswers,
       };
     });
+    console.log(data)
     const csv = generateCsv(csvConfig)(data);
 
     download(csvConfig)(csv);
