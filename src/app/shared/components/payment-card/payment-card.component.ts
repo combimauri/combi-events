@@ -9,8 +9,8 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { SimpleQR } from '@core/models';
-import { LoadingState } from '@core/states';
+import { Coupon, Price } from '@core/models';
+import { EventRecordState, LoadingState } from '@core/states';
 import { SanitizeUrlPipe } from '@shared/pipes';
 import { UploadBoxComponent } from './upload-box/upload-box.component';
 
@@ -25,7 +25,7 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
   ],
   template: `
     <div class="payment-card">
-      @if (!loading() && !iFrameUrl() && !mainQr()) {
+      @if (!loading() && !iFrameUrl() && !paymentQr()) {
         @defer (on timer(2s)) {
           <p>
             Ha ocurrido un error al cargar la pasarela de pago. Por favor,
@@ -42,8 +42,8 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
             class="payment-card__iframe"
             [src]="iFrameUrl | sanitizeUrl"
           ></iframe>
-        } @else if (amountToPay() > 0 && mainQr()) {
-          @let qrLink = mainQr()!.link;
+        } @else if (amountToPay() > 0 && paymentQr()) {
+          @let qrLink = paymentQr()!.link;
 
           <div class="payment-card__qr-container">
             <div class="payment-card__qr">
@@ -157,14 +157,56 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
 })
 export class PaymentCardComponent {
   readonly iFrameUrl = input<string>();
-  readonly amountToPay = input.required<number>();
-  readonly qrs = input<SimpleQR[]>();
+  readonly price = input<Price>();
+  readonly appliedCoupon = input<Coupon | null>();
+
   readonly uploadReceipts = output<File[] | null>();
 
-  protected readonly mainQr = computed(() =>
-    this.qrs()?.find((qr) => qr.id === 'main'),
-  );
+  readonly #eventRecord = inject(EventRecordState).eventRecord;
+
+  protected readonly paymentQr = computed(() => {
+    let qrId = 'main';
+    const price = this.price();
+    const eventRecord = this.#eventRecord();
+
+    if (!price) {
+      return;
+    }
+
+    if (price.discountCondition === 'REGISTERED' && !eventRecord?.validated) {
+      qrId = 'secondary';
+    }
+
+    return price.qrs?.find((qr) => qr.id === qrId);
+  });
   protected readonly qrLoaded = signal(false);
   protected readonly selectedReceipts = signal<File[] | null>(null);
   protected readonly loading = inject(LoadingState).loading;
+  protected readonly discount = computed(() => {
+    const eventRecord = this.#eventRecord();
+    const price = this.price();
+
+    if (!price) {
+      return 0;
+    }
+
+    if (price.discountCondition === 'REGISTERED') {
+      if (eventRecord?.validated) {
+        return price.discount;
+      }
+
+      return 0;
+    }
+
+    return price.discount;
+  });
+
+  protected readonly amountToPay = computed(() => {
+    const total =
+      (this.price()?.amount || 0) -
+      (this.discount() || 0) -
+      (this.appliedCoupon()?.value || 0);
+
+    return total > 0 ? total : 0;
+  });
 }

@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -21,6 +22,7 @@ import {
   Product,
   ProductRecord,
 } from '@core/models';
+import { AuthService } from '@core/services';
 import { LoadingState } from '@core/states';
 import { QuestionLabelPipe } from '@shared/pipes';
 
@@ -55,7 +57,7 @@ import { QuestionLabelPipe } from '@shared/pipes';
         <p>
           {{ product().description }}
         </p>
-        <p>{{ product().price.amount }} {{ product().price.currency }}</p>
+        <p>{{ productPrice() }} {{ product().price.currency }}</p>
 
         @if (validated() || hasPaymentReceipt()) {
           <span class="product-form__separator"></span>
@@ -216,7 +218,7 @@ import { QuestionLabelPipe } from '@shared/pipes';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductFormComponent {
-  readonly eventRecord = input.required<EventRecord>();
+  readonly eventRecord = input<EventRecord>();
   readonly product = input.required<Product>();
   readonly productRecord = input<ProductRecord | null>(null);
   readonly submitForm = output<BillingRecord>();
@@ -230,6 +232,22 @@ export class ProductFormComponent {
   protected readonly hasPaymentReceipt = computed(
     () => this.productRecord()?.paymentReceipts || false,
   );
+  protected readonly productPrice = computed(() => {
+    const eventRecord = this.eventRecord();
+    const product = this.product();
+    const { price } = product;
+
+    if (
+      !price.discountCondition ||
+      (price.discountCondition === 'REGISTERED' && eventRecord?.validated)
+    ) {
+      return price.amount - price.discount;
+    }
+
+    return price.amount;
+  });
+
+  readonly #user = toSignal(inject(AuthService).user$, { initialValue: null });
 
   submitInfo(): void {
     if (this.productForm().invalid) {
@@ -237,7 +255,10 @@ export class ProductFormComponent {
     }
 
     const formValue = this.productForm().value;
-    const { email, fullName } = this.eventRecord();
+    const eventRecord = this.eventRecord();
+    const currentUser = this.#user();
+    const email = eventRecord?.email || currentUser?.email!;
+    const fullName = eventRecord?.fullName || currentUser?.displayName!;
 
     const billingRecord: BillingRecord = {
       email,

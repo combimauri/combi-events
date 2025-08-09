@@ -5,5 +5,6 @@ export interface Price {
   discount: number;
   currency: string;
   description: string;
+  discountCondition?: 'REGISTERED';
   qrs?: SimpleQR[];
 }

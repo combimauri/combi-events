@@ -75,8 +75,8 @@ import { EventRegistrationFormComponent } from './event-registration-form/event-
       @case (RegistrationStep.payment) {
         <combi-payment-card
           [iFrameUrl]="iFrameUrl()"
-          [amountToPay]="amountToPay()"
-          [qrs]="event()?.price?.qrs"
+          [appliedCoupon]="appliedCoupon()"
+          [price]="event()?.price"
           (uploadReceipts)="uploadPaymentReceipts($event)"
         />
       }
@@ -115,7 +115,8 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly #router = inject(Router);
   readonly #selectedFiles = signal<File[]>([]);
   readonly #uploadedFilesLinks = signal<string[]>([]);
-  readonly #appliedCoupon = signal<Coupon | null>(null);
+
+  protected readonly appliedCoupon = signal<Coupon | null>(null);
 
   readonly #getBillingData$ = new Subject<{
     eventId: string;
@@ -167,8 +168,9 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly amountToPay = computed(() => {
     const total =
       (this.event()?.price.amount || 0) -
+      // TODO: Discount should now be calculated like in payment card
       (this.event()?.price.discount || 0) -
-      (this.#appliedCoupon()?.value || 0);
+      (this.appliedCoupon()?.value || 0);
 
     return total > 0 ? total : 0;
   });
@@ -260,7 +262,7 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.#appliedCoupon.set(coupon);
+    this.appliedCoupon.set(coupon);
 
     if (coupon) {
       this.billingRecord.couponId = coupon.id;
