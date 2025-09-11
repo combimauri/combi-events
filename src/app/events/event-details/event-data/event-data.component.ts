@@ -45,7 +45,8 @@ import { UserEventRecordComponent } from './user-event-record/user-event-record.
         @if (eventRecord(); as record) {
           <combi-user-event-record [eventRecord]="record" />
         } @else {
-          @if (event.openRegistration && event.count < event.capacity) {
+          <!-- If event is not listed, registrations are allowed, but button is not displayed -->
+          @if (event.listEvent && event.openRegistration && event.count < event.capacity) {
             <combi-event-registration-button />
           } @else {
             <combi-event-closed-card />
