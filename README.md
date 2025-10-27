@@ -56,15 +56,8 @@ npm run keys:create
 ```
 This will generate a file `keys.ts` in `./src/environments/keys.ts`, which will store the Firebase keys needed for the project.
 
-5. **Configure Firebase keys:**  
-- Access the Firebase console (check your email for the invitation).  
-- Open the project `gdg-bo-events`.  
-- On the main screen, you will see the project is available for two applications: **mobile** and **web**. Click the **web** icon.  
-- Click the **settings** icon. At the bottom of the page, find the web application `gdg-events`.  
-- Copy the credentials shown and paste them into the `keys.ts` file.  
-
-![Firebase Keys Setup](./readme-assets/firebase-config-1.png)
-![Firebase Keys Setup](./readme-assets/firebase-config-2.png)
+5. **Configure Firebase Keys:**  
+Request the Firebase key from your trainer, then open `src/environments/keys.ts` and paste the key there.
 
 6. **Start the project:**  
 ```bash
