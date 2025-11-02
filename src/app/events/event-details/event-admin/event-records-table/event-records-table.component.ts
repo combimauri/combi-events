@@ -183,6 +183,7 @@ import { EventRecordReceiptsComponent } from './event-record-receipts/event-reco
                 [paymentReceipts]="element.paymentReceipts"
                 [validated]="element.validated"
                 (toggleValidation)="toggleValidation(element)"
+                (deleteRecord)="deleteRecord(element)"
               />
               <combi-event-record-notes
                 [notes]="element.notes"
@@ -309,6 +310,9 @@ export class EventRecordsTableComponent {
     recordId: string;
     validated: boolean;
   }>();
+  readonly #deleteRecord$ = new Subject<{
+    recordId: string;
+  }>();
   readonly #updateNotes$ = new Subject<{
     recordId: string;
     notes: string;
@@ -360,6 +364,14 @@ export class EventRecordsTableComponent {
       switchMap(({ recordId, validated }) =>
         this.#eventRecordsService.updateRecordValidation(recordId, validated),
       ),
+    ),
+  );
+  readonly deleteEventRecord = toSignal(
+    this.#deleteRecord$.pipe(
+      switchMap(({ recordId }) =>
+        this.#eventRecordsService.deleteRecord(recordId),
+      ),
+      tap(() => this.resetTable()),
     ),
   );
   readonly updateNotes = toSignal(
@@ -474,6 +486,12 @@ export class EventRecordsTableComponent {
     const { id: recordId, validated } = record;
 
     this.#updateValidation$.next({ recordId, validated });
+  }
+
+  deleteRecord(record: EventRecord): void {
+    const { id: recordId } = record;
+
+    this.#deleteRecord$.next({ recordId });
   }
 
   saveNotes(record: EventRecord, notes: string): void {
