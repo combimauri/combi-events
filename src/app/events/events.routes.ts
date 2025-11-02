@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import {
-  adminGuard,
   authGuard,
   eventGuard,
   exitRegistrationGuard,
@@ -39,13 +38,13 @@ const routes: Routes = [
       },
       {
         path: 'admin',
-        canActivate: [authGuard, adminGuard],
+        canActivate: [authGuard],
         loadComponent: () =>
           import('./event-details/event-admin/event-admin.component'),
       },
       {
         path: 'scanner',
-        canActivate: [authGuard, adminGuard],
+        canActivate: [authGuard],
         loadComponent: () =>
           import('./event-details/event-scanner/event-scanner.component'),
       },

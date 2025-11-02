@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import {
   collection,
   collectionData,
+  deleteDoc,
   doc,
   docData,
   limit,
@@ -118,6 +119,15 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
     const recordRef = doc(this.firestore, this.collectionName, id);
 
     return from(setDoc(recordRef, { validated }, { merge: true })).pipe(
+      tap(this.loadEffectObserver),
+      catchError((error) => handleError(error, this.logger)),
+    );
+  }
+
+  deleteRecord(id: string): Observable<void> {
+    const recordRef = doc(this.firestore, this.collectionName, id);
+
+    return from(deleteDoc(recordRef)).pipe(
       tap(this.loadEffectObserver),
       catchError((error) => handleError(error, this.logger)),
     );

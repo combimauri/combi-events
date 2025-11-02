@@ -214,7 +214,9 @@ export class EventRegistrationFormComponent implements AfterViewInit {
             const { question, answer } = additionalQuestion.dependsOn;
             additionalQuestion.visible = eventFormValues[question] === answer;
           } else {
-            additionalQuestion.visible = true;
+            additionalQuestion.visible = ['info', 'text', 'select'].includes(
+              additionalQuestion.type,
+            );
           }
 
           return additionalQuestion;

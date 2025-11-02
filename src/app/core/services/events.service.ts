@@ -40,6 +40,23 @@ export class EventsService {
     );
   }
 
+  getEventsByOwner(owner: string): Observable<AppEvent[] | undefined> {
+    const eventsCollection = collection(this.#firestore, this.#collectionName);
+    const eventsQuery = query(
+      eventsCollection,
+      orderBy('date.start', 'desc'),
+      where('owner', '==', owner),
+    );
+
+    return (
+      collectionData<AppEvent>(eventsQuery) as Observable<AppEvent[]>
+    ).pipe(
+      tap(this.#loadEffectObserver),
+      take(1),
+      catchError((error) => handleError(error, this.#logger)),
+    );
+  }
+
   getEventById(id: string): Observable<AppEvent | undefined> {
     const docRef = doc(this.#firestore, this.#collectionName, id);
 

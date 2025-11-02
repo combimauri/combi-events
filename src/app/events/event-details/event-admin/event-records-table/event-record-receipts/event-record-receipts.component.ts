@@ -33,14 +33,21 @@ import { Subject, switchMap, tap } from 'rxjs';
       }
       <button
         mat-flat-button
-        (click)="openConfirmationDialog$.next()"
+        (click)="openConfirmationDialog$.next('toggleValidation')"
         [disabled]="loading()"
       >
         @if (validated()) {
-          Invalidar Pago
+          Invalidar
         } @else {
-          Validar Pago
+          Validar
         }
+      </button>
+      <button
+        mat-flat-button
+        (click)="openConfirmationDialog$.next('deleteRecord')"
+        [disabled]="loading()"
+      >
+        Eliminar Registro
       </button>
     </div>
   `,
@@ -60,29 +67,45 @@ export class EventRecordReceiptsComponent {
   readonly validated = input<boolean>();
   readonly paymentReceipts = input<PaymentReceipts[]>();
   readonly toggleValidation = output<void>();
+  readonly deleteRecord = output<void>();
 
   protected readonly mainReceipt = computed(() =>
     this.paymentReceipts()?.find((receipt) => receipt.id === 'main'),
   );
-  protected readonly openConfirmationDialog$ = new Subject<void>();
+  protected readonly openConfirmationDialog$ = new Subject<
+    'toggleValidation' | 'deleteRecord'
+  >();
   protected readonly afterDialogClosed = toSignal(
     this.openConfirmationDialog$.pipe(
-      switchMap(() => {
-        const title = this.validated()
-          ? 'Invalidar Pago'
-          : 'Validar Pago';
-        const content = `Estás a punto de ${this.validated() ? 'invalidar' : 'validar'} este pago, ¿quieres proceder?`;
+      switchMap((action) => {
+        let title = '';
+        let content = '';
+
+        if (action === 'toggleValidation') {
+          title = this.validated() ? 'Invalidar Registro' : 'Validar Registro';
+          content = `Estás a punto de ${this.validated() ? 'invalidar' : 'validar'} este registro, ¿quieres proceder?`;
+        } else if (action === 'deleteRecord') {
+          title = 'Eliminar Registro';
+          content =
+            'Estás a punto de eliminar este registro, ¿quieres proceder?';
+        }
 
         return this.#dialog
           .open(ConfirmationDialogComponent, {
-            data: { title, content },
+            data: { title, content, action },
             width: '400px',
           })
           .afterClosed();
       }),
       tap((confirm) => {
-        if (confirm) {
+        if (!confirm) {
+          return;
+        }
+
+        if (confirm === 'toggleValidation') {
           this.toggleValidation.emit();
+        } else if (confirm === 'deleteRecord') {
+          this.deleteRecord.emit();
         }
       }),
     ),
