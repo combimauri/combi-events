@@ -14,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Coupon, Price } from '@core/models';
 import { EventRecordState, LoadingState } from '@core/states';
+import { revertingSignal } from '@core/utils';
 import { environment } from '@env/environment';
 import { SanitizeUrlPipe } from '@shared/pipes';
 import { UploadBoxComponent } from './upload-box/upload-box.component';
@@ -174,6 +175,9 @@ export class PaymentCardComponent implements OnDestroy {
   readonly #eventRecord = inject(EventRecordState).eventRecord;
   readonly #platformId = inject(PLATFORM_ID);
 
+  readonly #lockListener = signal(false);
+  readonly #lockValidation = revertingSignal(false, 5000);
+
   protected readonly paymentQr = computed(() => {
     let qrId = 'main';
     const price = this.price();
@@ -222,23 +226,27 @@ export class PaymentCardComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     if (isPlatformBrowser(this.#platformId)) {
-      window.removeEventListener('message', () => {});
+      window.removeEventListener('message', this.fireValidation);
     }
   }
 
   protected initializeMessageListener(): void {
-    if (!isPlatformBrowser(this.#platformId)) {
+    if (!isPlatformBrowser(this.#platformId) || this.#lockListener()) {
       return;
     }
 
-    window.addEventListener('message', (event) => {
-      if (event.origin !== environment.gatewayOrigin) {
-        return;
-      }
-
-      if (event.data?.status === 200) {
-        this.forceValidation.emit();
-      }
-    });
+    window.addEventListener('message', this.fireValidation);
+    this.#lockListener.set(true);
   }
+
+  private fireValidation = (event: MessageEvent) => {
+    if (event.origin !== environment.gatewayOrigin || this.#lockValidation()) {
+      return;
+    }
+
+    if (event.data?.status === 200) {
+      this.#lockValidation.set(true);
+      this.forceValidation.emit();
+    }
+  };
 }
