@@ -8,4 +8,5 @@ export type AppEvent = {
   name: string;
   owner: string;
   price: Price;
+  openRegistration: boolean;
 };

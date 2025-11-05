@@ -78,6 +78,7 @@ import { EventRegistrationFormComponent } from './event-registration-form/event-
           [appliedCoupon]="appliedCoupon()"
           [price]="event()?.price"
           (uploadReceipts)="uploadPaymentReceipts($event)"
+          (forceValidation)="forceValidation$.next()"
         />
       }
     }
@@ -124,13 +125,9 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   }>();
   readonly #billingData = toSignal(
     this.#getBillingData$.pipe(
-      switchMap(({ eventId, billing }) => {
-        if (this.amountToPay() === 0) {
-          return this.#eventRecordsService.registerRecord(eventId, billing);
-        }
-
-        return this.#eventRecordsService.registerSimpleRecord(eventId, billing);
-      }),
+      switchMap(({ eventId, billing }) =>
+        this.#eventRecordsService.registerRecord(eventId, billing),
+      ),
     ),
   );
   readonly #paymentValidated = computed(
@@ -162,7 +159,9 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
   readonly RegistrationStep = RegistrationStep;
 
   readonly event = inject(EventState).event;
-  readonly iFrameUrl = computed(() => this.#billingData()?.url);
+  readonly iFrameUrl = computed(
+    () => this.#billingData()?.orderData.paymentUrl,
+  );
   readonly registrationStep = this.#registrationStepState.registrationStep;
   readonly title = computed(() => this.event()?.name);
   readonly amountToPay = computed(() => {
@@ -180,6 +179,15 @@ export default class EventRegistrationComponent implements OnInit, OnDestroy {
       switchMap((id) => this.#eventRecordsService.getRealtimeRecordById(id)),
       filter((record) => !!record),
       tap((eventRecord) => this.#eventRecordState.setEventRecord(eventRecord)),
+    ),
+  );
+
+  protected readonly forceValidation$ = new Subject<void>();
+  readonly forceValidation = toSignal(
+    this.forceValidation$.pipe(
+      switchMap(() =>
+        this.#paymentsService.validateEventPayment(this.#eventRecord()!.id),
+      ),
     ),
   );
 

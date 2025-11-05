@@ -152,8 +152,8 @@ export class UserEventRecordComponent {
   readonly validatedRecordResult = toSignal(
     this.validatePayment$.pipe(
       tap(() => this.validationLoadingState.startLoading()),
-      switchMap(({ id, orderId }) =>
-        this.#paymentsService.validateEventPayment(orderId).pipe(map(() => id)),
+      switchMap(({ id }) =>
+        this.#paymentsService.validateEventPayment(id).pipe(map(() => id)),
       ),
       switchMap((recordId) =>
         this.#eventRecordsService.getRecordById(recordId),

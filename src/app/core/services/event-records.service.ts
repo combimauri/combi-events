@@ -21,6 +21,7 @@ import {
   BillingData,
   BillingRecord,
   EventRecord,
+  Order,
   PaymentReceipts,
   RegisterRecordError,
 } from '@core/models';
@@ -85,15 +86,15 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
   registerRecord(
     eventId: string,
     { additionalAnswers, fullName, couponId }: BillingRecord,
-  ): Observable<BillingData | undefined> {
+  ): Observable<{ orderData: Order; recordId: string } | undefined> {
     const response = httpsCallable(
       this.#functions,
-      'createEventOrder',
+      'createNewEventOrder',
     )({ eventId, fullName, additionalAnswers, couponId });
 
     return from(response).pipe(
       tap(this.loadEffectObserver),
-      map((result) => result.data as BillingData),
+      map((result) => result.data as { orderData: Order; recordId: string }),
       catchError((error) => handleError(error, this.logger)),
     );
   }
@@ -162,7 +163,7 @@ export class EventRecordsService extends TableRecordsService<EventRecord> {
         if (!record) {
           return of(RegisterRecordError.NoRecord);
         } else if (!record.validated) {
-          return of(RegisterRecordError.NotValidated)
+          return of(RegisterRecordError.NotValidated);
         } else if (record.registeredAt) {
           return of(RegisterRecordError.AlreadyRegistered);
         }

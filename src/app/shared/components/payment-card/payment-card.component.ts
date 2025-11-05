@@ -1,16 +1,20 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
   input,
+  OnDestroy,
   output,
+  PLATFORM_ID,
   signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Coupon, Price } from '@core/models';
 import { EventRecordState, LoadingState } from '@core/states';
+import { environment } from '@env/environment';
 import { SanitizeUrlPipe } from '@shared/pipes';
 import { UploadBoxComponent } from './upload-box/upload-box.component';
 
@@ -41,6 +45,7 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
           <iframe
             class="payment-card__iframe"
             [src]="iFrameUrl | sanitizeUrl"
+            (load)="initializeMessageListener()"
           ></iframe>
         } @else if (amountToPay() > 0 && paymentQr()) {
           @let qrLink = paymentQr()!.link;
@@ -90,22 +95,25 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
       border-radius: 0.75rem;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: flex;
-      min-height: 600px;
+      min-height: 900px;
       padding: 15px;
       position: relative;
       width: 100%;
 
       .wolipay-spinner {
+        left: 0;
         position: absolute;
         top: 0.75rem;
         width: 100%;
       }
 
       .payment-card__iframe {
-        border: 0;
         border-radius: 0.75rem;
+        border: 0;
         height: 100%;
-        position: relative;
+        left: 0;
+        position: absolute;
+        top: 0;
         width: 100%;
         z-index: 1;
       }
@@ -155,14 +163,16 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PaymentCardComponent {
+export class PaymentCardComponent implements OnDestroy {
   readonly iFrameUrl = input<string>();
   readonly price = input<Price>();
   readonly appliedCoupon = input<Coupon | null>();
 
   readonly uploadReceipts = output<File[] | null>();
+  readonly forceValidation = output<void>();
 
   readonly #eventRecord = inject(EventRecordState).eventRecord;
+  readonly #platformId = inject(PLATFORM_ID);
 
   protected readonly paymentQr = computed(() => {
     let qrId = 'main';
@@ -209,4 +219,26 @@ export class PaymentCardComponent {
 
     return total > 0 ? total : 0;
   });
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.#platformId)) {
+      window.removeEventListener('message', () => {});
+    }
+  }
+
+  protected initializeMessageListener(): void {
+    if (!isPlatformBrowser(this.#platformId)) {
+      return;
+    }
+
+    window.addEventListener('message', (event) => {
+      if (event.origin !== environment.gatewayOrigin) {
+        return;
+      }
+
+      if (event.data?.status === 200) {
+        this.forceValidation.emit();
+      }
+    });
+  }
 }

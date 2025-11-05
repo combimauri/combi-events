@@ -7,4 +7,7 @@ export const keys = {
     authDomain: '',
     messagingSenderId: '',
   },
+  gateway: {
+    origin: '',
+  }
 };

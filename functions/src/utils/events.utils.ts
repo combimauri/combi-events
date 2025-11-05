@@ -1,17 +1,25 @@
 import { FieldValue, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions/v2';
+import { HttpsError } from 'firebase-functions/v2/https';
 import { AppEvent } from '../models/app-event.model';
 
-export async function getEventById(id: string): Promise<AppEvent | null> {
+export async function getEventById(id: string): Promise<AppEvent> {
   try {
     const firestore = getFirestore();
     const eventDoc = firestore.collection('events').doc(id);
     const eventSnapshot = await eventDoc.get();
 
-    return eventSnapshot.exists ? (eventSnapshot.data() as AppEvent) : null;
+    const event = eventSnapshot.exists ? (eventSnapshot.data() as AppEvent) : null;
+    if (!event) {
+      throw new HttpsError('internal', 'El evento no existe.');
+    }
+    if (!event.openRegistration || event.count >= event.capacity) {
+      throw new HttpsError('resource-exhausted', 'El evento está lleno.');
+    }
+    return event;
   } catch (error) {
     logger.error('Failed to get event.', error);
-    return null;
+    throw new HttpsError('internal', 'Error al obtener el evento.');
   }
 }
 

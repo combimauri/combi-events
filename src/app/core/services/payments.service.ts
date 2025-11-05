@@ -37,11 +37,11 @@ export class PaymentsService {
     return uploadBytesResumable(storageRef, file);
   }
 
-  validateEventPayment(orderId: string): Observable<unknown> {
+  validateEventPayment(eventRecordId: string): Observable<unknown> {
     const response = httpsCallable(
       this.#functions,
       'validateEventPayment',
-    )({ orderId });
+    )({ eventRecordId });
 
     return from(response).pipe(
       tap(this.#loadEffectObserver),

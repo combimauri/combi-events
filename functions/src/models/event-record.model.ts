@@ -7,11 +7,14 @@ export interface PartialEventRecord {
   email: string;
   eventId: string;
   fullName: string;
-  orderId?: string;
-  paymentId?: string;
   role: RecordRole;
   searchTerm: string;
   validated: boolean;
+  orderId?: string; // Available for paid events
+  /**
+   * @deprecated new Event Records should use paymentId
+   */
+  paymentId?: string;
 }
 
 export interface EventRecord extends PartialEventRecord {
