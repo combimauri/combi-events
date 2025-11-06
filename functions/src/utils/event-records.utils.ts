@@ -4,8 +4,9 @@ import { HttpsError } from 'firebase-functions/v2/https';
 import { EventRecord, PartialEventRecord } from '../models/event-record.model';
 import { getGatewayOrderByExternalId } from './biyuyo.utils';
 import { getOrderById, upsertOrder } from './order.utils';
-import { incrementEventCount } from './events.utils';
+import { getEventById, incrementEventCount } from './events.utils';
 import { incrementCouponCount } from './coupons.utils';
+import { sendEventRegistrationEmail } from './mail.utils';
 
 export async function getExistingEventRecord(
   email: string,
@@ -163,6 +164,10 @@ async function validateRecordPayment(existingRecord: EventRecord) {
     if (usedCouponId) {
       await incrementCouponCount(usedCouponId);
     }
+
+    getEventById(eventId)
+      .then((event) => sendEventRegistrationEmail(event, updatedEventRecord))
+      .catch((error) => logger.error(error));
   }
 }
 

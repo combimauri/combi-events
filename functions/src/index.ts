@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase-admin/app';
+import { logger } from 'firebase-functions/v2';
 import {
   CallableRequest,
   HttpsError,
@@ -24,6 +25,7 @@ import {
 import { PartialEventRecord } from './models/event-record.model';
 import { RecordRole } from './models/record-role.enum';
 import { getOrderById, upsertOrder } from './utils/order.utils';
+import { sendEventRegistrationEmail } from './utils/mail.utils';
 
 initializeApp();
 
@@ -100,6 +102,10 @@ export const createNewEventOrder = onCall(
       if (usedCouponId) {
         await incrementCouponCount(usedCouponId);
       }
+
+      getEventById(eventId)
+        .then((event) => sendEventRegistrationEmail(event, upsertedRecord!))
+        .catch((error) => logger.error(error));
     }
 
     return {
@@ -159,6 +165,10 @@ export const validateEventPayment = onRequest(
       if (usedCouponId) {
         await incrementCouponCount(usedCouponId);
       }
+
+      getEventById(eventId)
+        .then((event) => sendEventRegistrationEmail(event, updatedEventRecord))
+        .catch((error) => logger.error(error));
     }
 
     response.send({ data: { validated: updatedEventRecord.validated } });
