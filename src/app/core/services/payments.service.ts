@@ -7,7 +7,7 @@ import {
   uploadBytesResumable,
 } from '@angular/fire/storage';
 import { loadEffect, handleError } from '@core/utils';
-import { catchError, from, Observable, tap } from 'rxjs';
+import { catchError, from, map, Observable, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
 
 @Injectable({
@@ -45,6 +45,7 @@ export class PaymentsService {
 
     return from(response).pipe(
       tap(this.#loadEffectObserver),
+      map((result) => result?.data),
       catchError((error) => handleError(error, this.#logger)),
     );
   }

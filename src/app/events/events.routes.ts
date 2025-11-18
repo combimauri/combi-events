@@ -38,6 +38,15 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'staff-registration',
+        canActivate: [authGuard],
+        canDeactivate: [exitRegistrationGuard],
+        loadComponent: () =>
+          import(
+            './event-details/event-registration/event-registration.component'
+          ),
+      },
+      {
         path: 'admin',
         canActivate: [authGuard, adminGuard],
         loadComponent: () =>

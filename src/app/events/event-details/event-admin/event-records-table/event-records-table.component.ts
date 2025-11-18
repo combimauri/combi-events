@@ -30,7 +30,11 @@ import {
   PageEventRecords,
   RecordRole,
 } from '@core/models';
-import { AuthService, EventRecordsService } from '@core/services';
+import {
+  AuthService,
+  EventRecordsService,
+  PaymentsService,
+} from '@core/services';
 import { LoadingState } from '@core/states';
 import { translations } from '@core/utils';
 import {
@@ -182,7 +186,7 @@ import { EventRecordReceiptsComponent } from './event-record-receipts/event-reco
               <combi-event-record-receipts
                 [paymentReceipts]="element.paymentReceipts"
                 [validated]="element.validated"
-                (toggleValidation)="toggleValidation(element)"
+                (toggleValidation)="updateValidation$.next(element)"
                 (deleteRecord)="deleteRecord(element)"
               />
               <combi-event-record-notes
@@ -305,11 +309,8 @@ import { EventRecordReceiptsComponent } from './event-record-receipts/event-reco
 export class EventRecordsTableComponent {
   readonly #dialog = inject(MatDialog);
   readonly #eventRecordsService = inject(EventRecordsService);
+  readonly #paymentsService = inject(PaymentsService);
   readonly #pageEventRecords$ = new Subject<PageEventRecords>();
-  readonly #updateValidation$ = new Subject<{
-    recordId: string;
-    validated: boolean;
-  }>();
   readonly #deleteRecord$ = new Subject<{
     recordId: string;
   }>();
@@ -344,6 +345,7 @@ export class EventRecordsTableComponent {
   readonly loading = inject(LoadingState).loading;
   readonly translations = translations;
 
+  readonly updateValidation$ = new Subject<EventRecord>();
   readonly displayedColumns = toSignal(
     this.#isHandset$.pipe(
       map((isHandset) => this.getDisplayedColumns(isHandset)),
@@ -360,9 +362,15 @@ export class EventRecordsTableComponent {
     { initialValue: [] },
   );
   readonly updateValidation = toSignal(
-    this.#updateValidation$.pipe(
-      switchMap(({ recordId, validated }) =>
-        this.#eventRecordsService.updateRecordValidation(recordId, validated),
+    this.updateValidation$.pipe(
+      switchMap((record) =>
+        this.#paymentsService.validateEventPayment(record.id).pipe(
+          tap((data) => {
+            if (this.isValidatedData(data)) {
+              record.validated = data.validated;
+            }
+          }),
+        ),
       ),
     ),
   );
@@ -481,13 +489,6 @@ export class EventRecordsTableComponent {
     });
   }
 
-  toggleValidation(record: EventRecord): void {
-    record.validated = !record.validated;
-    const { id: recordId, validated } = record;
-
-    this.#updateValidation$.next({ recordId, validated });
-  }
-
   deleteRecord(record: EventRecord): void {
     const { id: recordId } = record;
 
@@ -596,5 +597,16 @@ export class EventRecordsTableComponent {
     const csv = generateCsv(csvConfig)(data);
 
     download(csvConfig)(csv);
+  }
+
+  private isValidatedData(data: unknown): data is { validated: boolean } {
+    if (typeof data !== 'object' || data === null || data === undefined) {
+      return false;
+    }
+
+    return (
+      'validated' in data &&
+      typeof (data as { validated: unknown }).validated === 'boolean'
+    );
   }
 }

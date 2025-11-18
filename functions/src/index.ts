@@ -15,6 +15,7 @@ import { AuthData } from 'firebase-functions/tasks';
 import {
   addEventRecord,
   getEventRecordById,
+  getEventRecordByOrderId,
   getExistingEventRecord,
   updateEventRecord,
 } from './utils/event-records.utils';
@@ -42,8 +43,8 @@ export const createNewEventOrder = onCall(
     const { gatewayBasePath, gatewayEmail, gatewayPassword } =
       getEnvironmentVariables();
     const { eventId, fullName, additionalAnswers, couponId } = request.data;
-    const event = await getEventById(eventId);
     const coupon = await getCouponByIdAndEventId(couponId, eventId);
+    const event = await getEventById(eventId, coupon);
     const email = auth.token.email!;
     const existingEventRecord = await getExistingEventRecord(
       email,
@@ -121,14 +122,29 @@ export const validateEventPayment = onRequest(
     const { gatewayBasePath, gatewayEmail, gatewayPassword } =
       getEnvironmentVariables();
 
-    const { eventRecordId } = request.body.data;
+    const eventRecordId = request.body.data?.eventRecordId;
+    const orderId = request.body.external_id;
 
-    if (!eventRecordId) {
+    logger.info('Validation request received.', request.body);
+
+    if (!eventRecordId && !orderId) {
       response.status(400).send('Faltan campos requeridos.');
       return;
     }
 
-    const eventRecord = await getEventRecordById(eventRecordId);
+    let eventRecord;
+
+    if (eventRecordId) {
+      eventRecord = await getEventRecordById(eventRecordId);
+    } else {
+      eventRecord = await getEventRecordByOrderId(orderId);
+    }
+
+    if (!eventRecord) {
+      response.status(400).send('Event does not exist.');
+      return;
+    }
+
     let status = '';
 
     if (eventRecord.orderId) {
@@ -169,6 +185,18 @@ export const validateEventPayment = onRequest(
       getEventById(eventId)
         .then((event) => sendEventRegistrationEmail(event, updatedEventRecord))
         .catch((error) => logger.error(error));
+    }
+
+    if (eventRecordId) {
+      logger.info(
+        'Validation by eventRecordId request response.',
+        updatedEventRecord.validated,
+      );
+    } else {
+      logger.info(
+        'Validation by orderId request response.',
+        updatedEventRecord.validated,
+      );
     }
 
     response.send({ data: { validated: updatedEventRecord.validated } });
