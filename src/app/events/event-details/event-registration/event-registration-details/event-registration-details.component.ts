@@ -2,6 +2,7 @@ import { KeyValuePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
@@ -9,6 +10,7 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { ActivatedRoute } from '@angular/router';
 import {
   AdditionalQuestion,
   BillingRecord,
@@ -61,12 +63,29 @@ import { QuestionLabelPipe } from '@shared/pipes';
       <combi-price-details
         [eventId]="this.eventId()"
         [price]="price()!"
+        [staffRegistration]="staffRegistration"
         [(appliedCoupon)]="appliedCoupon"
       />
     }
 
-    <button mat-fab extended (click)="confirmRegistration()">
-      @if (price()?.amount) {
+    @if (staffRegistration) {
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <p>
+            *Para confirmar tu registro como miembro del Staff o Speaker, debes
+            introducir un cupón válido.
+          </p>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <button
+      mat-fab
+      extended
+      (click)="confirmRegistration()"
+      [disabled]="disableRegistrationButton()"
+    >
+      @if (price()?.amount && !staffRegistration) {
         Pagar
       } @else {
         Confirmar Registro
@@ -84,19 +103,34 @@ import { QuestionLabelPipe } from '@shared/pipes';
 })
 export class EventRegistrationDetailsComponent {
   readonly #registrationStepState = inject(RegistrationStepState);
+  readonly #activatedRoute = inject(ActivatedRoute);
 
   readonly additionalQuestions = input<AdditionalQuestion[]>([]);
-  readonly appliedCoupon = signal<Coupon | null>(null);
   readonly billingRecord = input<BillingRecord>();
   readonly confirmDetails = output<Coupon | null>();
   readonly eventId = input.required<string>();
   readonly price = input<Price>();
+
+  protected readonly appliedCoupon = signal<Coupon | null>(null);
+  protected readonly staffRegistration =
+    this.#activatedRoute.snapshot.routeConfig?.path === 'staff-registration';
+  protected readonly disableRegistrationButton = computed(() => {
+    if (!this.staffRegistration) {
+      return false;
+    }
+
+    return !this.appliedCoupon();
+  });
 
   editRegistration(): void {
     this.#registrationStepState.setRegistrationStep(RegistrationStep.form);
   }
 
   confirmRegistration(): void {
+    if (this.disableRegistrationButton()) {
+      return;
+    }
+
     this.confirmDetails.emit(this.appliedCoupon());
   }
 }

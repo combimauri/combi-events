@@ -31,17 +31,15 @@ import { Subject, switchMap, tap } from 'rxjs';
           </a>
         }
       }
-      <button
-        mat-flat-button
-        (click)="openConfirmationDialog$.next('toggleValidation')"
-        [disabled]="loading()"
-      >
-        @if (validated()) {
-          Invalidar
-        } @else {
-          Validar
-        }
-      </button>
+      @if (!validated()) {
+        <button
+          mat-flat-button
+          (click)="openConfirmationDialog$.next('toggleValidation')"
+          [disabled]="loading()"
+        >
+          Correr Validación
+        </button>
+      }
       <button
         mat-flat-button
         (click)="openConfirmationDialog$.next('deleteRecord')"

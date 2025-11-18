@@ -2,16 +2,32 @@ import { FieldValue, getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions/v2';
 import { HttpsError } from 'firebase-functions/v2/https';
 import { AppEvent } from '../models/app-event.model';
+import { Coupon } from '../models/coupon.model';
 
-export async function getEventById(id: string): Promise<AppEvent> {
+export async function getEventById(
+  id: string,
+  coupon: Coupon | null = null,
+): Promise<AppEvent> {
   try {
     const firestore = getFirestore();
     const eventDoc = firestore.collection('events').doc(id);
     const eventSnapshot = await eventDoc.get();
 
-    const event = eventSnapshot.exists ? (eventSnapshot.data() as AppEvent) : null;
+    const event = eventSnapshot.exists
+      ? (eventSnapshot.data() as AppEvent)
+      : null;
     if (!event) {
       throw new HttpsError('internal', 'El evento no existe.');
+    }
+    if (
+      coupon &&
+      coupon.isActive &&
+      coupon.recordLabel !== undefined &&
+      coupon.recordLabel !== 'attendee'
+    ) {
+      // Staff, speakers, etc. can register even if registration is closed
+      // with a valid coupon
+      return event;
     }
     if (!event.openRegistration || event.count >= event.capacity) {
       throw new HttpsError('resource-exhausted', 'El evento está lleno.');

@@ -50,7 +50,11 @@ import { CouponFormComponent } from './coupon-form/coupon-form.component';
                 {{ coupon.value }} {{ price.currency }}
               </span>
               <span class="coupon-warning">
-                *No se aplicará hasta que confirmes el pago.
+                @if (staffRegistration()) {
+                  *No se aplicará hasta que confirmes el registro.
+                } @else {
+                  *No se aplicará hasta que confirmes el pago.
+                }
               </span>
             </p>
           }
@@ -127,9 +131,11 @@ export class PriceDetailsComponent {
   readonly dialog = inject(MatDialog);
   readonly eventId = input.required<string>();
   readonly eventRecord = inject(EventRecordState).eventRecord;
-  readonly openCouponDialog$ = new Subject<void>();
   readonly price = input.required<Price>();
   readonly productId = input<string>();
+  readonly staffRegistration = input<boolean>(false);
+
+  protected readonly openCouponDialog$ = new Subject<void>();
 
   protected readonly discount = computed(() => {
     const eventRecord = this.eventRecord();
