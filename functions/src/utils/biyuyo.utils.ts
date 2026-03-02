@@ -17,12 +17,14 @@ export async function getOrderData(
   gatewayEmail: string,
   gatewayPassword: string,
   gatewayBasePath: string,
+  applyDiscount = true,
 ): Promise<Order | null> {
   try {
     const totalDiscount = calculateDiscount(
       amount,
       discount,
       coupon?.value || 0,
+      applyDiscount,
     );
     const totalAmount = amount - totalDiscount;
 
@@ -201,7 +203,12 @@ function calculateDiscount(
   amount: number,
   discount: number,
   couponValue: number,
+  applyDiscount: boolean,
 ): number {
+  if (!applyDiscount) {
+    discount = 0;
+  }
+
   let discountAmount = discount + couponValue;
 
   if (discountAmount > amount) {

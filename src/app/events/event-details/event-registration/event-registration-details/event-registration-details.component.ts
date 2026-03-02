@@ -64,6 +64,7 @@ import { QuestionLabelPipe } from '@shared/pipes';
         [eventId]="this.eventId()"
         [price]="price()!"
         [staffRegistration]="staffRegistration"
+        [applyPriceWithDiscount]="applyPriceWithDiscount()"
         [(appliedCoupon)]="appliedCoupon"
       />
     }
@@ -120,6 +121,19 @@ export class EventRegistrationDetailsComponent {
     }
 
     return !this.appliedCoupon();
+  });
+  protected readonly applyPriceWithDiscount = computed(() => {
+    const priceQuestion = this.additionalQuestions().find(
+      (question) => question.key === 'price',
+    );
+
+    if (!priceQuestion) {
+      return true;
+    }
+
+    const priceAnswer = this.billingRecord()?.additionalAnswers['price'];
+
+    return priceAnswer === priceQuestion.optionWithDiscount;
   });
 
   editRegistration(): void {

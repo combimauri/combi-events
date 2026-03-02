@@ -132,6 +132,7 @@ export class PriceDetailsComponent {
   readonly eventId = input.required<string>();
   readonly eventRecord = inject(EventRecordState).eventRecord;
   readonly price = input.required<Price>();
+  readonly applyPriceWithDiscount = input<boolean>(true);
   readonly productId = input<string>();
   readonly staffRegistration = input<boolean>(false);
 
@@ -149,7 +150,7 @@ export class PriceDetailsComponent {
       return 0;
     }
 
-    return price.discount;
+    return this.applyPriceWithDiscount() ? price.discount : 0;
   });
 
   protected readonly amountToPay = computed(() => {

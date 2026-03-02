@@ -5,6 +5,7 @@ export interface AdditionalQuestion {
   description?: string;
   multiple?: boolean;
   options?: string[];
+  optionWithDiscount?: string;
   required: boolean;
   type: 'text' | 'select' | 'info';
   dependsOn?: { question: string; answer: string };

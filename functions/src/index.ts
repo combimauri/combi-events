@@ -27,6 +27,7 @@ import { PartialEventRecord } from './models/event-record.model';
 import { RecordRole } from './models/record-role.enum';
 import { getOrderById, upsertOrder } from './utils/order.utils';
 import { sendEventRegistrationEmail } from './utils/mail.utils';
+import { AppEvent } from './models/app-event.model';
 
 initializeApp();
 
@@ -35,6 +36,23 @@ const secrets = [
   'PAYMENT_GATEWAY_EMAIL',
   'PAYMENT_GATEWAY_PASSWORD',
 ];
+
+const applyDiscount = (
+  event: AppEvent,
+  additionalAnswers: Record<string, string | string[]>,
+) => {
+  const priceQuestion = event.additionalQuestions.find(
+    (question) => question.key === 'price',
+  );
+
+  if (!priceQuestion) {
+    return true;
+  }
+
+  const priceAnswer = additionalAnswers['price'];
+
+  return priceAnswer === priceQuestion.optionWithDiscount;
+};
 
 export const createNewEventOrder = onCall(
   { secrets },
@@ -62,6 +80,7 @@ export const createNewEventOrder = onCall(
       gatewayEmail,
       gatewayPassword,
       gatewayBasePath,
+      applyDiscount(event, additionalAnswers),
     );
     const newEventRecordData: PartialEventRecord = {
       additionalAnswers,
