@@ -176,7 +176,7 @@ async function getPaymentUrl(
           // TODO: Remove once credit card is allowed
           default_method: 'qr',
           // TODO: Use event end date
-          expiration_date: '2025-12-31T23:59:59Z',
+          expiration_date: '2026-03-14T23:59:59Z',
         },
       }),
     });
