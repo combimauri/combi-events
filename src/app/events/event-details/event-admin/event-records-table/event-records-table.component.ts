@@ -563,20 +563,16 @@ export class EventRecordsTableComponent {
     const csvConfig = mkConfig({ useKeysAsHeaders: true });
     const data = records.map((record) => {
       const answers = structuredClone(record.additionalAnswers);
-      const csvAnswers: Record<string, string> = {};
       const csvRegistries: Record<string, string> = {};
+      const csvAnswers: Record<string, string> = {};
 
-      Object.keys(record.additionalAnswers).forEach((key) => {
-        const value = answers[key];
-        const newKey = this.#questionLabelPipe.transform(
-          key,
-          additionalQuestions,
-        ) as string;
+      additionalQuestions.forEach((question) => {
+        const answer = answers[question.key] ?? '';
 
-        if (Array.isArray(value)) {
-          csvAnswers[newKey] = value.join(';');
+        if (Array.isArray(answer)) {
+          csvAnswers[question.key] = answer.join(';');
         } else {
-          csvAnswers[newKey] = value;
+          csvAnswers[question.key] = answer;
         }
       });
 
