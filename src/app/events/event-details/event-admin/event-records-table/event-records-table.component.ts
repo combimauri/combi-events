@@ -570,9 +570,9 @@ export class EventRecordsTableComponent {
         const answer = answers[question.key] ?? '';
 
         if (Array.isArray(answer)) {
-          csvAnswers[question.key] = answer.join(';');
+          csvAnswers[question.label] = answer.join(';');
         } else {
-          csvAnswers[question.key] = answer;
+          csvAnswers[question.label] = answer;
         }
       });
 
