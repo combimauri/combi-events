@@ -210,13 +210,18 @@ export class EventRegistrationFormComponent implements AfterViewInit {
 
       this.finalAdditionalQuestions.set(
         additionalQuestions.map((additionalQuestion) => {
-          if (additionalQuestion.dependsOn) {
-            const { question, answer } = additionalQuestion.dependsOn;
-            additionalQuestion.visible = eventFormValues[question] === answer;
-          } else {
-            additionalQuestion.visible = ['info', 'text', 'select'].includes(
-              additionalQuestion.type,
-            );
+          if (
+            additionalQuestion.visible === undefined ||
+            additionalQuestion.visible === null
+          ) {
+            if (additionalQuestion.dependsOn) {
+              const { question, answer } = additionalQuestion.dependsOn;
+              additionalQuestion.visible = eventFormValues[question] === answer;
+            } else {
+              additionalQuestion.visible = ['info', 'text', 'select'].includes(
+                additionalQuestion.type,
+              );
+            }
           }
 
           return additionalQuestion;
