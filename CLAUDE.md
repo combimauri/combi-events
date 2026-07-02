@@ -39,7 +39,7 @@ npm run logs           # firebase functions:log
 
 ## Prerequisites & conventions
 
-- **Node 20** (see `.nvmrc` / functions `engines`). Frontend and functions are separate npm packages with separate `node_modules`.
+- **Node 24** for the frontend (see `.nvmrc`); **Node 20** for `functions/` (see `functions/.nvmrc` / functions `engines`) since that's the Cloud Functions runtime. Frontend and functions are separate npm packages with separate `node_modules` — run `nvm use` in each directory.
 - **Prettier** runs on commit via **Husky + lint-staged** (`*.{ts,js,scss,html,md}`). There is no ESLint; formatting is the only enforced gate.
 - TypeScript is **strict** (`strict`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `strictTemplates`). Path aliases (frontend `tsconfig.json`): `@env/*`, `@core/*`, `@shared/*`.
 - Component defaults (from `angular.json` schematics): **inline template + inline styles**, `OnPush` change detection, SCSS, `combi` selector prefix. Follow this for new components.
