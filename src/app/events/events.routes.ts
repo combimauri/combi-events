@@ -13,6 +13,7 @@ import { eventRecordResolver, sessionRecordsResolver } from '@core/resolvers';
 const routes: Routes = [
   {
     path: '',
+    canActivate: [platformGuard],
     loadComponent: () => import('./events.component'),
   },
   {

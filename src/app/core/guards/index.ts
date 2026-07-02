@@ -7,3 +7,4 @@ export * from './marketplace.guard';
 export * from './platform.guard';
 export * from './product.guard';
 export * from './registration.guard';
+export * from './seo.guard';
