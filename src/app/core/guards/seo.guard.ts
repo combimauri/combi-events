@@ -1,6 +1,7 @@
-import { inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn } from '@angular/router';
-import { SeoService } from '@core/services';
+import { EventSeoData, SeoService } from '@core/services';
 import { environment } from '@env/environment';
 import { getApps, initializeApp } from 'firebase/app';
 import { doc, getDoc, getFirestore } from 'firebase/firestore/lite';
@@ -21,6 +22,16 @@ import { catchError, from, map, of } from 'rxjs';
 // navigation, so the meta tags are set regardless of what happens deeper
 // in the tree.
 const SEO_APP_NAME = 'combi-events-seo';
+
+type EventSeoSnapshot = Omit<EventSeoData, 'path'>;
+
+// Browser-only cache: `runGuardsAndResolvers: 'always'` re-runs this guard
+// on every navigation, and without the cache each in-app route change would
+// block on (and bill for) a fresh Firestore read. The server never uses it —
+// a long-lived SSR process would otherwise serve stale event data, and each
+// server request only navigates once anyway. `null` means "event not found"
+// so missing events are not re-fetched either.
+const eventSeoCache = new Map<string, EventSeoSnapshot | null>();
 
 const getSeoFirestore = () => {
   const app =
@@ -46,8 +57,9 @@ const findEventId = (route: ActivatedRouteSnapshot): string | undefined => {
   return undefined;
 };
 
-export const seoGuard: CanActivateFn = (route, state) => {
+export const seoGuard: CanActivateFn = (route) => {
   const seoService = inject(SeoService);
+  const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   const eventId = findEventId(route);
 
   if (!eventId) {
@@ -56,32 +68,47 @@ export const seoGuard: CanActivateFn = (route, state) => {
     return of(true);
   }
 
+  // The canonical/og URL is always the event page itself (never sub-routes
+  // like /register or /admin, which are auth-gated shells, and never query
+  // params like ?couponId=..., which would fragment the canonical).
+  const applyTags = (event: EventSeoSnapshot | null): true => {
+    if (event) {
+      seoService.setEventTags({ ...event, path: `/${eventId}` });
+    } else {
+      seoService.resetTags();
+    }
+
+    return true;
+  };
+
+  const cached = isBrowser ? eventSeoCache.get(eventId) : undefined;
+
+  if (cached !== undefined) {
+    return of(applyTags(cached));
+  }
+
   const firestore = getSeoFirestore();
   const eventDoc = doc(firestore, 'events', eventId);
 
   return from(getDoc(eventDoc)).pipe(
     map((snapshot) => {
       const event = snapshot.data();
+      const seoData: EventSeoSnapshot | null = event
+        ? {
+            name: event['name'],
+            shortDescription: event['shortDescription'],
+            image: event['bannerImage'] || event['image'],
+          }
+        : null;
 
-      if (!event) {
-        seoService.resetTags();
-
-        return true;
+      if (isBrowser) {
+        eventSeoCache.set(eventId, seoData);
       }
 
-      seoService.setEventTags({
-        name: event['name'],
-        shortDescription: event['shortDescription'],
-        image: event['bannerImage'] || event['image'],
-        path: state.url,
-      });
-
-      return true;
+      return applyTags(seoData);
     }),
-    catchError(() => {
-      seoService.resetTags();
-
-      return of(true);
-    }),
+    // Errors are not cached: a transient network failure should not pin the
+    // default tags for the rest of the session.
+    catchError(() => of(applyTags(null))),
   );
 };

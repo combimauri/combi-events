@@ -40,7 +40,9 @@ export class SeoService {
       title: DEFAULT_TITLE,
       description: DEFAULT_DESCRIPTION,
       image: DEFAULT_IMAGE,
-      url: SITE_URL,
+      // Trailing slash to match the static canonical in index.html — the
+      // same page must not alternate between two canonical forms.
+      url: `${SITE_URL}/`,
     });
   }
 
