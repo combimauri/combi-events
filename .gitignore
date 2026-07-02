@@ -57,3 +57,6 @@ serviceAccount.json
 src/scripts/create/events.js
 src/scripts/create/products.js
 src/scripts/create/sessions.js
+
+# Claude Code local settings
+.claude/settings.local.json
