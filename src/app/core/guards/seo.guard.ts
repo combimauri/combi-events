@@ -97,7 +97,7 @@ export const seoGuard: CanActivateFn = (route) => {
         ? {
             name: event['name'],
             shortDescription: event['shortDescription'],
-            image: event['bannerImage'] || event['image'],
+            image: event['image'] || event['bannerImage'],
           }
         : null;
 
