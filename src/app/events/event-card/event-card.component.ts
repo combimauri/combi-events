@@ -41,21 +41,15 @@ import { AppEvent } from '@core/models';
               </span>
             </p>
             <p class="event-card__item">
-              <mat-icon
-                aria-hidden="false"
-                aria-label="ícono de ubicación"
-                fontIcon="location_on"
-              />
+              <mat-icon aria-hidden="true" fontIcon="location_on" />
+              <span class="cdk-visually-hidden">Ubicación:</span>
               <span>
                 {{ event().location.name }}
               </span>
             </p>
             <p class="event-card__item">
-              <mat-icon
-                aria-hidden="false"
-                aria-label="ícono de personas"
-                fontIcon="groups"
-              />
+              <mat-icon aria-hidden="true" fontIcon="groups" />
+              <span class="cdk-visually-hidden">Capacidad:</span>
               <span>
                 {{ event().capacity }}
               </span>
@@ -83,14 +77,23 @@ import { AppEvent } from '@core/models';
   `,
   styles: `
     a {
+      border-radius: var(--ce-radius-lg);
       color: inherit;
+      display: block;
       text-decoration: none;
 
       mat-card {
-        transition: all 0.3s;
+        transition:
+          box-shadow 0.2s ease-out,
+          transform 0.2s ease-out;
 
         &:hover {
-          background-color: #cbc4d0;
+          box-shadow: var(--ce-shadow-card-hover);
+          transform: translateY(-2px);
+        }
+
+        mat-card-title h4 {
+          font-weight: 600;
         }
 
         mat-card-content {
@@ -100,12 +103,14 @@ import { AppEvent } from '@core/models';
 
           .event-card__image {
             aspect-ratio: 1 / 1;
+            border-radius: var(--ce-radius-md);
           }
 
           .event-card__image-skeleton {
             animation: skeleton-loading 1s linear infinite alternate;
             aspect-ratio: 1 / 1;
-            background-color: #636363;
+            background-color: var(--ce-skeleton);
+            border-radius: var(--ce-radius-md);
             width: 152px;
           }
 
@@ -116,11 +121,15 @@ import { AppEvent } from '@core/models';
 
             .event-card__item {
               align-items: center;
+              color: var(--ce-text-muted);
               display: flex;
               gap: 0.5rem;
 
               mat-icon {
                 flex-shrink: 0;
+                font-size: 1.25rem;
+                height: 1.25rem;
+                width: 1.25rem;
               }
 
               span {
@@ -131,12 +140,22 @@ import { AppEvent } from '@core/models';
                 word-wrap: break-word;
               }
 
-              &.event-card__item--description span {
-                -webkit-line-clamp: 4;
+              &.event-card__item--description {
+                color: var(--ce-text-secondary);
+
+                span {
+                  -webkit-line-clamp: 4;
+                }
               }
             }
           }
         }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      a mat-card:hover {
+        transform: none;
       }
     }
   `,

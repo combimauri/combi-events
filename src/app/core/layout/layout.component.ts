@@ -7,7 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services';
-import { LoadingState } from '@core/states';
+import { LoadingState, ThemeState } from '@core/states';
 import { Subject, switchMap } from 'rxjs';
 
 @Component({
@@ -22,6 +22,7 @@ import { Subject, switchMap } from 'rxjs';
     RouterLink,
   ],
   template: `
+    <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
     <header>
       @if (loading()) {
         <mat-progress-bar
@@ -31,11 +32,28 @@ import { Subject, switchMap } from 'rxjs';
       }
       <mat-toolbar>
         <a mat-button class="root-link" routerLink="/">
-          <img class="logo" src="logo.webp" alt="logo de combieventos" />
+          <img class="logo" src="logo.webp" alt="Inicio de Combieventos" />
         </a>
         <span class="toolbar-spacer"></span>
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-label]="
+            darkMode() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'
+          "
+          (click)="themeState.toggleDarkMode()"
+        >
+          <mat-icon
+            aria-hidden="true"
+            [fontIcon]="darkMode() ? 'light_mode' : 'dark_mode'"
+          />
+        </button>
         @if (user(); as user) {
-          <button mat-button [matMenuTriggerFor]="userMenu">
+          <button
+            mat-button
+            aria-label="Menú de usuario"
+            [matMenuTriggerFor]="userMenu"
+          >
             @if (user.photoURL; as photoURL) {
               <div
                 class="avatar"
@@ -60,27 +78,53 @@ import { Subject, switchMap } from 'rxjs';
         }
       </mat-toolbar>
     </header>
-    <main>
+    <main id="main-content">
       <div class="container">
         <ng-content></ng-content>
       </div>
     </main>
     <footer>
-      <a href="https://linktr.ee/combimauri" target="_blank">
+      <a href="https://linktr.ee/combimauri" target="_blank" rel="noopener">
         &#64;combimauri
       </a>
     </footer>
   `,
   styles: `
     :host {
-      background-image: linear-gradient(to top, #a8edea 0%, #fed6e3 100%);
+      background: radial-gradient(
+          80rem 24rem at 50% -8rem,
+          var(--ce-accent-soft),
+          transparent 70%
+        ),
+        var(--ce-bg);
       display: flex;
       flex-direction: column;
       min-height: 100dvh;
     }
 
+    .skip-link {
+      background: var(--ce-surface);
+      border-radius: 0 0 var(--ce-radius-sm) 0;
+      color: var(--ce-text);
+      left: 0;
+      padding: 0.75rem 1rem;
+      position: fixed;
+      top: 0;
+      transform: translateY(-150%);
+      z-index: 20;
+
+      &:focus-visible {
+        transform: translateY(0);
+      }
+    }
+
     header {
+      backdrop-filter: blur(12px);
+      background-color: var(--ce-header-scrim);
+      position: sticky;
+      top: 0;
       width: 100%;
+      z-index: 10;
 
       .loading-spinner {
         position: fixed;
@@ -91,8 +135,8 @@ import { Subject, switchMap } from 'rxjs';
         background: transparent;
 
         .logo {
-          height: auto;
-          width: 50px;
+          height: 26px;
+          width: auto;
           vertical-align: bottom;
         }
 
@@ -125,26 +169,35 @@ import { Subject, switchMap } from 'rxjs';
 
       .container {
         height: 100%;
-        margin: 1rem auto;
-        max-width: 1080px;
+        margin: 1.5rem auto;
+        max-width: 960px;
         padding: 0 1rem;
         width: 100%;
 
         @media (min-width: 960px) {
           padding: 0;
-          width: 75%;
+          width: 80%;
         }
       }
     }
 
     footer {
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid var(--ce-border);
       display: flex;
       font-size: 0.75rem;
       justify-content: flex-end;
       margin: 0 auto;
-      padding: 0.5rem;
+      padding: 0.75rem 1rem;
       width: 95%;
+
+      a {
+        color: var(--ce-text-muted);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--ce-text);
+        }
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -152,6 +205,8 @@ import { Subject, switchMap } from 'rxjs';
 export class LayoutComponent {
   readonly #auth = inject(AuthService);
 
+  readonly themeState = inject(ThemeState);
+  readonly darkMode = this.themeState.darkMode;
   readonly loading = inject(LoadingState).loading;
   readonly logout$ = new Subject<void>();
   readonly user = toSignal(this.#auth.user$);

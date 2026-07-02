@@ -154,7 +154,7 @@ import { UploadBoxComponent } from './upload-box/upload-box.component';
           .payment-card__qr-skeleton {
             animation: skeleton-loading 1s linear infinite alternate;
             aspect-ratio: 1 / 1;
-            background-color: #636363;
+            background-color: var(--ce-skeleton);
             max-width: 100%;
             width: 400px;
           }

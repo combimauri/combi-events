@@ -170,7 +170,7 @@ import { QuestionLabelPipe } from '@shared/pipes';
         .product-form__image-skeleton {
           animation: skeleton-loading 1s linear infinite alternate;
           aspect-ratio: 1 / 1;
-          background-color: #636363;
+          background-color: var(--ce-skeleton);
           border-radius: 10px;
           width: 100%;
         }

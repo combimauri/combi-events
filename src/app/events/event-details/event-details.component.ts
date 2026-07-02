@@ -37,7 +37,7 @@ import { EventRecordState, EventState } from '@core/states';
     }
 
     .event-details__banner {
-      border-radius: 0.75rem;
+      border-radius: var(--ce-radius-lg);
       max-height: 360px;
       object-fit: cover;
       width: 100%;
@@ -46,8 +46,8 @@ import { EventRecordState, EventState } from '@core/states';
     .event-details__banner-skeleton {
       animation: skeleton-loading 1s linear infinite alternate;
       aspect-ratio: 3 / 1;
-      background-color: #636363;
-      border-radius: 0.75rem;
+      background-color: var(--ce-skeleton);
+      border-radius: var(--ce-radius-lg);
       width: 100%;
     }
   `,

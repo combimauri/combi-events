@@ -14,9 +14,14 @@ import { ActivatedRoute, Router } from '@angular/router';
   standalone: true,
   imports: [MatButtonModule, MatIconModule],
   template: `
-    <a mat-icon-button (click)="handleGoBack()">
-      <mat-icon fontIcon="chevron_left" />
-    </a>
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Volver"
+      (click)="handleGoBack()"
+    >
+      <mat-icon aria-hidden="true" fontIcon="chevron_left" />
+    </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

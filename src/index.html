@@ -1,10 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
     <title>Combieventos</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbfaf9" />
+    <script>
+      // Apply the theme before first paint to avoid a flash of the wrong one:
+      // saved preference wins, otherwise follow the system color scheme.
+      try {
+        var ceTheme = localStorage.getItem('ce-theme');
+        if (
+          ceTheme === 'dark' ||
+          (!ceTheme && matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+          document.documentElement.classList.add('dark');
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', '#141416');
+        }
+      } catch (e) {}
+    </script>
     <meta
       name="keywords"
       content="combieventos, eventos, tecnología, programación, desarrollo, web, frontend, backend, fullstack, devops, cloud, aws, azure, gcp, google, microsoft, amazon, webinars, meetups, conferencias, charlas, talleres, hackathons, cursos, bootcamps"
@@ -19,12 +36,13 @@
       name="og:description"
       content="Encuentra y participa en los eventos de tecnología que más te interesan."
     />
-    <meta name="og:image" content="logo.jpeg" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico?v=1.0.0" />
+    <meta name="og:image" content="https://events.combimauri.com/logo.jpeg" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico?v=2.0.0" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
     <link

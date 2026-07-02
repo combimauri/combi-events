@@ -23,11 +23,21 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
-        width: 54px;
+        width: 60px;
+
+        b {
+          color: var(--ce-text);
+          font-weight: 600;
+        }
+
+        span {
+          color: var(--ce-text-muted);
+          font-size: 0.875rem;
+        }
       }
 
       .timeline-item__line {
-        border-left: 2px dashed #9119ff;
+        border-left: 2px dashed var(--ce-border-strong);
         margin: 1rem 1rem 0;
 
         @media (min-width: 960px) {
@@ -35,7 +45,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
         }
 
         &::before {
-          background-color: #9119ff;
+          background-color: var(--ce-border-strong);
           border-radius: 50%;
           content: '';
           display: block;

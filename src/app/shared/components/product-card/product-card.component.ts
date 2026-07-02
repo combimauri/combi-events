@@ -55,15 +55,26 @@ import { Product } from '@core/models';
   `,
   styles: `
     a {
+      border-radius: var(--ce-radius-lg);
       color: inherit;
+      display: block;
       text-decoration: none;
 
       mat-card {
-        transition: all 0.3s;
+        transition:
+          box-shadow 0.2s ease-out,
+          transform 0.2s ease-out;
 
         &:hover {
-          background-color: #cbc4d0;
+          box-shadow: var(--ce-shadow-card-hover);
+          transform: translateY(-2px);
         }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      a mat-card:hover {
+        transform: none;
       }
     }
 
@@ -76,8 +87,8 @@ import { Product } from '@core/models';
 
       .product-card__skeleton {
         animation: skeleton-loading 1s linear infinite alternate;
-        background-color: #636363;
-        border-radius: 10px 10px 0 0;
+        background-color: var(--ce-skeleton);
+        border-radius: var(--ce-radius-lg) var(--ce-radius-lg) 0 0;
         height: 300px;
         width: 100%;
       }

@@ -6,3 +6,4 @@ export * from './product.state';
 export * from './registration-step.state';
 export * from './session-for-scan.state';
 export * from './session-records.state';
+export * from './theme.state';

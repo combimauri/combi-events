@@ -28,12 +28,14 @@ import { Subject, switchMap, tap } from 'rxjs';
     <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          <img src="logo.webp" alt="logo de combieventos" width="100" />
-          <h4>Bienvenido a Combieventos</h4>
+          <img src="logo.webp" alt="" width="88" />
+          <h1 class="login__title">Bienvenido a Combieventos</h1>
         </mat-card-title>
       </mat-card-header>
       <mat-card-content>
-        <p>Por favor, inicia sesión o regístrate para ver nuestros eventos</p>
+        <p class="login__subtitle">
+          Inicia sesión o regístrate para ver nuestros eventos
+        </p>
         <form #loginForm="ngForm" (ngSubmit)="sendSignInLink()">
           <mat-form-field appearance="outline" class="login-field">
             <mat-label>Correo Electrónico</mat-label>
@@ -41,6 +43,7 @@ import { Subject, switchMap, tap } from 'rxjs';
               matInput
               required
               type="email"
+              autocomplete="email"
               id="email"
               name="email"
               [disabled]="loading()"
@@ -84,7 +87,14 @@ import { Subject, switchMap, tap } from 'rxjs';
       margin: 10vh auto 0;
       padding: 1rem;
 
+      mat-card-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
       span {
+        color: var(--ce-text-muted);
         font-size: 0.65rem;
         font-weight: 300;
         margin-top: 1rem;
@@ -92,12 +102,26 @@ import { Subject, switchMap, tap } from 'rxjs';
       }
     }
 
+    .login__title {
+      font-size: 1.375rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0;
+    }
+
+    .login__subtitle {
+      color: var(--ce-text-secondary);
+    }
+
     mat-card-actions {
       padding-top: 1rem;
     }
 
     hr {
+      border: none;
+      border-top: 1px solid var(--ce-border);
       margin-top: 1rem;
+      width: 100%;
     }
 
     .login-field,
