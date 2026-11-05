@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { EventState } from '@core/states';
 
 @Component({
   selector: 'combi-event-admin-button',
   standalone: true,
   imports: [MatButtonModule, MatIconModule, RouterLink],
   template: `
-    <a mat-fab extended routerLink="admin">
+    <a mat-fab extended [routerLink]="['/admin', 'events', event()?.id]">
       <mat-icon fontIcon="admin_panel_settings" />
       Gestionar Evento
     </a>
@@ -20,4 +21,6 @@ import { RouterLink } from '@angular/router';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EventAdminButtonComponent {}
+export class EventAdminButtonComponent {
+  readonly event = inject(EventState).event;
+}

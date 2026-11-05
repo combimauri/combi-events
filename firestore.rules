@@ -1,0 +1,87 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userEmail() {
+      return request.auth.token.email;
+    }
+
+    // Roles live in users/{uid}.roles and can only be granted from the
+    // Firebase console / Admin SDK (clients can't write users docs).
+    function hasRole(role) {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+
+      return isSignedIn()
+        && exists(userPath)
+        && role in get(userPath).data.get('roles', []);
+    }
+
+    match /payments/{payment} {
+      allow read, write: if false;
+    }
+
+    match /mail/{mail} {
+      allow read, write: if false;
+    }
+
+    match /events/{event} {
+      allow read;
+
+      // Users with the "admin" role create events they own. The id inside the
+      // doc must match the doc id and the counter must start at zero.
+      allow create: if hasRole('admin')
+        && request.resource.data.owner == userEmail()
+        && request.resource.data.id == event
+        && request.resource.data.count == 0;
+
+      // Only the owner (with the "admin" role) edits an event, and can't
+      // transfer it or touch fields maintained by Cloud Functions.
+      allow update: if hasRole('admin')
+        && resource.data.owner == userEmail()
+        && !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['owner', 'id', 'count', 'createdAt']);
+
+      // Cloud Functions use the Admin SDK and bypass these rules.
+      allow delete: if false;
+    }
+
+    match /event-records/{record} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    match /coupons/{coupon} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /products/{product} {
+      allow read, write: if true;
+    }
+
+    match /product-records/{record} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /sessions/{session} {
+      allow read: if request.auth != null;
+      allow write;
+    }
+
+    match /session-records/{record} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /schedules/{schedule} {
+      allow read;
+      allow write: if false;
+    }
+  }
+}

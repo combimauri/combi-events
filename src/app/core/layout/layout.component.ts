@@ -6,7 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink } from '@angular/router';
-import { AuthService } from '@core/services';
+import { AuthService, UsersService } from '@core/services';
 import { LoadingState, ThemeState } from '@core/states';
 import { Subject, switchMap } from 'rxjs';
 
@@ -64,7 +64,18 @@ import { Subject, switchMap } from 'rxjs';
               <mat-icon class="avatar__image" fontIcon="account_circle" />
             }
           </button>
-          <mat-menu #userMenu="matMenu">
+          <mat-menu #userMenu="matMenu" xPosition="before">
+            @if (user.email) {
+              <div class="user-menu__header" aria-hidden="true">
+                {{ user.email }}
+              </div>
+            }
+            @if (isAdmin()) {
+              <a mat-menu-item routerLink="/admin">
+                <mat-icon fontIcon="admin_panel_settings" />
+                Administrar eventos
+              </a>
+            }
             <button mat-menu-item (click)="logout$.next()">
               <mat-icon fontIcon="logout" />
               Cerrar Sesión
@@ -164,6 +175,17 @@ import { Subject, switchMap } from 'rxjs';
       }
     }
 
+    .user-menu__header {
+      border-bottom: 1px solid var(--ce-border);
+      color: var(--ce-text-muted);
+      font-size: 0.8125rem;
+      margin-bottom: 0.25rem;
+      overflow: hidden;
+      padding: 0.5rem 1rem 0.75rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     main {
       flex: 1 0 auto;
 
@@ -210,6 +232,9 @@ export class LayoutComponent {
   readonly loading = inject(LoadingState).loading;
   readonly logout$ = new Subject<void>();
   readonly user = toSignal(this.#auth.user$);
+  readonly isAdmin = toSignal(inject(UsersService).isAdmin$, {
+    initialValue: false,
+  });
 
   readonly logout = toSignal(
     this.logout$.pipe(switchMap(() => this.#auth.logout())),

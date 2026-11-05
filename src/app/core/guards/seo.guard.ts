@@ -33,6 +33,11 @@ type EventSeoSnapshot = Omit<EventSeoData, 'path'>;
 // so missing events are not re-fetched either.
 const eventSeoCache = new Map<string, EventSeoSnapshot | null>();
 
+/** Drops the cached SEO snapshot of an event (e.g. after editing it). */
+export const clearEventSeoCache = (eventId: string): void => {
+  eventSeoCache.delete(eventId);
+};
+
 const getSeoFirestore = () => {
   const app =
     getApps().find((existingApp) => existingApp.name === SEO_APP_NAME) ??

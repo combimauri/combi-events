@@ -1,5 +1,6 @@
-export * from './admin.guard';
 export * from './auth.guard';
+export * from './event-admin.guard';
+export * from './event-owner.guard';
 export * from './event.guard';
 export * from './exit-registration.guard';
 export * from './login.guard';
@@ -7,4 +8,5 @@ export * from './marketplace.guard';
 export * from './platform.guard';
 export * from './product.guard';
 export * from './registration.guard';
+export * from './role.guard';
 export * from './seo.guard';

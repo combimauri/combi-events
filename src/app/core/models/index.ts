@@ -1,6 +1,7 @@
 export * from './additional-question.model';
 export * from './additional-registry.model';
 export * from './app-event.model';
+export * from './app-user.model';
 export * from './billing-data.model';
 export * from './billing-record.model';
 export * from './coupon.model';

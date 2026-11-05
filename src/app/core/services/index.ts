@@ -10,3 +10,4 @@ export * from './seo.service';
 export * from './session-records.service';
 export * from './sessions.service';
 export * from './table-records.service';
+export * from './users.service';
