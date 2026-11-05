@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userEmail() {
+      return request.auth.token.email;
+    }
+
+    // Same role check as firestore.rules: users/{email}.roles contains
+    // "admin" and the email is verified.
+    function isAdmin() {
+      let userPath = /databases/(default)/documents/users/$(userEmail());
+
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && firestore.exists(userPath)
+        && 'admin' in firestore.get(userPath).data.get('roles', []);
+    }
+
+    // Admins can upload images for an event they own, or for an event id that
+    // doesn't exist yet (images are uploaded before the event is created).
+    function canManageEventImages(eventId) {
+      let eventPath = /databases/(default)/documents/events/$(eventId);
+
+      return isAdmin()
+        && (!firestore.exists(eventPath)
+          || firestore.get(eventPath).data.owner == userEmail());
+    }
+
+    function isImageUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Everything is publicly readable: event/product images and receipts are
+    // linked by download URL from the app.
+    match /{allPaths=**} {
+      allow read;
+    }
+
+    // Event images uploaded from the admin event form.
+    match /events/{eventId}/{fileName} {
+      allow create, update: if canManageEventImages(eventId)
+        && isImageUnder5MB();
+      allow delete: if false;
+    }
+
+    // Payment receipts uploaded by attendees while registering or buying.
+    match /payments/receipts/{allPaths=**} {
+      allow write: if isSignedIn();
+    }
+  }
+}
