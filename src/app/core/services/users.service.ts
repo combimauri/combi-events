@@ -13,13 +13,15 @@ export class UsersService {
   readonly #firestore = inject(Firestore);
 
   /**
-   * Profile of the signed-in user (`users/{uid}`), `undefined` when signed out
-   * or when the document does not exist. Errors are swallowed on purpose: a
+   * Profile of the signed-in user (`users/{email}`), `undefined` when signed
+   * out or when the document does not exist. Errors are swallowed on purpose: a
    * missing profile simply means "no roles", it is not something to surface.
    */
   readonly currentUser$: Observable<AppUser | undefined> =
     this.#auth.user$.pipe(
-      switchMap((user) => (user ? this.getUserById(user.uid) : of(undefined))),
+      switchMap((user) =>
+        user?.email ? this.getUserById(user.email) : of(undefined),
+      ),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
@@ -29,8 +31,13 @@ export class UsersService {
     return this.currentUser$.pipe(map((user) => !!user?.roles?.includes(role)));
   }
 
-  getUserById(uid: string): Observable<AppUser | undefined> {
-    const docRef = doc(this.#firestore, this.#collectionName, uid);
+  /** Users are keyed by their (lowercase) email address. */
+  getUserById(email: string): Observable<AppUser | undefined> {
+    const docRef = doc(
+      this.#firestore,
+      this.#collectionName,
+      email.toLowerCase(),
+    );
 
     return (docData(docRef) as Observable<AppUser | undefined>).pipe(
       catchError(() => of(undefined)),
