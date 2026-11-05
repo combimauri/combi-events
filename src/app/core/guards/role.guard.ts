@@ -4,7 +4,7 @@ import { UserRole } from '@core/models';
 import { UsersService } from '@core/services';
 import { map, take } from 'rxjs';
 
-/** Lets through only users whose `users/{uid}.roles` contains `role`. */
+/** Lets through only users whose `users/{email}.roles` contains `role`. */
 export const roleGuard =
   (role: UserRole): CanActivateFn =>
   () => {
