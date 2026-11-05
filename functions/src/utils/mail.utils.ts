@@ -50,7 +50,7 @@ export async function sendReceiptRegistrationEmail(
         receiptsHtml +
         `<a href="${link}" target="_blank" rel="noreferrer">Comprobante de Pago ${index + 1}</a><br>`;
     });
-    const html = `¡Hola organizador!<br><br><b>${eventRecord.fullName}</b> se acaba de registrar a tu evento <b>${event.name}</b><br><br>Aquí puedes revisar sus comprobantes de pago:<br>${receiptsHtml}<br>No olvides verificarlos y validar su registro en el <a href="https://events.combimauri.com/${event.id}/admin" target="_blank" rel="noreferrer">administrador</a>.<br><br>¡Éxitos con tu evento!`;
+    const html = `¡Hola organizador!<br><br><b>${eventRecord.fullName}</b> se acaba de registrar a tu evento <b>${event.name}</b><br><br>Aquí puedes revisar sus comprobantes de pago:<br>${receiptsHtml}<br>No olvides verificarlos y validar su registro en el <a href="https://events.combimauri.com/admin/events/${event.id}" target="_blank" rel="noreferrer">administrador</a>.<br><br>¡Éxitos con tu evento!`;
     const firestore = getFirestore();
     await firestore.collection('mail').add({
       to: [event.owner],
@@ -87,7 +87,7 @@ export async function sendReceiptProductEmail(
         receiptsHtml +
         `<a href="${link}" target="_blank" rel="noreferrer">Comprobante de Pago ${index + 1}</a><br>`;
     });
-    const html = `¡Hola organizador!<br><br><b>${productRecord.fullName}</b> compró en Marketplace el producto <b>${productRecord.productName}</b><br><br>Aquí puedes revisar sus comprobantes de pago:<br>${receiptsHtml}<br>No olvides verificarlos y validar su compra en el <a href="https://events.combimauri.com/${event.id}/admin" target="_blank" rel="noreferrer">administrador</a>.<br><br>¡Éxitos con tu evento!`;
+    const html = `¡Hola organizador!<br><br><b>${productRecord.fullName}</b> compró en Marketplace el producto <b>${productRecord.productName}</b><br><br>Aquí puedes revisar sus comprobantes de pago:<br>${receiptsHtml}<br>No olvides verificarlos y validar su compra en el <a href="https://events.combimauri.com/admin/events/${event.id}" target="_blank" rel="noreferrer">administrador</a>.<br><br>¡Éxitos con tu evento!`;
     const firestore = getFirestore();
     await firestore.collection('mail').add({
       to: [event.owner],

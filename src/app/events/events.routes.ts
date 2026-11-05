@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import {
-  adminGuard,
   authGuard,
   eventGuard,
   exitRegistrationGuard,
@@ -15,6 +14,13 @@ const routes: Routes = [
     path: '',
     canActivate: [platformGuard],
     loadComponent: () => import('./events.component'),
+  },
+  {
+    // Event management moved to the admin area. Kept as a redirect so old
+    // links (e.g. organizer notification emails) keep working.
+    path: ':eventId/admin',
+    pathMatch: 'full',
+    redirectTo: '/admin/events/:eventId',
   },
   {
     path: ':eventId',
@@ -46,12 +52,6 @@ const routes: Routes = [
           import(
             './event-details/event-registration/event-registration.component'
           ),
-      },
-      {
-        path: 'admin',
-        canActivate: [authGuard, adminGuard],
-        loadComponent: () =>
-          import('./event-details/event-admin/event-admin.component'),
       },
       {
         path: 'scanner',

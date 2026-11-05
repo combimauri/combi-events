@@ -1,11 +1,17 @@
 import { Routes } from '@angular/router';
-import { loginGuard, platformGuard, seoGuard } from '@core/guards';
+import { authGuard, loginGuard, platformGuard, seoGuard } from '@core/guards';
 
 export const routes: Routes = [
   {
     path: 'login',
     canActivate: [platformGuard, loginGuard],
     loadChildren: () => import('./login/login.routes'),
+  },
+  {
+    // Must be declared before '' so "admin" is never matched as an :eventId.
+    path: 'admin',
+    canActivate: [platformGuard, authGuard],
+    loadChildren: () => import('./admin/admin.routes'),
   },
   {
     path: '',
