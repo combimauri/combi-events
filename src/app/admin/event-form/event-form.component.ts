@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   inject,
   OnInit,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
@@ -19,6 +21,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +29,9 @@ import { clearEventSeoCache } from '@core/guards';
 import { AppEvent } from '@core/models';
 import {
   AuthService,
+  EVENT_IMAGE_MAX_BYTES,
   EventFormData,
+  EventImageKind,
   EventsService,
   LoggerService,
 } from '@core/services';
@@ -104,6 +109,7 @@ const geolocationValidator: ValidatorFn = (
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressBarModule,
     MatSelectModule,
     MatSlideToggleModule,
     PageTitleComponent,
@@ -197,40 +203,98 @@ const geolocationValidator: ValidatorFn = (
         </mat-card-header>
         <mat-card-content class="event-form__fields">
           <div class="event-form__image-field">
-            <mat-form-field>
-              <mat-label>URL de la imagen</mat-label>
-              <input matInput type="url" formControlName="image" required />
-              <mat-hint
-                >Imagen cuadrada para tarjetas y redes sociales.</mat-hint
+            <div class="event-form__upload-row">
+              <mat-form-field>
+                <mat-label>Imagen (URL)</mat-label>
+                <input matInput type="url" formControlName="image" required />
+                <mat-hint
+                  >Imagen cuadrada para tarjetas y redes sociales. Súbela o pega
+                  una URL.</mat-hint
+                >
+                @if (form.controls.image.hasError('required')) {
+                  <mat-error>La imagen es obligatoria</mat-error>
+                }
+              </mat-form-field>
+              <input
+                #imageFile
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="uploadImage('image', imageFile)"
+              />
+              <button
+                mat-stroked-button
+                type="button"
+                class="event-form__upload-button"
+                [disabled]="uploadProgress().image !== null"
+                (click)="imageFile.click()"
               >
-              @if (form.controls.image.hasError('required')) {
-                <mat-error>La imagen es obligatoria</mat-error>
-              }
-            </mat-form-field>
+                <mat-icon aria-hidden="true" fontIcon="upload" />
+                Subir imagen
+              </button>
+            </div>
+            @if (uploadProgress().image; as progress) {
+              <mat-progress-bar
+                mode="determinate"
+                [value]="progress"
+                aria-label="Progreso de subida"
+              />
+            } @else if (uploadProgress().image === 0) {
+              <mat-progress-bar mode="indeterminate" aria-label="Subiendo" />
+            }
             @if (form.controls.image.valid) {
               <img
                 class="event-form__preview event-form__preview--square"
-                alt="Vista previa de la imagen"
+                alt="Vista previa la imagen"
                 [src]="form.controls.image.value"
               />
             }
           </div>
           <div class="event-form__image-field">
-            <mat-form-field>
-              <mat-label>URL del banner</mat-label>
+            <div class="event-form__upload-row">
+              <mat-form-field>
+                <mat-label>Banner (URL)</mat-label>
+                <input
+                  matInput
+                  type="url"
+                  formControlName="bannerImage"
+                  required
+                />
+                <mat-hint
+                  >Imagen horizontal (3:1) de la página del evento. Súbela o
+                  pega una URL.</mat-hint
+                >
+                @if (form.controls.bannerImage.hasError('required')) {
+                  <mat-error>El banner es obligatorio</mat-error>
+                }
+              </mat-form-field>
               <input
-                matInput
-                type="url"
-                formControlName="bannerImage"
-                required
+                #bannerFile
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="uploadImage('banner', bannerFile)"
               />
-              <mat-hint
-                >Imagen horizontal (3:1) de la página del evento.</mat-hint
+              <button
+                mat-stroked-button
+                type="button"
+                class="event-form__upload-button"
+                [disabled]="uploadProgress().banner !== null"
+                (click)="bannerFile.click()"
               >
-              @if (form.controls.bannerImage.hasError('required')) {
-                <mat-error>El banner es obligatorio</mat-error>
-              }
-            </mat-form-field>
+                <mat-icon aria-hidden="true" fontIcon="upload" />
+                Subir banner
+              </button>
+            </div>
+            @if (uploadProgress().banner; as progress) {
+              <mat-progress-bar
+                mode="determinate"
+                [value]="progress"
+                aria-label="Progreso de subida"
+              />
+            } @else if (uploadProgress().banner === 0) {
+              <mat-progress-bar mode="indeterminate" aria-label="Subiendo" />
+            }
             @if (form.controls.bannerImage.valid) {
               <img
                 class="event-form__preview event-form__preview--banner"
@@ -443,7 +507,11 @@ const geolocationValidator: ValidatorFn = (
         <button mat-stroked-button type="button" (click)="goBack()">
           Cancelar
         </button>
-        <button mat-flat-button type="submit" [disabled]="loading()">
+        <button
+          mat-flat-button
+          type="submit"
+          [disabled]="loading() || uploading()"
+        >
           <mat-icon aria-hidden="true" fontIcon="save" />
           {{ isEdit ? 'Guardar cambios' : 'Crear evento' }}
         </button>
@@ -490,6 +558,21 @@ const geolocationValidator: ValidatorFn = (
       flex-direction: column;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
+    }
+
+    .event-form__upload-row {
+      align-items: flex-start;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 0.75rem;
+
+      mat-form-field {
+        flex: 1 1 280px;
+      }
+    }
+
+    .event-form__upload-button {
+      height: 56px;
     }
 
     .event-form__preview {
@@ -542,6 +625,14 @@ export default class EventFormComponent implements OnInit {
   readonly isEdit = inject(ActivatedRoute).snapshot.data['mode'] === 'edit';
   readonly loading = inject(LoadingState).loading;
   readonly currencies = ['BOB', 'USD'];
+  // Upload percentage per image; null when nothing is uploading.
+  readonly uploadProgress = signal<Record<EventImageKind, number | null>>({
+    image: null,
+    banner: null,
+  });
+  readonly uploading = computed(() =>
+    Object.values(this.uploadProgress()).some((progress) => progress !== null),
+  );
 
   readonly form = this.#fb.nonNullable.group(
     {
@@ -638,8 +729,77 @@ export default class EventFormComponent implements OnInit {
       });
   }
 
+  uploadImage(kind: EventImageKind, input: HTMLInputElement): void {
+    const file = input.files?.[0];
+
+    // Reset so picking the same file again still triggers (change).
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.#logger.handleError('El archivo debe ser una imagen');
+
+      return;
+    }
+
+    if (file.size > EVENT_IMAGE_MAX_BYTES) {
+      this.#logger.handleError('La imagen no puede pesar más de 5 MB');
+
+      return;
+    }
+
+    const idControl = this.form.controls.id;
+
+    // Images are stored under the event id, so it must be valid first.
+    if (!this.isEdit && idControl.invalid) {
+      idControl.markAsTouched();
+      this.#logger.handleError(
+        'Define un identificador válido antes de subir imágenes',
+      );
+
+      return;
+    }
+
+    const control =
+      kind === 'image'
+        ? this.form.controls.image
+        : this.form.controls.bannerImage;
+
+    this.#setUploadProgress(kind, 0);
+    this.#eventsService
+      .uploadEventImage(idControl.value, kind, file)
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe({
+        next: ({ progress, url }) => {
+          this.#setUploadProgress(kind, progress);
+
+          if (url) {
+            control.setValue(url);
+            control.markAsDirty();
+          }
+        },
+        error: (error) => {
+          this.#setUploadProgress(kind, null);
+          this.#logger.handleError(
+            error?.code === 'storage/unauthorized'
+              ? 'No tienes permiso para subir imágenes a este evento'
+              : 'No se pudo subir la imagen. Inténtalo de nuevo.',
+          );
+          console.error(error);
+        },
+        complete: () => this.#setUploadProgress(kind, null),
+      });
+  }
+
   goBack(): void {
     this.#router.navigate(['/admin']);
+  }
+
+  #setUploadProgress(kind: EventImageKind, progress: number | null): void {
+    this.uploadProgress.update((current) => ({ ...current, [kind]: progress }));
   }
 
   #buildLocationGroup() {

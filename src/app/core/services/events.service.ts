@@ -15,6 +15,12 @@ import {
   updateDoc,
   where,
 } from '@angular/fire/firestore';
+import {
+  getDownloadURL,
+  ref,
+  Storage,
+  uploadBytesResumable,
+} from '@angular/fire/storage';
 import { AppEvent } from '@core/models';
 import { loadEffect, handleError } from '@core/utils';
 import { catchError, from, map, Observable, take, tap } from 'rxjs';
@@ -54,6 +60,16 @@ export interface EventFormData {
   startDate: Date;
 }
 
+export type EventImageKind = 'image' | 'banner';
+
+/** Progress (0-100) of an image upload; `url` is set once it finishes. */
+export interface EventImageUpload {
+  progress: number;
+  url?: string;
+}
+
+export const EVENT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+
 export const EVENT_ALREADY_EXISTS_ERROR =
   'Ya existe un evento con ese identificador. Elige otro.';
 
@@ -65,6 +81,7 @@ export class EventsService {
   readonly #collectionName = 'events';
   readonly #loadEffectObserver = loadEffect();
   readonly #logger = inject(LoggerService);
+  readonly #storage = inject(Storage);
 
   getEvents(): Observable<AppEvent[] | undefined> {
     const eventsCollection = collection(this.#firestore, this.#collectionName);
@@ -195,5 +212,54 @@ export class EventsService {
       map(() => true as const),
       catchError((error) => handleError(error, this.#logger)),
     );
+  }
+
+  /**
+   * Uploads an event image to `events/{eventId}/{kind}-{timestamp}.{ext}` and
+   * emits the progress, then the public download URL. Unsubscribing cancels
+   * an upload still in flight.
+   */
+  uploadEventImage(
+    eventId: string,
+    kind: EventImageKind,
+    file: File,
+  ): Observable<EventImageUpload> {
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'img';
+    const storageRef = ref(
+      this.#storage,
+      `events/${eventId}/${kind}-${Date.now()}.${extension}`,
+    );
+
+    return new Observable<EventImageUpload>((subscriber) => {
+      const task = uploadBytesResumable(storageRef, file, {
+        cacheControl: 'public, max-age=31536000',
+        contentType: file.type,
+      });
+      const unsubscribe = task.on(
+        'state_changed',
+        (snapshot) =>
+          subscriber.next({
+            progress: (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
+          }),
+        (error) => subscriber.error(error),
+        () => {
+          getDownloadURL(task.snapshot.ref).then(
+            (url) => {
+              subscriber.next({ progress: 100, url });
+              subscriber.complete();
+            },
+            (error) => subscriber.error(error),
+          );
+        },
+      );
+
+      return () => {
+        unsubscribe();
+
+        if (task.snapshot.state === 'running') {
+          task.cancel();
+        }
+      };
+    });
   }
 }
